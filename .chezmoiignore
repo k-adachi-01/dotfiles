@@ -1,0 +1,5 @@
+# Secrets and machine-specific files
+.aws
+.claude
+.claude.json
+dot_config/gh/hosts.yml
