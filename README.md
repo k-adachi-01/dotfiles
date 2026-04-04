@@ -13,8 +13,8 @@ Personal dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.mise.toml` | mise tool versions |
 | `~/.wezterm.lua` | WezTerm configuration |
 | `~/.config/nvim/` | Neovim (LazyVim) configuration |
-| `~/.claude/CLAUDE.md` | Claude Code config (symlink) |
-| `~/.claude/AGENTS.md` | Claude Code agents config (symlink) |
+| `~/.claude/CLAUDE.md` | Claude Code config |
+| `~/.claude/AGENTS.md` | Claude Code agents config |
 
 ## Setup
 
@@ -39,13 +39,16 @@ chezmoi init --apply k-adachi-01/dotfiles
 ## Daily workflow
 
 ```bash
-# Edit a file
+# Edit via chezmoi (opens source file directly)
 chezmoi edit ~/.bashrc
 
-# Check diff after editing directly
+# Or edit the target file directly, then sync back to source
+chezmoi re-add ~/.bashrc
+
+# Check diff
 chezmoi diff
 
-# Apply changes
+# Apply source changes to target
 chezmoi apply
 
 # Commit and push
