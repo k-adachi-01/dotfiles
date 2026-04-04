@@ -9,6 +9,16 @@
 
 local autocmd = vim.api.nvim_create_autocmd
 
+-- WezTerm の背景透過に合わせて nvim の背景を透明にする
+autocmd("ColorScheme", {
+  group = vim.api.nvim_create_augroup("transparent-bg", { clear = true }),
+  callback = function()
+    vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
+    vim.api.nvim_set_hl(0, "NormalNC", { bg = "none" })
+    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
+  end,
+})
+
 local ime_toggle = vim.fn.exepath("ime_toggle.exe")
 if ime_toggle == "" then
   local candidate = vim.fn.expand("~/bin/ime_toggle.exe")
