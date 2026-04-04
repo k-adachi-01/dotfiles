@@ -13,6 +13,8 @@ Personal dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.mise.toml` | mise tool versions |
 | `~/.wezterm.lua` | WezTerm configuration |
 | `~/.config/nvim/` | Neovim (LazyVim) configuration |
+| `~/.claude/CLAUDE.md` | Claude Code config (symlink) |
+| `~/.claude/AGENTS.md` | Claude Code agents config (symlink) |
 
 ## Setup
 
