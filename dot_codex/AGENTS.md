@@ -10,7 +10,24 @@
 | `apt-get install` | `apt install` |
 | `apt-get update` | `apt update` |
 
-## パッケージマネージャー
+## Python パッケージマネージャー
+
+**uv を使用する。pip・pip3 は使用しない。仮想環境は必ず `uv venv` で作成する。**
+
+- 仮想環境作成: `uv venv`
+- 仮想環境有効化: `source .venv/bin/activate`
+- パッケージインストール: `uv pip install <pkg>`
+- スクリプト実行（venv 不要）: `uv run python script.py`
+- ツールのグローバルインストール: `uv tool install <pkg>`
+
+| NG | OK |
+|---|---|
+| `pip install` | `uv pip install` |
+| `pip3 install` | `uv pip install` |
+| `python -m pip install` | `uv pip install` |
+| venv なしで直接インストール | `uv venv` で仮想環境を作成してから |
+
+## JavaScript パッケージマネージャー
 
 **pnpm を使用する。npm は使用しない。**
 
@@ -59,6 +76,8 @@ pnpm = "latest"
 
 | NG | OK |
 |---|---|
+| `pip install` | `uv pip install`（仮想環境内） |
+| `pip3 install` | `uv pip install`（仮想環境内） |
 | `npm install` | `pnpm install` |
 | `npx <cmd>` | `pnpm exec <cmd>` |
 | `cache: 'npm'` (actions/setup-node) | `jdx/mise-action@v2` |
@@ -74,6 +93,8 @@ pnpm = "latest"
 - 新マシンへの適用: `chezmoi init --apply k-adachi-01/dotfiles`
 - 管理対象: `.bashrc`, `.profile`, `.gitconfig`, `.inputrc`, `.mise.toml`, `.wezterm.lua`, `.config/nvim/`
 - 除外（秘密情報）: `.aws/`, `.claude/`, `.config/gh/hosts.yml`
+
+**dotfiles を更新した後は、必ずユーザーに `k-adachi-01/dotfiles` リポジトリへ commit・push するかどうか確認を求めること。**
 
 ## ファイルパス（Windows / WSL2）
 
