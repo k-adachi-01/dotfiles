@@ -211,7 +211,7 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
 
 	local edge_background = "none"
 	local edge_foreground = background
-	local title = "   " .. wezterm.truncate_right(tab.active_pane.title, max_width - 1) .. "   "
+	local title = "   " .. wezterm.truncate_right(tab.tab_title ~= "" and tab.tab_title or tab.active_pane.title, max_width - 1) .. "   "
 
 	return {
 		{ Background = { Color = edge_background } },
@@ -267,6 +267,20 @@ config.keys = {
 
 	-- leader+a で本来の Ctrl-A を送る
 	{ key = "a", mods = "LEADER", action = act.SendKey({ key = "a", mods = "CTRL" }) },
+
+	-- タブ名変更
+	{
+		key = ",",
+		mods = "LEADER",
+		action = act.PromptInputLine({
+			description = "Tab name:",
+			action = wezterm.action_callback(function(window, pane, line)
+				if line then
+					window:active_tab():set_title(line)
+				end
+			end),
+		}),
+	},
 
 	-- クリップボード
 	{ key = "c", mods = "CTRL|SHIFT", action = act.CopyTo("Clipboard") },
