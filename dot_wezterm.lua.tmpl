@@ -118,6 +118,10 @@ local function split_action(direction)
 	end)
 end
 
+-- 背景透過率ステップ
+local opacity_steps = { 0.85, 0.95, 1.0 }
+local opacity_index = 1
+
 -- フォント
 config.font = wezterm.font_with_fallback({
 	"PlemolJP Console NF",
@@ -289,6 +293,16 @@ config.keys = {
 
 	-- コマンドパレット
 	{ key = "p", mods = "LEADER", action = act.ActivateCommandPalette },
+
+	-- 背景透過率サイクル（0.85 → 0.95 → 1.0）
+	{
+		key = "o",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window)
+			opacity_index = (opacity_index % #opacity_steps) + 1
+			window:set_config_overrides({ window_background_opacity = opacity_steps[opacity_index] })
+		end),
+	},
 
 {{ if eq .chezmoi.os "linux" -}}
 	-- 新しいタブ（WSL ホームで開く）
