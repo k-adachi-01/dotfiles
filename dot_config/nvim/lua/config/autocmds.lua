@@ -9,6 +9,17 @@
 
 local autocmd = vim.api.nvim_create_autocmd
 
+-- フォーカスが戻ったときや idle 時にディスク上のファイル変更を自動反映
+vim.o.autoread = true
+autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+  group = vim.api.nvim_create_augroup("auto-checktime", { clear = true }),
+  callback = function()
+    if vim.fn.mode() ~= "c" then
+      vim.cmd("silent! checktime")
+    end
+  end,
+})
+
 -- WezTerm の背景透過に合わせて nvim の背景を透明にする
 autocmd("ColorScheme", {
   group = vim.api.nvim_create_augroup("transparent-bg", { clear = true }),
