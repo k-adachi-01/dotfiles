@@ -41,6 +41,7 @@ chezmoi init --apply k-adachi-01/dotfiles
 
 This repository also contains the Apple Silicon macOS Nix configuration.
 The target profile is `darwinConfigurations.macbook`.
+For the full handoff runbook, see [`docs/macos-nix-migration.md`](docs/macos-nix-migration.md).
 
 1. Install Nix with flakes enabled.
 2. Apply dotfiles:
