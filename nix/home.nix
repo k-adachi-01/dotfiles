@@ -51,18 +51,18 @@
 
   programs.git = {
     enable = true;
-    userName = "k-adachi-01";
-    userEmail = "sewaniwa@gmail.com";
-    extraConfig = {
+    settings = {
+      user = {
+        name = "k-adachi-01";
+        email = "sewaniwa@gmail.com";
+      };
       init.defaultBranch = "main";
-      credential."https://github.com" = {
-        helper = [
+      credential = {
+        "https://github.com".helper = [
           ""
           "!gh auth git-credential"
         ];
-      };
-      credential."https://gist.github.com" = {
-        helper = [
+        "https://gist.github.com".helper = [
           ""
           "!gh auth git-credential"
         ];
