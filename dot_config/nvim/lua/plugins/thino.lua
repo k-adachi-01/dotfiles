@@ -1,4 +1,4 @@
-local vault = "/mnt/c/Users/adachi/obsidian"
+local vault = vim.env.OBSIDIAN_VAULT or vim.fn.expand("~/obsidian")
 
 local function daily_path()
   return vault .. "/02_daily/" .. os.date("%Y-%m-%d") .. ".md"

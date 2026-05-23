@@ -17,9 +17,45 @@ end
 local function is_windows_path(path)
 	return path:match("^/%a:/") or path:match("^/mnt/%a/")
 end
+
+local function proc_cwd(pid)
+	if pid == nil then
+		return nil
+	end
+	local link = "/proc/" .. tostring(pid) .. "/cwd"
+	local ok, path = pcall(function()
+		return wezterm.readlink(link)
+	end)
+	if ok and path and path ~= "" then
+		return path
+	end
+	-- fallback: run readlink via shell
+	local f = io.popen("readlink -f " .. link .. " 2>/dev/null")
+	if f then
+		local result = f:read("*l")
+		f:close()
+		if result and result ~= "" then
+			return result
+		end
+	end
+	return nil
+end
 {{ end -}}
 
 local function current_working_dir_path(pane)
+{{ if eq .chezmoi.os "linux" -}}
+	-- Try to get CWD from the foreground process (works even when shell is not updating OSC 7)
+	local ok, proc = pcall(function()
+		return pane:get_foreground_process_info()
+	end)
+	if ok and proc and proc.pid then
+		local cwd = proc_cwd(proc.pid)
+		if cwd and cwd ~= "" then
+			return cwd
+		end
+	end
+{{ end -}}
+
 	local cwd_uri = pane:get_current_working_dir()
 	if cwd_uri == nil then
 		return nil
@@ -153,6 +189,29 @@ config.colors = {
 	tab_bar = {
 		background = "none",
 		inactive_tab_edge = "none",
+	},
+	-- Catppuccin Mocha の ANSI green (#a6e3a1) はそのまま使うが、
+	-- kiro-cli の diff 背景に使われる pure green (#00ff00) を抑えるため
+	-- ANSI index 2 / 10 を落ち着いた緑に差し替える
+	ansi = {
+		"#45475a", -- black   (Surface1)
+		"#f38ba8", -- red     (Red)
+		"#40a060", -- green   ← #a6e3a1 から落ち着いた緑へ
+		"#f9e2af", -- yellow  (Yellow)
+		"#89b4fa", -- blue    (Blue)
+		"#cba6f7", -- magenta (Mauve)
+		"#94e2d5", -- cyan    (Teal)
+		"#bac2de", -- white   (Subtext1)
+	},
+	brights = {
+		"#585b70", -- bright black   (Surface2)
+		"#f38ba8", -- bright red     (Red)
+		"#52b472", -- bright green   ← 明るめだが蛍光ではない緑
+		"#f9e2af", -- bright yellow  (Yellow)
+		"#89b4fa", -- bright blue    (Blue)
+		"#cba6f7", -- bright magenta (Mauve)
+		"#94e2d5", -- bright cyan    (Teal)
+		"#a6adc8", -- bright white   (Subtext0)
 	},
 }
 
@@ -309,7 +368,7 @@ config.keys = {
 	{ key = "t", mods = "LEADER", action = act.SpawnCommandInNewTab(preferred_wsl_home_spawn_command()) },
 	{ key = "t", mods = "CTRL|SHIFT", action = act.SpawnCommandInNewTab(preferred_wsl_home_spawn_command()) },
 
-	-- leader+n: nvim . + 右paneで cc
+	-- leader+n: nvim . + 右paneで codex
 	{
 		key = "n",
 		mods = "LEADER",
@@ -325,12 +384,40 @@ config.keys = {
 				spawn = {
 					domain = { DomainName = domain_name },
 					cwd = linux_home,
-					args = { "/bin/bash", "-lc", 'cd -- "$1" && claude --permission-mode acceptEdits; exec /bin/bash -l', "bash", cwd },
+					args = { "/bin/bash", "-lc", 'cd -- "$1" && codex; exec /bin/bash -l', "bash", cwd },
 				}
 			else
 				spawn = {
 					domain = "CurrentPaneDomain",
-					args = { "/bin/bash", "-lc", "cc; exec /bin/bash -l" },
+					args = { "/bin/bash", "-lc", "codex; exec /bin/bash -l" },
+				}
+			end
+			window:perform_action(act.SplitPane({ direction = "Right", command = spawn }), pane)
+		end),
+	},
+
+	-- leader+c: nvim . + 右paneで codex
+	{
+		key = "c",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window, pane)
+			window:perform_action(act.SendString("nvim .\n"), pane)
+			local domain_name = pane:get_domain_name()
+			local cwd = current_working_dir_path(pane)
+			if cwd == nil or cwd == "" or is_windows_path(cwd) then
+				cwd = linux_home
+			end
+			local spawn
+			if domain_name and domain_name:match("^WSL:") then
+				spawn = {
+					domain = { DomainName = domain_name },
+					cwd = linux_home,
+					args = { "/bin/bash", "-lc", 'cd -- "$1" && codex; exec /bin/bash -l', "bash", cwd },
+				}
+			else
+				spawn = {
+					domain = "CurrentPaneDomain",
+					args = { "/bin/bash", "-lc", "codex; exec /bin/bash -l" },
 				}
 			end
 			window:perform_action(act.SplitPane({ direction = "Right", command = spawn }), pane)
@@ -341,7 +428,7 @@ config.keys = {
 	{ key = "t", mods = "LEADER", action = act.SpawnCommandInNewTab({ cwd = home }) },
 	{ key = "t", mods = "CTRL|SHIFT", action = act.SpawnCommandInNewTab({ cwd = home }) },
 
-	-- leader+n: nvim . + 右paneで cc
+	-- leader+n: nvim . + 右paneで codex
 	{
 		key = "n",
 		mods = "LEADER",
@@ -354,7 +441,28 @@ config.keys = {
 					command = {
 						domain = "CurrentPaneDomain",
 						cwd = cwd,
-						args = { "/bin/zsh", "-lc", "claude --permission-mode acceptEdits; exec /bin/zsh -l" },
+						args = { "/bin/zsh", "-lc", "codex; exec /bin/zsh -l" },
+					},
+				}),
+				pane
+			)
+		end),
+	},
+
+	-- leader+c: nvim . + 右paneで codex
+	{
+		key = "c",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window, pane)
+			window:perform_action(act.SendString("nvim .\n"), pane)
+			local cwd = current_working_dir_path(pane) or home
+			window:perform_action(
+				act.SplitPane({
+					direction = "Right",
+					command = {
+						domain = "CurrentPaneDomain",
+						cwd = cwd,
+						args = { "/bin/zsh", "-lc", "codex; exec /bin/zsh -l" },
 					},
 				}),
 				pane

@@ -91,7 +91,7 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias cc='claude --permission-mode acceptEdits'
 alias ca='claude --enable-auto-mode'
-alias cdx='codex --full-auto'
+alias cdx='codex'
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
@@ -134,7 +134,9 @@ export PATH="$HOME/bin:$PATH"
 # Enable vi mode for Readline
 set -o vi
 
-alias obsidian='/mnt/c/Users/adachi/AppData/Local/Programs/obsidian/Obsidian.exe'
+if [ -x /mnt/c/Users/adachi/AppData/Local/Programs/obsidian/Obsidian.exe ]; then
+  alias obsidian='/mnt/c/Users/adachi/AppData/Local/Programs/obsidian/Obsidian.exe'
+fi
 export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
 export PATH="$HOME/.cargo/bin:$PATH"
 . "$HOME/.cargo/env"
