@@ -18,11 +18,14 @@ This repository used to be a chezmoi source tree. The target state is now:
 | `nix/` | nix-darwin and home-manager modules |
 | `home/` | source files installed by home-manager |
 | `home/agents/` | Codex rules and Kiro powers installed by home-manager |
+| `home/editors/` | editor extension manifests derived from Windows |
+| `windows/` | Windows-only fallback settings kept for handoff |
 | `docs/macos-nix-migration.md` | migration runbook |
 
 ## AI Agent Configuration
 
 `nix/agents.nix` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration.
+`nix/editors.nix` manages VS Code, Cursor, Antigravity, and Antigravity IDE user settings on macOS.
 
 Managed by Nix:
 
@@ -51,6 +54,22 @@ Managed by Nix:
 - `~/.kiro/powers.mcp.json`
 - `~/.kiro/settings/`
 - `~/.kiro/powers/`
+
+Editor settings managed by Nix on macOS:
+
+- `~/Library/Application Support/Code/User/settings.json`
+- `~/Library/Application Support/Cursor/User/settings.json`
+- `~/Library/Application Support/Cursor/User/keybindings.json`
+- `~/Library/Application Support/Antigravity/User/settings.json`
+- `~/Library/Application Support/Antigravity/User/keybindings.json`
+- `~/Library/Application Support/Antigravity IDE/User/settings.json`
+- `~/Library/Application Support/Antigravity IDE/User/keybindings.json`
+
+Windows-only settings preserved for handoff:
+
+- `home/wezterm/windows.lua`
+- `windows/terminal/settings.json`
+- `windows/wsl/.wslconfig`
 
 Not managed by Nix:
 

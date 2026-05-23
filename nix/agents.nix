@@ -212,6 +212,10 @@ in
           source = "github";
           repo = "affaan-m/everything-claude-code";
         };
+        claude-plugins-official.source = {
+          source = "github";
+          repo = "anthropics/claude-plugins-official";
+        };
       };
       effortLevel = "xhigh";
       tui = "fullscreen";
@@ -335,6 +339,12 @@ in
     };
 
     ".codex/AGENTS.md".source = ../home/ai/AGENTS.md;
+    ".codex/keybindings.json".source = json.generate "codex-keybindings.json" [
+      {
+        command = "globalDictationHold";
+        key = "Ctrl+Alt+Z";
+      }
+    ];
     ".codex/skills/browser-use-local".source = agentSkills + "/browser-use-local";
     ".codex/skills/vercel-react-best-practices".source = agentSkills + "/vercel-react-best-practices";
     ".codex/skills/wezterm-config-sync".source = agentSkills + "/wezterm-config-sync";
@@ -407,6 +417,33 @@ in
     };
 
     ".cursor/AGENTS.md".source = ../home/ai/AGENTS.md;
+    ".cursor/mcp.json".source = json.generate "cursor-mcp.json" {
+      mcpServers = {
+        playwright = {
+          command = "pnpm";
+          args = [
+            "dlx"
+            "@playwright/mcp@latest"
+          ];
+        };
+        "awslabs.aws-documentation-mcp-server" = {
+          command = "uvx";
+          args = [ "awslabs.aws-documentation-mcp-server@latest" ];
+          env = {
+            FASTMCP_LOG_LEVEL = "ERROR";
+            AWS_DOCUMENTATION_PARTITION = "aws";
+          };
+        };
+        "aws-knowledge-mcp-server".url = "https://knowledge-mcp.global.api.aws";
+        context7 = {
+          command = "pnpm";
+          args = [
+            "dlx"
+            "@upstash/context7-mcp@latest"
+          ];
+        };
+      };
+    };
     ".cursor/skills".source = agentSkills;
     ".cursor/cli-config.json".source = json.generate "cursor-cli-config.json" {
       permissions = {
@@ -555,6 +592,74 @@ in
       inherit mcpServers;
     };
     ".kiro/settings/cli.json".source = json.generate "kiro-cli.json" { };
+    ".kiro/settings/mcp.json".source = json.generate "kiro-settings-mcp.json" {
+      mcpServers = { };
+      powers.mcpServers = {
+        "power-aws-sam-awslabs.aws-serverless-mcp-server" = {
+          command = "uvx";
+          args = [ "awslabs.aws-serverless-mcp-server@latest" ];
+          disabled = false;
+          autoApprove = [ "sam_init" ];
+        };
+        "power-aws-sam-fetch" = {
+          command = "uvx";
+          args = [ "mcp-server-fetch" ];
+          env = { };
+          disabled = false;
+        };
+        "power-aws-observability-awslabs.cloudwatch-mcp-server" = {
+          command = "uvx";
+          args = [ "awslabs.cloudwatch-mcp-server@latest" ];
+          env = {
+            AWS_PROFILE = "default";
+            AWS_REGION = "us-east-1";
+            FASTMCP_LOG_LEVEL = "ERROR";
+          };
+          disabled = false;
+        };
+        "power-aws-observability-awslabs.cloudwatch-applicationsignals-mcp-server" = {
+          command = "uvx";
+          args = [ "awslabs.cloudwatch-applicationsignals-mcp-server@latest" ];
+          env = {
+            AWS_PROFILE = "default";
+            AWS_REGION = "us-east-1";
+            FASTMCP_LOG_LEVEL = "ERROR";
+          };
+          disabled = false;
+        };
+        "power-aws-observability-awslabs.cloudtrail-mcp-server" = {
+          command = "uvx";
+          args = [ "awslabs.cloudtrail-mcp-server@latest" ];
+          env = {
+            AWS_PROFILE = "default";
+            AWS_REGION = "us-east-1";
+            FASTMCP_LOG_LEVEL = "ERROR";
+          };
+          disabled = false;
+          transportType = "stdio";
+        };
+        "power-aws-observability-awslabs.aws-documentation-mcp-server" = {
+          command = "uvx";
+          args = [ "awslabs.aws-documentation-mcp-server@latest" ];
+          env.FASTMCP_LOG_LEVEL = "ERROR";
+          disabled = false;
+        };
+        "power-iam-policy-autopilot-power-iam-policy-autopilot-mcp" = {
+          command = "uvx";
+          args = [
+            "iam-policy-autopilot@latest"
+            "mcp-server"
+          ];
+          env = { };
+          disabled = false;
+        };
+        "power-aws-agentcore-agentcore-mcp-server" = {
+          command = "uvx";
+          args = [ "awslabs.amazon-bedrock-agentcore-mcp-server@latest" ];
+          disabled = true;
+        };
+      };
+    };
     ".kiro/settings/kiro_cli_theme.json".source = json.generate "kiro-cli-theme.json" {
       responsePreset = "light";
       diffPreset = "dark";

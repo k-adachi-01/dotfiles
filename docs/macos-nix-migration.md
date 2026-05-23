@@ -1585,7 +1585,8 @@ f3620e1 chore: clean up migration shell config
 | フォントが未整備 | 未解決 | `PlemolJP Console NF` / Nerd Font / emoji fallback を確認する |
 | Windows フォント `Segoe UI` は macOS にない | 既知 | WezTerm font fallback を macOS 向けに調整する |
 | OrbStack と Docker Desktop の挙動差 | 未確認 | Docker context / compose / volume / Kubernetes を確認する |
-| VS Code settings/extensions が未移行 | 未解決 | 必要なら settings sync または dotfiles 化する |
+| VS Code / Cursor / Antigravity settings | 対応済み | `nix/editors.nix` で macOS User settings/keybindings を配置する |
+| VS Code / Cursor / Antigravity extension 実体 | 意図的に未移行 | `home/editors/extensions.json` に ID manifest だけ保存する |
 
 ### 13.5 認証 / secrets の懸念
 
@@ -1690,7 +1691,7 @@ CLI を Homebrew formula に逃がさない。
 6. WezTerm / fonts / zsh / Neovim を確認する。
 7. `claude` / `codex` の導入方法を決める。
 8. GitHub / AWS / GCP / Azure に再ログインする。
-9. VS Code settings/extensions を移行する。
+9. VS Code / Cursor / Antigravity settings を確認する。
 10. Obsidian vault の配置を決め、`OBSIDIAN_VAULT` を設定する。
 11. 一番よく使う Node/pnpm project を1つ project-local flake 化する。
 12. AWS/CDK project、Python project、browser automation project の順に flake 化する。
@@ -1799,5 +1800,55 @@ home-manager が以下を配置します。
 
 ### 16.5 Antigravity
 
-この WSL 環境では Antigravity の実設定ディレクトリは見つかっていません。
-Mac で Antigravity をインストールして実設定 path が判明したら、`nix/agents.nix` に同じ方針で追加します。
+Windows 側では `AppData/Roaming/Antigravity/User/settings.json` が存在したが、内容は `{}` でした。
+Mac 側では VS Code / Cursor と同じ editor settings を `nix/editors.nix` から配置します。
+
+## 17. Windows 側から取り込んだ設定
+
+Windows 側の設定は、Mac 移行後の日常運用に使うものと、Windows fallback 用に保存するものを分けます。
+
+### 17.1 macOS にも反映する設定
+
+`nix/editors.nix` で以下を生成します。
+
+```text
+~/Library/Application Support/Code/User/settings.json
+~/Library/Application Support/Cursor/User/settings.json
+~/Library/Application Support/Cursor/User/keybindings.json
+~/Library/Application Support/Antigravity/User/settings.json
+~/Library/Application Support/Antigravity/User/keybindings.json
+~/Library/Application Support/Antigravity IDE/User/settings.json
+~/Library/Application Support/Antigravity IDE/User/keybindings.json
+```
+
+取り込んだ主な内容:
+
+- VSCodeVim の `jj` escape、leader、検索、key handling
+- PlantUML server 設定
+- Copilot chat の日本語 locale
+- Cursor の `ctrl+i` agent mode keybinding
+- Cursor の terminal `shift+enter` 継続入力
+- Markdown / Docker Compose / GitHub Actions の editor 設定
+- Cursor MCP: Playwright、AWS documentation、AWS knowledge、context7
+- Kiro MCP: AWS SAM、AWS observability、IAM policy autopilot、AgentCore
+
+### 17.2 Windows fallback 用に保存した設定
+
+```text
+home/wezterm/windows.lua
+windows/terminal/settings.json
+windows/wsl/.wslconfig
+```
+
+`home/wezterm/windows.lua` は Windows 側で調整した WezTerm 設定の実体です。
+Mac では `home/wezterm/darwin.lua` を使い、Windows を継続利用する場合だけこの file を Windows home へ配置します。
+
+### 17.3 取り込まないもの
+
+以下は commit しません。
+
+- VS Code / Cursor / Antigravity / Kiro の extension 実体
+- `globalStorage`, `workspaceStorage`, `History`, `Cache`
+- `argv.json` の crash reporter id
+- agent の auth / credential / session / project state
+- Windows registry hive (`NTUSER.DAT`)

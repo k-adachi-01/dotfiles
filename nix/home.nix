@@ -10,6 +10,7 @@
 {
   imports = [
     ./agents.nix
+    ./editors.nix
   ];
 
   home = {

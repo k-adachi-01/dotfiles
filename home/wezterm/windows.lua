@@ -1,0 +1,364 @@
+local wezterm = require("wezterm")
+local act = wezterm.action
+
+local config = wezterm.config_builder()
+config.automatically_reload_config = true
+
+local linux_home = "/home/adachi"
+local preferred_wsl_distribution_prefix = "Ubuntu"
+
+local function starts_with(value, prefix)
+	return value ~= nil and value:sub(1, #prefix) == prefix
+end
+
+local function is_windows_path(path)
+	return path:match("^/%a:/") or path:match("^/mnt/%a/")
+end
+
+local function current_working_dir_path(pane)
+	local cwd_uri = pane:get_current_working_dir()
+	if cwd_uri == nil then
+		return nil
+	end
+
+	if type(cwd_uri) == "string" then
+		return cwd_uri:match("^file://[^/]*(/.*)$") or cwd_uri
+	end
+
+	return cwd_uri.file_path
+end
+
+local function spawn_command(domain, cwd)
+	local spawn = {
+		domain = domain,
+	}
+
+	if cwd ~= nil and cwd ~= "" then
+		spawn.cwd = cwd
+		-- `cwd` alone loses symlink spelling because the child process inherits
+		-- the resolved directory inode. Keeping PWD preserves the logical path.
+		spawn.set_environment_variables = {
+			PWD = cwd,
+		}
+	end
+
+	return spawn
+end
+
+local function wsl_shell_spawn_command(domain, cwd)
+	if cwd == nil or cwd == "" then
+		return spawn_command(domain, linux_home)
+	end
+
+	return {
+		domain = domain,
+		cwd = linux_home,
+		args = {
+			"/bin/bash",
+			"-lc",
+			'printf "\\033]7;file://localhost%s\\033\\\\" "$1"; cd -- "$1" && exec /bin/bash -l',
+			"bash",
+			cwd,
+		},
+	}
+end
+
+local wsl_domains = wezterm.default_wsl_domains()
+local preferred_wsl_domain
+
+for _, dom in ipairs(wsl_domains) do
+	if starts_with(dom.distribution, preferred_wsl_distribution_prefix) then
+		dom.default_cwd = linux_home
+		preferred_wsl_domain = preferred_wsl_domain or dom.name
+	end
+end
+
+config.wsl_domains = wsl_domains
+
+if preferred_wsl_domain then
+	-- Force all default/fallback spawns into the WSL home directory so that
+	-- Windows CWD inference can never leak C:\Users\adachi into new panes.
+	config.default_domain = preferred_wsl_domain
+	config.default_cwd = linux_home
+else
+	wezterm.log_error("No WSL domain matching Ubuntu was found; keeping WezTerm defaults")
+end
+
+local function preferred_wsl_home_spawn_command()
+	if preferred_wsl_domain then
+		return spawn_command({ DomainName = preferred_wsl_domain }, linux_home)
+	end
+
+	return spawn_command("DefaultDomain", linux_home)
+end
+
+local function split_spawn_command(pane)
+	local domain_name = pane:get_domain_name()
+	local cwd = current_working_dir_path(pane)
+
+	if cwd == nil or cwd == "" or is_windows_path(cwd) then
+		cwd = nil
+	end
+
+	if domain_name and domain_name:match("^WSL:") then
+		return wsl_shell_spawn_command({ DomainName = domain_name }, cwd or linux_home)
+	end
+
+	if domain_name == nil or domain_name == "local" then
+		local spawn = preferred_wsl_home_spawn_command()
+		if cwd ~= nil then
+			spawn.cwd = cwd
+			spawn.set_environment_variables = {
+				PWD = cwd,
+			}
+		end
+		return spawn
+	end
+
+	return {
+		domain = "CurrentPaneDomain",
+	}
+end
+
+local function split_action(direction)
+	return wezterm.action_callback(function(window, pane)
+		local spawn = split_spawn_command(pane)
+		window:perform_action(
+			act.SplitPane({
+				direction = direction == "vertical" and "Down" or "Right",
+				command = spawn,
+			}),
+			pane
+		)
+	end)
+end
+
+-- 背景透過率ステップ
+local opacity_steps = { 0.85, 0.95, 1.0 }
+local opacity_index = 2 -- 現在値 0.95 に対応
+
+-- フォント
+config.font = wezterm.font_with_fallback({
+	"PlemolJP Console NF",
+	"JetBrains Mono",
+	"Segoe UI Symbol",
+	"Segoe UI Emoji",
+})
+config.font_size = 12.0
+config.line_height = 1.05
+config.use_ime = true
+
+-- ウィンドウ
+config.window_decorations = "RESIZE"
+config.window_padding = {
+	left = 6,
+	right = 6,
+	top = 4,
+	bottom = 4,
+}
+config.window_background_opacity = 0.85
+
+-- タブバー
+config.color_scheme = "Catppuccin Mocha"
+config.use_fancy_tab_bar = false
+config.hide_tab_bar_if_only_one_tab = true
+config.show_new_tab_button_in_tab_bar = false
+
+config.colors = {
+	tab_bar = {
+		background = "none",
+		inactive_tab_edge = "none",
+	},
+}
+
+-- タブのカスタマイズ（三角形 + Catppuccin カラー）
+local SOLID_LEFT_ARROW = wezterm.nerdfonts.ple_lower_right_triangle
+local SOLID_RIGHT_ARROW = wezterm.nerdfonts.ple_upper_left_triangle
+
+-- Claude Code がスピナーを表示しているか（回答生成中）を判定する
+local SPINNER_CHARS = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+
+local function pane_has_spinner(pane)
+	local ok, text = pcall(function()
+		return pane:get_lines_as_text(5)
+	end)
+	if not ok or not text then
+		return false
+	end
+	for _, ch in ipairs(SPINNER_CHARS) do
+		if text:find(ch, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+
+local function claude_tab_colors(pane)
+	local ok, proc = pcall(function()
+		return pane:get_foreground_process_info()
+	end)
+	if not ok or not proc then
+		return nil, nil
+	end
+	local name = proc.name or ""
+	if not name:find("claude") and not name:find("Claude") then
+		return nil, nil
+	end
+	if pane_has_spinner(pane) then
+		-- 回答生成中: peach
+		return "#fab387", "#1e1e2e"
+	else
+		-- アイドル（ユーザー入力待ち）: green
+		return "#a6e3a1", "#1e1e2e"
+	end
+end
+
+wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+	local background = "#45475a" -- Catppuccin Mocha surface1
+	local foreground = "#cdd6f4" -- Catppuccin Mocha text
+
+	if tab.is_active then
+		background = "#f9e2af" -- Catppuccin Mocha yellow
+		foreground = "#1e1e2e" -- Catppuccin Mocha base
+	end
+
+	-- Claude Code の状態に応じて色を上書き（アクティブタブも含む）
+	local pane = wezterm.mux.get_pane(tab.active_pane.pane_id)
+	if pane then
+		local claude_bg, claude_fg = claude_tab_colors(pane)
+		if claude_bg then
+			background = claude_bg
+			foreground = claude_fg
+		end
+	end
+
+	local edge_background = "none"
+	local edge_foreground = background
+
+	local title = "   " .. wezterm.truncate_right(tab.tab_title ~= "" and tab.tab_title or tab.active_pane.title, max_width - 1) .. "   "
+
+	return {
+		{ Background = { Color = edge_background } },
+		{ Foreground = { Color = edge_foreground } },
+		{ Text = SOLID_LEFT_ARROW },
+		{ Background = { Color = background } },
+		{ Foreground = { Color = foreground } },
+		{ Text = title },
+		{ Background = { Color = edge_background } },
+		{ Foreground = { Color = edge_foreground } },
+		{ Text = SOLID_RIGHT_ARROW },
+	}
+end)
+
+-- その他
+config.default_cursor_style = "SteadyBlock"
+config.cursor_blink_rate = 0
+config.animation_fps = 60
+config.term = "xterm-256color"
+config.audible_bell = "Disabled"
+config.adjust_window_size_when_changing_font_size = false
+config.window_close_confirmation = "NeverPrompt"
+
+-- tmux っぽい leader（Ctrl+A）
+config.leader = {
+	key = "a",
+	mods = "CTRL",
+	timeout_milliseconds = 1000,
+}
+
+config.keys = {
+	-- pane 移動
+	{ key = "h", mods = "LEADER", action = act.ActivatePaneDirection("Left") },
+	{ key = "j", mods = "LEADER", action = act.ActivatePaneDirection("Down") },
+	{ key = "k", mods = "LEADER", action = act.ActivatePaneDirection("Up") },
+	{ key = "l", mods = "LEADER", action = act.ActivatePaneDirection("Right") },
+
+	-- pane 分割（s = 上下, v = 左右）
+	{ key = "s", mods = "LEADER", action = split_action("vertical") },
+	{ key = "v", mods = "LEADER", action = split_action("horizontal") },
+
+	-- pane サイズ変更
+	{ key = "H", mods = "LEADER|SHIFT", action = act.AdjustPaneSize({ "Left", 5 }) },
+	{ key = "J", mods = "LEADER|SHIFT", action = act.AdjustPaneSize({ "Down", 3 }) },
+	{ key = "K", mods = "LEADER|SHIFT", action = act.AdjustPaneSize({ "Up", 3 }) },
+	{ key = "L", mods = "LEADER|SHIFT", action = act.AdjustPaneSize({ "Right", 5 }) },
+
+	-- よく使う操作
+	{ key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
+	{ key = "x", mods = "LEADER", action = act.CloseCurrentPane({ confirm = false }) },
+	{ key = "w", mods = "LEADER", action = act.CloseCurrentTab({ confirm = false }) },
+	{ key = "w", mods = "CTRL|SHIFT", action = act.CloseCurrentTab({ confirm = false }) },
+	{ key = "t", mods = "LEADER", action = act.SpawnCommandInNewTab(preferred_wsl_home_spawn_command()) },
+
+	-- leader+n: nvim . + 右paneで codex（現在のディレクトリで起動）
+	{
+		key = "n",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window, pane)
+			window:perform_action(act.SendString("nvim .\n"), pane)
+			local domain_name = pane:get_domain_name()
+			local cwd = current_working_dir_path(pane)
+			if cwd == nil or cwd == "" or is_windows_path(cwd) then
+				cwd = linux_home
+			end
+			local spawn
+			if domain_name and domain_name:match("^WSL:") then
+				spawn = {
+					domain = { DomainName = domain_name },
+					cwd = linux_home,
+					args = { "/bin/bash", "-lc", 'printf "\\033]7;file://localhost%s\\033\\\\" "$1"; cd -- "$1" && codex; exec /bin/bash -l', "bash", cwd },
+				}
+			else
+				spawn = {
+					domain = "CurrentPaneDomain",
+					args = { "/bin/bash", "-lc", "codex; exec /bin/bash -l" },
+				}
+			end
+			window:perform_action(act.SplitPane({ direction = "Right", command = spawn }), pane)
+		end),
+	},
+
+	-- leader+a で本来の Ctrl-A を送る
+	{ key = "a", mods = "LEADER", action = act.SendKey({ key = "a", mods = "CTRL" }) },
+
+	-- タブ名変更
+	{
+		key = ",",
+		mods = "LEADER",
+		action = act.PromptInputLine({
+			description = "Tab name:",
+			action = wezterm.action_callback(function(window, pane, line)
+				if line then
+					window:active_tab():set_title(line)
+				end
+			end),
+		}),
+	},
+
+	-- 新しいタブ（WSL ホームで開く）
+	{
+		key = "t",
+		mods = "CTRL|SHIFT",
+		action = act.SpawnCommandInNewTab(preferred_wsl_home_spawn_command()),
+	},
+
+	-- クリップボード
+	{ key = "c", mods = "CTRL|SHIFT", action = act.CopyTo("Clipboard") },
+	{ key = "v", mods = "CTRL|SHIFT", action = act.PasteFrom("Clipboard") },
+	{ key = "v", mods = "CTRL", action = act.PasteFrom("Clipboard") },
+
+	-- コマンドパレット
+	{ key = "p", mods = "LEADER", action = act.ActivateCommandPalette },
+
+	-- 背景透過率サイクル（0.85 → 0.95 → 1.0）
+	{
+		key = "o",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window)
+			opacity_index = (opacity_index % #opacity_steps) + 1
+			window:set_config_overrides({ window_background_opacity = opacity_steps[opacity_index] })
+		end),
+	},
+}
+
+return config
