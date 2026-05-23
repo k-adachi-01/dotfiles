@@ -263,7 +263,7 @@ macOS には移行しない。
 
 ### 1.8 現在残っている未コミット変更
 
-この Runbook 作成時点で、以下は Nix 移行とは別の未コミット変更として残っています。
+初回 Runbook 作成時点では、以下が Nix 移行とは別の未コミット変更として残っていました。
 
 ```text
 dot_bashrc
@@ -273,8 +273,106 @@ dot_wezterm.lua.tmpl
 扱い:
 
 ```text
-Nix 移行コミットには混ぜない。
-内容を確認してから、別コミットにするか、不要なら戻す。
+Nix 構成追加コミットには混ぜない。
+内容を確認してから、別コミットとして整理する。
+```
+
+整理方針:
+
+```text
+dot_bashrc は WSL 互換用として残す。
+dot_wezterm.lua.tmpl は Linux/WSL と macOS の分岐を明確にする。
+macOS に存在しない /mnt/c や /proc 参照は、実行されないよう条件分岐する。
+```
+
+### 1.9 このPCで実施済みの移行準備
+
+このPC上で完了済み:
+
+```text
+macOS 用 flake.nix / nix/ 構成を dotfiles に追加。
+Homebrew を GUI cask 最小構成に制限。
+home-manager で zsh/git/fzf/tmux/direnv/開発CLIを管理する構成を追加。
+移行 Runbook を docs/macos-nix-migration.md に追加。
+GitHub credential helper の /usr/bin/gh 固定を削除。
+WezTerm テンプレートの /proc 参照を Linux/WSL 分岐内へ限定。
+WezTerm の leader+n / leader+c を codex 起動へ統一。
+bash の cdx alias を codex に統一。
+bash の Windows Obsidian alias を実体がある場合だけ定義するよう変更。
+Neovim の win32yank clipboard 設定を Windows/WSL かつ実行ファイルがある場合だけ有効化。
+Neovim Thino の Obsidian vault を OBSIDIAN_VAULT または ~/obsidian 参照に変更。
+```
+
+このPC上で意図的に実施しないこと:
+
+```text
+WSL に Nix を追加インストールしない。
+nix flake check は新 Mac 側で行う。
+darwin-rebuild は新 Mac 側で行う。
+Homebrew cask の実インストールは新 Mac 側で行う。
+クラウド CLI 認証情報は移行せず、新 Mac 側で再ログインする。
+```
+
+### 1.10 プロジェクト棚卸し
+
+このPCで確認した `.mise.toml`:
+
+```text
+/home/adachi/.mise.toml
+/home/adachi/articles/.mise.toml
+/home/adachi/blog/tech-blog-writing/.mise.toml
+/home/adachi/src/260329_kiro-powers-to-cli/.mise.toml
+/home/adachi/src/260404_cdk-insights/.mise.toml
+/home/adachi/src/260404_elsa-speak/.mise.toml
+/home/adachi/src/260425_ai-tuber/.mise.toml
+/home/adachi/src/cdk-agent-lab/.mise.toml
+/home/adachi/src/cdk-validations/.mise.toml
+/home/adachi/talks/slidev/.mise.toml
+```
+
+このPCで確認した `package.json`:
+
+```text
+/home/adachi/.dev-browser/package.json
+/home/adachi/articles/package.json
+/home/adachi/blog/tech-blog-writing/package.json
+/home/adachi/package.json
+/home/adachi/sample-spec-driven-presentation-maker/infra/package.json
+/home/adachi/sample-spec-driven-presentation-maker/web-ui/package.json
+/home/adachi/src/260223_ai-dlc-kiro/package.json
+/home/adachi/src/260301_vercel-chat/package.json
+/home/adachi/src/260329_kiro-powers-to-cli/package.json
+/home/adachi/src/260404_cdk-insights/package.json
+/home/adachi/src/260404_elsa-speak/package.json
+/home/adachi/src/260425_ai-tuber/package.json
+/home/adachi/src/app_img-uploader-v2/package.json
+/home/adachi/src/app_img-uploader-v3/package.json
+/home/adachi/src/cdk-validations/package.json
+/home/adachi/talks/slidev/package.json
+/home/adachi/tmp/everything-claude-code/package.json
+```
+
+このPCで確認した `pyproject.toml`:
+
+```text
+/home/adachi/.aws-sam/aws-sam-cli-app-templates/pyproject.toml
+/home/adachi/sample-spec-driven-presentation-maker/mcp-local/pyproject.toml
+/home/adachi/sample-spec-driven-presentation-maker/mcp-server/pyproject.toml
+/home/adachi/sample-spec-driven-presentation-maker/pyproject.toml
+/home/adachi/sample-spec-driven-presentation-maker/skill/pyproject.toml
+/home/adachi/src/260110_tddbc/pyproject.toml
+/home/adachi/src/aws-sam-cli-app-templates/pyproject.toml
+/home/adachi/talks/sample-spec-driven-presentation-maker/pyproject.toml
+```
+
+移行順序の推奨:
+
+```text
+1. articles または blog/tech-blog-writing など、日常使用頻度が高く依存が軽い Node/pnpm プロジェクト。
+2. talks/slidev など、成果物生成が明確な Node/pnpm プロジェクト。
+3. cdk-validations / cdk-insights など AWS/CDK 依存を含むプロジェクト。
+4. sample-spec-driven-presentation-maker など Node/Python/infra が混在するプロジェクト。
+5. browser automation / AI tool 系の特殊依存プロジェクト。
 ```
 
 ## 2. 追加済み Nix 構成
@@ -1159,23 +1257,25 @@ Nix package として安定して使える。
 または GUI/service として別管理する理由がある。
 ```
 
-### 10.6 既存未コミット dotfiles
+### 10.6 WSL 互換 dotfiles の扱い
 
-残っている未コミット:
+以下は初回 Nix 構成追加とは別に整理した WSL 互換設定です。
 
 ```text
 dot_bashrc
 dot_wezterm.lua.tmpl
+dot_config/nvim/init.lua
+dot_config/nvim/lua/plugins/thino.lua
 ```
 
-次にやること:
+現在の扱い:
 
 ```text
-内容を確認する。
-macOS にも必要な変更か判断する。
-WSL 専用なら分離する。
-不要なら戻す。
-必要なら Nix 移行とは別コミットにする。
+dot_bashrc は WSL 互換用として維持する。
+dot_wezterm.lua.tmpl は chezmoi の OS 分岐で Linux/WSL と macOS を分ける。
+Neovim の win32yank は Windows/WSL かつ実行ファイルがある場合だけ使う。
+Thino の Obsidian vault は OBSIDIAN_VAULT または ~/obsidian を使う。
+macOS で不要な WSL 固有コマンドは、存在確認または OS 判定の内側に閉じ込める。
 ```
 
 ## 11. 障害対応
