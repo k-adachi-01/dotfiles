@@ -2,11 +2,16 @@
   config,
   lib,
   pkgs,
+  inputs,
   username,
   ...
 }:
 
 {
+  imports = [
+    ./agents.nix
+  ];
+
   home = {
     inherit username;
     homeDirectory = "/Users/${username}";
@@ -29,12 +34,6 @@
           ../home/wezterm/darwin.lua
         else
           ../home/wezterm/linux.lua;
-      ".codex/AGENTS.md".source = ../home/ai/AGENTS.md;
-      ".agents/AGENTS.md".source = ../home/ai/AGENTS.md;
-      ".claude/AGENTS.md".source = ../home/ai/AGENTS.md;
-      ".claude/CLAUDE.md".source = ../home/ai/CLAUDE.md;
-      ".cursor/AGENTS.md".source = ../home/ai/AGENTS.md;
-      ".cursor/skills".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/agent-skills";
     }
     // lib.optionalAttrs (!pkgs.stdenv.isDarwin) {
       ".bashrc".source = ../home/bashrc;

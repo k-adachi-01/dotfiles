@@ -8,6 +8,10 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    agent-skills = {
+      url = "github:k-adachi-01/agent-skills";
+      flake = false;
+    };
   };
 
   outputs =
@@ -44,7 +48,7 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               extraSpecialArgs = {
-                inherit username system;
+                inherit inputs username system;
               };
               users.${username} = import ./nix/home.nix;
             };

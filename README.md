@@ -8,6 +8,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 - `home-manager` manages user dotfiles, CLI tools, shell, git, editor, and AI-agent config.
 - Homebrew is limited to GUI casks.
 - `mise` is temporary and will be removed after active projects move to project-local `flake.nix`.
+- Agent skills are managed as an immutable Nix flake input from `k-adachi-01/agent-skills`.
 
 ## Managed Files
 
@@ -16,7 +17,50 @@ This repository used to be a chezmoi source tree. The target state is now:
 | `flake.nix` | macOS flake entrypoint |
 | `nix/` | nix-darwin and home-manager modules |
 | `home/` | source files installed by home-manager |
+| `home/agents/` | Codex rules and Kiro powers installed by home-manager |
 | `docs/macos-nix-migration.md` | migration runbook |
+
+## AI Agent Configuration
+
+`nix/agents.nix` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration.
+
+Managed by Nix:
+
+- `~/.agents/AGENTS.md`
+- `~/.agents/skills`
+- `~/.claude/AGENTS.md`
+- `~/.claude/CLAUDE.md`
+- `~/.claude/skills`
+- `~/.claude/settings.json`
+- `~/.claude/keybindings.json`
+- `~/.claude/.mcp.json`
+- `~/.claude/statusline.py`
+- `~/.claude/notify-done.sh`
+- `~/.codex/AGENTS.md`
+- `~/.codex/config.toml`
+- `~/.codex/rules/default.rules`
+- `~/.codex/notify.sh`
+- `~/.codex/skills/browser-use-local`
+- `~/.codex/skills/vercel-react-best-practices`
+- `~/.codex/skills/wezterm-config-sync`
+- `~/.cursor/AGENTS.md`
+- `~/.cursor/skills`
+- `~/.cursor/cli-config.json`
+- `~/.cursor/statusline.sh`
+- `~/.kiro/powers.json`
+- `~/.kiro/powers.mcp.json`
+- `~/.kiro/settings/`
+- `~/.kiro/powers/`
+
+Not managed by Nix:
+
+- auth files
+- credentials
+- local session history
+- telemetry/cache/state databases
+- tool-managed system skills such as Codex `.system` skills
+
+Update shared skills in `k-adachi-01/agent-skills`, push that repository, then update the `agent-skills` input in this flake.
 
 ## macOS Bootstrap
 
