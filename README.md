@@ -1,74 +1,71 @@
 # dotfiles
 
-Personal dotfiles managed with [chezmoi](https://chezmoi.io).
+Personal macOS/WSL development environment managed with Nix.
 
-## Managed files
+This repository used to be a chezmoi source tree. The target state is now:
 
-| File | Description |
+- `nix-darwin` manages macOS system settings.
+- `home-manager` manages user dotfiles, CLI tools, shell, git, editor, and AI-agent config.
+- Homebrew is limited to GUI casks.
+- `mise` is temporary and will be removed after active projects move to project-local `flake.nix`.
+
+## Managed Files
+
+| Path | Description |
 |---|---|
-| `~/.bashrc` | Bash configuration |
-| `~/.profile` | Login shell profile |
-| `~/.gitconfig` | Git configuration |
-| `~/.inputrc` | Readline (vi mode) |
-| `~/.mise.toml` | mise tool versions |
-| `~/.wezterm.lua` | WezTerm configuration |
-| `~/.config/nvim/` | Neovim (LazyVim) configuration |
-| `~/.claude/CLAUDE.md` | Claude Code config |
-| `~/.claude/AGENTS.md` | Claude Code agents config |
-| `flake.nix`, `nix/` | macOS Nix configuration |
+| `flake.nix` | macOS flake entrypoint |
+| `nix/` | nix-darwin and home-manager modules |
+| `home/` | source files installed by home-manager |
+| `docs/macos-nix-migration.md` | migration runbook |
 
-## Setup
-
-### Prerequisites
-
-Install chezmoi:
-
-```bash
-# macOS
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
-
-# Linux / WSL
-sh -c "$(curl -fsLS get.chezmoi.io)"
-```
-
-### Apply dotfiles
-
-```bash
-chezmoi init --apply k-adachi-01/dotfiles
-```
-
-### macOS Nix setup
-
-This repository also contains the Apple Silicon macOS Nix configuration.
-The target profile is `darwinConfigurations.macbook`.
-For the full handoff runbook, see [`docs/macos-nix-migration.md`](docs/macos-nix-migration.md).
+## macOS Bootstrap
 
 1. Install Nix with flakes enabled.
-2. Apply dotfiles:
 
 ```bash
-~/.local/bin/chezmoi init --apply k-adachi-01/dotfiles
+curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 ```
 
-3. Build and switch to the macOS profile for the first time:
+2. Clone this repository.
 
 ```bash
-nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake ~/.local/share/chezmoi#macbook
+mkdir -p "$HOME/.config"
+git clone https://github.com/k-adachi-01/dotfiles.git "$HOME/.config/nix-darwin"
+```
+
+3. Build and switch to the macOS profile for the first time.
+
+```bash
+nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake "$HOME/.config/nix-darwin#macbook"
 ```
 
 After the first switch, use:
 
 ```bash
-darwin-rebuild switch --flake ~/.local/share/chezmoi#macbook
+darwin-rebuild switch --flake "$HOME/.config/nix-darwin#macbook"
 ```
 
-The macOS profile uses:
+## Daily Workflow
 
-- `nix-darwin` and `home-manager` for CLI tools, zsh, git, and development runtimes.
-- Homebrew casks only for GUI applications: VS Code, WezTerm, and OrbStack.
-- `mise` as a temporary migration tool while project-specific environments move to `flake.nix` and `nix develop`.
+```bash
+cd "$HOME/.config/nix-darwin"
 
-After switching, re-authenticate tools that store local credentials:
+# Edit Nix modules or files under home/
+$EDITOR nix/home.nix
+
+# Apply changes
+darwin-rebuild switch --flake "$HOME/.config/nix-darwin#macbook"
+
+# Commit and push
+git status
+git add -A
+git commit -m "update environment"
+git push
+```
+
+## Authentication
+
+Credentials and secrets are not stored in this repository. After switching on a new Mac, re-authenticate:
 
 ```bash
 gh auth login
@@ -77,34 +74,21 @@ gcloud auth login
 az login
 ```
 
-### mise migration
+Do not commit:
 
-`mise` is intentionally still installed by Nix for the first macOS migration.
-The target end state is to remove `mise` after active projects define their own Nix dev shells.
+- `.aws/`
+- `.azure/`
+- `.config/gcloud/`
+- `.config/gh/hosts.yml`
+- `.ssh/`
+- `.gnupg/`
+- `.env.keys`
+- `DOTENV_PRIVATE_KEY*`
 
-For each active project:
+## Migration Notes
 
-1. Add a project-local `flake.nix` with the required Node/Python/Rust tools.
-2. Use `nix develop` or `direnv` + `nix-direnv` instead of `mise install`.
-3. Remove the project's `.mise.toml` only after the Nix shell fully replaces it.
-4. Remove `mise` from `nix/packages.nix` after all active projects are migrated.
+The full migration record, risks, and next actions are in:
 
-## Daily workflow
-
-```bash
-# Edit via chezmoi (opens source file directly)
-chezmoi edit ~/.bashrc
-
-# Or edit the target file directly, then sync back to source
-chezmoi re-add ~/.bashrc
-
-# Check diff
-chezmoi diff
-
-# Apply source changes to target
-chezmoi apply
-
-# Commit and push
-chezmoi cd
-git add -A && git commit -m "update bashrc" && git push
+```text
+docs/macos-nix-migration.md
 ```

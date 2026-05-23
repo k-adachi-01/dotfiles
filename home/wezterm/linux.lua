@@ -6,7 +6,6 @@ config.automatically_reload_config = true
 
 local home = os.getenv("HOME")
 
-{{ if eq .chezmoi.os "linux" -}}
 local linux_home = home
 local preferred_wsl_distribution_prefix = "Ubuntu"
 
@@ -40,11 +39,8 @@ local function proc_cwd(pid)
 	end
 	return nil
 end
-{{ end -}}
-
 local function current_working_dir_path(pane)
-{{ if eq .chezmoi.os "linux" -}}
-	-- Try to get CWD from the foreground process (works even when shell is not updating OSC 7)
+-- Try to get CWD from the foreground process (works even when shell is not updating OSC 7)
 	local ok, proc = pcall(function()
 		return pane:get_foreground_process_info()
 	end)
@@ -54,9 +50,7 @@ local function current_working_dir_path(pane)
 			return cwd
 		end
 	end
-{{ end -}}
-
-	local cwd_uri = pane:get_current_working_dir()
+local cwd_uri = pane:get_current_working_dir()
 	if cwd_uri == nil then
 		return nil
 	end
@@ -66,7 +60,6 @@ local function current_working_dir_path(pane)
 	return cwd_uri.file_path
 end
 
-{{ if eq .chezmoi.os "linux" -}}
 local function spawn_command(domain, cwd)
 	local spawn = { domain = domain }
 	if cwd ~= nil and cwd ~= "" then
@@ -132,15 +125,7 @@ local function split_spawn_command(pane)
 	end
 	return { domain = "CurrentPaneDomain" }
 end
-{{ else -}}
-local function split_spawn_command(pane)
-	local cwd = current_working_dir_path(pane)
-	if cwd == nil or cwd == "" then
-		return { domain = "CurrentPaneDomain" }
-	end
-	return { domain = "CurrentPaneDomain", cwd = cwd }
-end
-{{ end }}
+
 local function split_action(direction)
 	return wezterm.action_callback(function(window, pane)
 		local spawn = split_spawn_command(pane)
@@ -363,8 +348,7 @@ config.keys = {
 		end),
 	},
 
-{{ if eq .chezmoi.os "linux" -}}
-	-- 新しいタブ（WSL ホームで開く）
+-- 新しいタブ（WSL ホームで開く）
 	{ key = "t", mods = "LEADER", action = act.SpawnCommandInNewTab(preferred_wsl_home_spawn_command()) },
 	{ key = "t", mods = "CTRL|SHIFT", action = act.SpawnCommandInNewTab(preferred_wsl_home_spawn_command()) },
 
@@ -423,53 +407,6 @@ config.keys = {
 			window:perform_action(act.SplitPane({ direction = "Right", command = spawn }), pane)
 		end),
 	},
-{{ else -}}
-	-- 新しいタブ（ホームで開く）
-	{ key = "t", mods = "LEADER", action = act.SpawnCommandInNewTab({ cwd = home }) },
-	{ key = "t", mods = "CTRL|SHIFT", action = act.SpawnCommandInNewTab({ cwd = home }) },
-
-	-- leader+n: nvim . + 右paneで codex
-	{
-		key = "n",
-		mods = "LEADER",
-		action = wezterm.action_callback(function(window, pane)
-			window:perform_action(act.SendString("nvim .\n"), pane)
-			local cwd = current_working_dir_path(pane) or home
-			window:perform_action(
-				act.SplitPane({
-					direction = "Right",
-					command = {
-						domain = "CurrentPaneDomain",
-						cwd = cwd,
-						args = { "/bin/zsh", "-lc", "codex; exec /bin/zsh -l" },
-					},
-				}),
-				pane
-			)
-		end),
-	},
-
-	-- leader+c: nvim . + 右paneで codex
-	{
-		key = "c",
-		mods = "LEADER",
-		action = wezterm.action_callback(function(window, pane)
-			window:perform_action(act.SendString("nvim .\n"), pane)
-			local cwd = current_working_dir_path(pane) or home
-			window:perform_action(
-				act.SplitPane({
-					direction = "Right",
-					command = {
-						domain = "CurrentPaneDomain",
-						cwd = cwd,
-						args = { "/bin/zsh", "-lc", "codex; exec /bin/zsh -l" },
-					},
-				}),
-				pane
-			)
-		end),
-	},
-{{ end -}}
 }
 
 return config

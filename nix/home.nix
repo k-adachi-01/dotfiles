@@ -1,4 +1,6 @@
 {
+  config,
+  lib,
   pkgs,
   username,
   ...
@@ -19,9 +21,33 @@
       "$HOME/.local/bin"
       "$PNPM_HOME"
     ];
+    file = {
+      ".inputrc".source = ../home/inputrc;
+      ".mise.toml".source = ../home/mise.toml;
+      ".wezterm.lua".source =
+        if pkgs.stdenv.isDarwin then
+          ../home/wezterm/darwin.lua
+        else
+          ../home/wezterm/linux.lua;
+      ".codex/AGENTS.md".source = ../home/ai/AGENTS.md;
+      ".agents/AGENTS.md".source = ../home/ai/AGENTS.md;
+      ".claude/AGENTS.md".source = ../home/ai/AGENTS.md;
+      ".claude/CLAUDE.md".source = ../home/ai/CLAUDE.md;
+      ".cursor/AGENTS.md".source = ../home/ai/AGENTS.md;
+      ".cursor/skills".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/agent-skills";
+    }
+    // lib.optionalAttrs (!pkgs.stdenv.isDarwin) {
+      ".bashrc".source = ../home/bashrc;
+      ".profile".source = ../home/profile;
+    };
   };
 
   programs.home-manager.enable = true;
+
+  xdg.configFile."nvim" = {
+    source = ../home/config/nvim;
+    recursive = true;
+  };
 
   programs.git = {
     enable = true;

@@ -2,8 +2,14 @@
 
 ## 実行環境
 
-- **OS**: Ubuntu 24.04 on WSL2
-- **パッケージ管理**: `apt`（`apt-get` は使用しない）
+- **主環境**: macOS on Apple Silicon
+- **レガシー環境**: Ubuntu 24.04 on WSL2
+- **パッケージ管理の主軸**: Nix (`nix-darwin` + `home-manager`)
+- **Homebrew**: GUI cask のみに限定する
+
+### WSL2でaptが必要な場合
+
+WSL2上でOSパッケージが必要な場合だけ `apt` を使う。`apt-get` は使用しない。
 
 | NG | OK |
 |---|---|
@@ -38,10 +44,12 @@
 
 ## ツールバージョン管理
 
-**mise を使用する。**
+**Nix を主軸にする。mise は移行期間だけ使用する。**
 
-- 各プロジェクトルートに `.mise.toml` を置き、`node` と `pnpm` のバージョンを明示する
-- CI（GitHub Actions）では `jdx/mise-action@v2` で `.mise.toml` を読み込む
+- 新規プロジェクトでは project-local `flake.nix` と `nix develop` を優先する
+- 既存プロジェクトの `.mise.toml` は、Nix devShellへ移行するまでの暫定互換として扱う
+- `mise` を新しい長期運用の前提にしない
+- CIは各プロジェクトの現状に合わせるが、ローカル開発環境は段階的にNixへ寄せる
 
 ```toml
 # .mise.toml の例
@@ -52,9 +60,9 @@ pnpm = "latest"
 
 ## GitHub Actions
 
-- Node/pnpm のセットアップは `jdx/mise-action@v2` 1 ステップで行う（`actions/setup-node` + `pnpm/action-setup` の組み合わせは不要）
 - インストールは `pnpm install --frozen-lockfile`
 - スクリプト実行は `pnpm exec` または `pnpm run`
+- 既存CIが `mise` を使っている場合は維持してよいが、新規CIではプロジェクトごとに方針を明記する
 
 ## Linter / Formatter
 
@@ -86,13 +94,13 @@ pnpm = "latest"
 
 ## dotfiles 管理
 
-**chezmoi を使用する。**
+**Nix/home-manager を使用する。chezmoi は使わない。**
 
-- ソースディレクトリ: `~/.local/share/chezmoi/`（git リポジトリ: `k-adachi-01/dotfiles`）
-- 設定編集: `chezmoi edit <ファイル>` または直接編集後に `chezmoi apply`
-- 新マシンへの適用: `chezmoi init --apply k-adachi-01/dotfiles`
-- 管理対象: `.bashrc`, `.profile`, `.gitconfig`, `.inputrc`, `.mise.toml`, `.wezterm.lua`, `.config/nvim/`
-- 除外（秘密情報）: `.aws/`, `.claude/`, `.config/gh/hosts.yml`
+- 標準配置: `~/.config/nix-darwin/`（git リポジトリ: `k-adachi-01/dotfiles`）
+- 設定編集: `nix/` または `home/` を直接編集する
+- 適用: `darwin-rebuild switch --flake ~/.config/nix-darwin#macbook`
+- 管理対象: shell, git, WezTerm, Neovim, Claude/Codex/Cursor/Agents 設定
+- 除外（秘密情報）: `.aws/`, `.azure/`, `.config/gcloud/`, `.config/gh/hosts.yml`, `.ssh/`, `.gnupg/`, `.env.keys`
 
 **dotfiles を更新した後は、必ずユーザーに `k-adachi-01/dotfiles` リポジトリへ commit・push するかどうか確認を求めること。**
 
