@@ -1369,7 +1369,319 @@ project-local flake.nix を追加する。
 既存コマンドが通ったら mise 依存を外す。
 ```
 
-## 12. 完了条件
+## 12. これまで実施したこと
+
+この章は、移行作業の履歴を引き継ぐための記録です。新 Mac 側で作業する人は、ここを読めば「このPCで何が終わっていて、何がまだ実機待ちか」を判断できます。
+
+### 12.1 Nix 構成の追加
+
+実施済みコミット:
+
+```text
+5bd194b feat: add macos nix configuration
+```
+
+追加したもの:
+
+```text
+flake.nix
+nix/apps.nix
+nix/darwin.nix
+nix/home.nix
+nix/packages.nix
+```
+
+内容:
+
+```text
+Apple Silicon Mac 用の darwinConfigurations.macbook を定義した。
+nix-darwin / home-manager / nix-homebrew を導入した。
+Homebrew は GUI cask だけに制限した。
+GUI cask は orbstack / visual-studio-code / wezterm のみにした。
+CLI と開発ツールは nix/packages.nix に集約した。
+zsh / git / fzf / tmux / direnv を home-manager 管理にした。
+mise は初回移行用に一時的に残した。
+GitHub credential helper の /usr/bin/gh 固定をやめ、gh auth git-credential にした。
+```
+
+この段階でまだ未実施だったもの:
+
+```text
+nix flake check
+darwin-rebuild switch
+flake.lock 生成
+Homebrew cask の実インストール
+新 Mac での zsh / WezTerm / OrbStack / VS Code 実機確認
+```
+
+理由:
+
+```text
+このWSL環境には nix / darwin-rebuild がない。
+darwin-rebuild は macOS でしか意味のある検証ができない。
+```
+
+### 12.2 移行 Runbook の追加
+
+実施済みコミット:
+
+```text
+1dfdf25 docs: add macos nix migration runbook
+```
+
+追加したもの:
+
+```text
+docs/macos-nix-migration.md
+README.md から Runbook へのリンク
+```
+
+内容:
+
+```text
+現 WSL 環境の棚卸しを記録した。
+apt / mise / pnpm global / 手動バイナリ / Windows連携の扱いを記録した。
+新 Mac 初回セットアップ手順を記録した。
+mise 廃止手順を記録した。
+Node/pnpm project と Python project の flake template を記録した。
+検証チェックリスト、障害対応、完了条件を記録した。
+```
+
+### 12.3 shell / WezTerm / Neovim の移行安全化
+
+実施済みコミット:
+
+```text
+f3620e1 chore: clean up migration shell config
+```
+
+変更したもの:
+
+```text
+dot_bashrc
+dot_wezterm.lua.tmpl
+dot_config/nvim/init.lua
+dot_config/nvim/lua/plugins/thino.lua
+```
+
+内容:
+
+```text
+bash の cdx alias を codex に統一した。
+bash の Windows Obsidian alias は実体がある場合だけ定義するようにした。
+WezTerm の /proc / readlink -f 参照を Linux/WSL 分岐内に閉じ込めた。
+WezTerm の leader+n / leader+c を nvim . + codex 起動へ統一した。
+WezTerm の ANSI green 調整を維持した。
+Neovim の win32yank clipboard 設定を Windows/WSL かつ win32yank.exe がある場合だけ有効にした。
+Neovim Thino の vault path を /mnt/c 固定から OBSIDIAN_VAULT または ~/obsidian に変更した。
+```
+
+確認したこと:
+
+```text
+chezmoi execute-template で WezTerm の Linux 想定レンダリングが成功した。
+chezmoi execute-template で WezTerm の macOS 想定レンダリングが成功した。
+macOS 想定 WezTerm レンダリングに /proc / readlink -f /mnt/c /usr/bin/gh / win32yank / ime_toggle が出ないことを確認した。
+git diff --check が通ることを確認した。
+```
+
+未実施:
+
+```text
+WezTerm 実機起動確認。
+Neovim の LazyVim 実機起動確認。
+フォント表示確認。
+codex / claude 実体の導入確認。
+```
+
+### 12.4 Runbook の引き継ぎ状態更新
+
+実施済みコミット:
+
+```text
+c1cf33a docs: update macos migration handoff status
+```
+
+内容:
+
+```text
+このPCで実施済みの移行準備を記録した。
+このPCでは意図的に実施しない作業を明記した。
+.mise.toml / package.json / pyproject.toml の棚卸し結果を追記した。
+WSL 互換 dotfiles の扱いを更新した。
+```
+
+### 12.5 現在の dotfiles 状態
+
+この Runbook 更新時点で、dotfiles repository の最新主要コミットは以下です。
+
+```text
+c1cf33a docs: update macos migration handoff status
+f3620e1 chore: clean up migration shell config
+1dfdf25 docs: add macos nix migration runbook
+5bd194b feat: add macos nix configuration
+```
+
+作業ツリーは clean であることを確認済みです。
+
+## 13. 懸念点一覧
+
+この章は、新 Mac への移行で問題になり得る点を漏れなく確認するためのリスク一覧です。解決済みのもの、意図的に後回しにしたもの、Mac 実機でしか検証できないものを分けて扱います。
+
+### 13.1 最重要リスク
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| `flake.nix` が Mac 実機で未検証 | 未解決 | 新 Mac で `darwin-rebuild switch` を実行する |
+| `flake.lock` がまだない | 未解決 | 初回 Nix 評価後に commit/push する |
+| macOS ユーザー名を `adachi` 固定にしている | 未確認 | 新 Mac で `whoami` を確認し、違えば `flake.nix` を修正する |
+| Nix / home-manager / chezmoi の責務が過渡期 | 継続リスク | shell/git/CLI は徐々に home-manager へ寄せる |
+| 主要プロジェクトがまだ mise 依存 | 未解決 | project-local `flake.nix` へ順次移行する |
+
+### 13.2 Nix / nix-darwin の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| `nixpkgs-unstable` を使っている | 意図的 | `flake.lock` で固定する |
+| `home.stateVersion = "25.05"` が実行時 home-manager と合うか未確認 | 未確認 | 新 Mac の `darwin-rebuild` エラーで確認する |
+| `system.stateVersion = 6` が nix-darwin と合うか未確認 | 未確認 | 新 Mac の `darwin-rebuild` エラーで確認する |
+| `nix-homebrew` 初回 bootstrap が未検証 | 未確認 | 新 Mac で Homebrew cask 導入を確認する |
+| cask 名 `orbstack` / `visual-studio-code` / `wezterm` が取得可能か未確認 | 未確認 | 新 Mac で `brew list --cask` を確認する |
+| Xcode Command Line Tools が必要になる可能性 | 未確認 | 要求されたら `xcode-select --install` を実行する |
+| Apple Silicon 前提 | 固定 | Intel Mac の場合は `system` を変更する |
+
+### 13.3 shell / PATH の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| macOS では zsh 主運用になる | 意図的 | bash は WSL 互換用として残す |
+| `.bashrc` が chezmoi で macOS にも配置される | 既知 | zsh 主運用なら通常問題なし。必要なら後で OS 分岐化する |
+| `PNPM_HOME = "$HOME/Library/pnpm"` が pnpm 実挙動と合うか未確認 | 未確認 | 新 Mac で `pnpm setup` / `pnpm root -g` を確認する |
+| `cc` / `ca` / `cdx` alias の実体が未導入 | 未解決 | `claude` / `codex` を別途導入する |
+| Neovim の外部依存が不足する可能性 | 未確認 | LazyVim 起動後に missing tool を追加する |
+
+### 13.4 WezTerm / GUI の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| WezTerm 実機起動が未確認 | 未解決 | 新 Mac で起動し、pane split / cwd / tab title を確認する |
+| フォントが未整備 | 未解決 | `PlemolJP Console NF` / Nerd Font / emoji fallback を確認する |
+| Windows フォント `Segoe UI` は macOS にない | 既知 | WezTerm font fallback を macOS 向けに調整する |
+| OrbStack と Docker Desktop の挙動差 | 未確認 | Docker context / compose / volume / Kubernetes を確認する |
+| VS Code settings/extensions が未移行 | 未解決 | 必要なら settings sync または dotfiles 化する |
+
+### 13.5 認証 / secrets の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| GitHub CLI 認証は再ログインが必要 | 既知 | `gh auth login` |
+| AWS 認証は再設定が必要 | 既知 | `aws configure sso` |
+| GCP 認証は再ログインが必要 | 既知 | `gcloud auth login` |
+| GCP ADC が必要な場合は別ログインが必要 | 既知 | `gcloud auth application-default login` |
+| Azure 認証は再ログインが必要 | 既知 | `az login` |
+| SSH key 移行方針が未決定 | 未解決 | 新規発行または安全な鍵移行を選ぶ |
+| GPG / commit signing が未整理 | 未解決 | SSH signing または GPG key 移行を検討する |
+| dotenvx private key を移してはいけない | 重要 | secret store から安全に注入する |
+
+### 13.6 プロジェクト移行の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| `.mise.toml` が複数プロジェクトに残っている | 未解決 | 使用頻度順に project flake 化する |
+| Node 24 が全プロジェクトに合うとは限らない | 既知 | project-local `flake.nix` で個別固定する |
+| Python 3.13 が全プロジェクトに合うとは限らない | 既知 | project-local `flake.nix` で個別固定する |
+| Rust は `rustup` 依存のまま | 意図的暫定 | 必要なら `fenix` / `rust-overlay` を検討する |
+| Dioxus CLI が Nix package set にない | 未解決 | Dioxus project 移行時に追加判断する |
+| Playwright / browser automation の依存が未確認 | 未解決 | macOS 実機で browser install / permission を確認する |
+| CDK / AWS 系プロジェクトの追加依存が未確認 | 未解決 | project 移行時に `awscli2`, Docker, CDK 周辺を確認する |
+
+### 13.7 pnpm global / AI tools の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| pnpm global tools をまだ再現していない | 未解決 | 必要になった順に一時導入する |
+| `@openai/codex` の導入方法が未固定 | 未解決 | 公式手順または pnpm global で暫定導入する |
+| `agent-browser` / `dev-browser` が未導入 | 未解決 | browser automation が必要になった時点で導入する |
+| MCP / Google Workspace 系 CLI が未整理 | 未解決 | 常用性を確認して project-local へ寄せる |
+| Claude / Codex の credential/cache は dotfiles 管理外 | 既知 | 新 Mac で再認証する |
+
+### 13.8 dotfiles / chezmoi の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| `.gitconfig` は chezmoi と home-manager の責務が重なっている | 既知 | 将来どちらかに寄せる |
+| `.mise.toml` が chezmoi 管理に残っている | 既知 | mise 廃止時に削除する |
+| Neovim 設定は macOS 実機未確認 | 未確認 | 新 Mac で LazyVim 起動確認を行う |
+| AGENTS / CLAUDE / Codex 関連 symlink template が macOS で未確認 | 未確認 | `chezmoi apply --dry-run` と実適用で確認する |
+| WSL 互換設定が残っている | 意図的 | OS 判定・存在確認の内側に閉じ込める |
+
+### 13.9 データ移行の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| `/home/adachi/src` など作業ディレクトリは dotfiles では移行されない | 未解決 | 必要な repo を新 Mac で clone する |
+| Obsidian vault が Windows path 前提だった | 一部対応済み | `OBSIDIAN_VAULT` または `~/obsidian` を新 Mac で用意する |
+| `.aws` / `.azure` / `.config/gcloud` は移行しない | 意図的 | 新 Mac で再ログインする |
+| `.ssh` / `.gnupg` の移行方針が未決定 | 未解決 | 新規作成または安全な移行を選ぶ |
+| cache / node_modules / mise installs は移行しない | 意図的 | 新 Mac で再構築する |
+
+### 13.10 macOS 固有の懸念
+
+| 懸念点 | 状態 | 対応 |
+|---|---|---|
+| Gatekeeper / 権限許可が必要になる可能性 | 未確認 | 初回起動時に許可する |
+| FileVault / Keychain / Touch ID 統合が未設計 | 未解決 | SSH key / signing / secrets 方針と合わせて決める |
+| 日本語入力設定が未移行 | 未解決 | macOS 設定または Karabiner 等を検討する |
+| キーボード設定が未移行 | 未解決 | JIS/US, CapsLock, Command/Control, IME toggle を確認する |
+| Finder / Dock 設定は最小限 | 意図的 | 使用しながら nix-darwin defaults に追加する |
+| Time Machine / backup 方針が未記載 | 未解決 | 新 Mac セットアップ後に決める |
+
+### 13.11 パッケージ不足の懸念
+
+初回 Nix package set に入れていないもの:
+
+```text
+ngrok
+aws-sam-cli
+ollama
+mdcat
+stow
+dotenvx
+biome
+vercel
+dioxus-cli
+fonts
+```
+
+扱い:
+
+```text
+常用が確認できたものだけ追加する。
+プロジェクト固有のものは project-local flake.nix または devDependency に寄せる。
+CLI を Homebrew formula に逃がさない。
+```
+
+## 14. 優先順位
+
+新 Mac での作業はこの順番で進めます。
+
+1. `whoami` が `adachi` か確認する。
+2. Nix をインストールする。
+3. chezmoi で dotfiles を取得する。
+4. 初回 `nix run ... darwin-rebuild -- switch --flake ~/.local/share/chezmoi#macbook` を実行する。
+5. `flake.lock` を生成し、commit/push する。
+6. WezTerm / fonts / zsh / Neovim を確認する。
+7. `claude` / `codex` の導入方法を決める。
+8. GitHub / AWS / GCP / Azure に再ログインする。
+9. VS Code settings/extensions を移行する。
+10. Obsidian vault の配置を決め、`OBSIDIAN_VAULT` を設定する。
+11. 一番よく使う Node/pnpm project を1つ project-local flake 化する。
+12. AWS/CDK project、Python project、browser automation project の順に flake 化する。
+13. 主要 project が mise なしで動くことを確認する。
+14. `nix/packages.nix` から `mise` を削除する。
+15. Homebrew cask が本当に GUI アプリだけになっていることを確認する。
+
+## 15. 完了条件
 
 移行完了は、以下を全て満たした状態です。
 
