@@ -4,10 +4,14 @@ with pkgs;
 [
   awscli2
   azure-cli
+  alejandra
   bat
   cmake
   curl
+  deadnix
+  delta
   direnv
+  eza
   fd
   fzf
   gh
@@ -20,16 +24,24 @@ with pkgs;
   kubectl
   mise
   neovim
+  nix-output-monitor
+  nixd
   nodejs_24
   pkg-config
   pnpm
   python313
   ripgrep
+  sops
+  shellcheck
+  shfmt
+  statix
   rustup
   tmux
   tree
   unzip
   uv
   wget
+  yq-go
+  zoxide
   zstd
 ]

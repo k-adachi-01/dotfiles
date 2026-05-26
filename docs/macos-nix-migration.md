@@ -513,7 +513,11 @@ mise は移行完了後に削除する。
 Homebrew cask で管理する GUI アプリ:
 
 ```text
+bitwarden
+google-chrome
+obsidian
 orbstack
+slack
 visual-studio-code
 wezterm
 ```
@@ -728,7 +732,11 @@ az account show
 初回で Homebrew に残すのは以下のみです。
 
 ```text
+bitwarden
+google-chrome
+obsidian
 orbstack
+slack
 visual-studio-code
 wezterm
 ```
