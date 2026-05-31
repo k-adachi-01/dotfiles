@@ -410,8 +410,7 @@ Apple Silicon Mac であること。
 
 ```text
 nix-darwin 側のシステム設定。
-flakes を有効化。
-trusted-users に root と adachi を設定。
+Determinate Nix と衝突しないように nix-darwin 側の Nix 管理を無効化。
 zsh を有効化。
 home-manager の既存ファイル衝突時 backup extension を設定。
 Finder/Dock などの最低限の macOS defaults を設定。

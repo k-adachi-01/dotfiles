@@ -15,19 +15,7 @@
     config.allowUnfree = true;
   };
 
-  nix = {
-    package = pkgs.nix;
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-      trusted-users = [
-        "root"
-        username
-      ];
-    };
-  };
+  nix.enable = false;
 
   users.users.${username}.home = "/Users/${username}";
   system.primaryUser = username;
