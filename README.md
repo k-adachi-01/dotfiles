@@ -5,7 +5,8 @@ Personal macOS/WSL development environment managed with Nix.
 This repository used to be a chezmoi source tree. The target state is now:
 
 - `nix-darwin` manages macOS system settings.
-- `home-manager` manages user dotfiles, CLI tools, shell, git, editor, and AI-agent config.
+- `nix-darwin` installs shared CLI tools from `nix/packages.nix`.
+- `home-manager` manages user dotfiles, shell, git, editor, and AI-agent config.
 - Homebrew is limited to GUI casks.
 - `mise` is temporary and will be removed after active projects move to project-local `flake.nix`.
 - Agent skills are managed as an immutable Nix flake input from `k-adachi-01/agent-skills`.

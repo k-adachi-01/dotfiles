@@ -17,7 +17,6 @@
     inherit username;
     homeDirectory = "/Users/${username}";
     stateVersion = "25.05";
-    packages = import ./packages.nix { inherit pkgs; };
     sessionVariables = {
       EDITOR = "nvim";
       PNPM_HOME = "$HOME/Library/pnpm";

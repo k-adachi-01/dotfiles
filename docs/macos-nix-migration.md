@@ -7,7 +7,8 @@
 最終状態は以下です。
 
 - macOS のシステム設定は `nix-darwin` で管理する。
-- ユーザー環境、CLI、shell、git、開発基本ツールは `home-manager` で管理する。
+- CLI と開発基本ツールは `nix-darwin` の system packages で管理する。
+- ユーザー環境、shell、git、dotfiles は `home-manager` で管理する。
 - Homebrew は GUI アプリの cask のみに限定する。
 - `mise` は移行期間だけ残し、最終的には project-local `flake.nix` / `nix develop` に置き換える。
 - dotfiles は `k-adachi-01/dotfiles` を Nix flake repository として管理する。
@@ -420,7 +421,8 @@ Finder/Dock などの最低限の macOS defaults を設定。
 
 ```text
 macOS 外観など主観的な設定は最小限にする。
-CLI や shell の詳細は home-manager に寄せる。
+CLI は `nix/packages.nix` に集約し、system packages として入れる。
+shell や user dotfiles の詳細は home-manager に寄せる。
 GUI アプリは apps.nix に分離する。
 ```
 

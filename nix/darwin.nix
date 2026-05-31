@@ -25,9 +25,11 @@
 
   home-manager.backupFileExtension = "hm-backup";
 
-  environment.systemPackages = with pkgs; [
-    vim
-  ];
+  environment.systemPackages =
+    (with pkgs; [
+      vim
+    ])
+    ++ import ./packages.nix { inherit pkgs; };
 
   system = {
     stateVersion = 6;
