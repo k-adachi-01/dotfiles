@@ -473,6 +473,7 @@ awscli2
 azure-cli
 bat
 cmake
+codex
 curl
 direnv
 fd

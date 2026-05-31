@@ -7,6 +7,7 @@ with pkgs;
   alejandra
   bat
   cmake
+  codex
   curl
   deadnix
   delta
