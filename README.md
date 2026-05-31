@@ -102,7 +102,13 @@ git clone https://github.com/k-adachi-01/dotfiles.git "$HOME/.config/nix-darwin"
 nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake "$HOME/.config/nix-darwin#macbook"
 ```
 
-After the first switch, use:
+After the first switch, start a new login shell once so `/run/current-system/sw/bin` is on `PATH`.
+
+```bash
+exec "$SHELL" -l
+```
+
+Then use:
 
 ```bash
 darwin-rebuild switch --flake "$HOME/.config/nix-darwin#macbook"

@@ -603,7 +603,13 @@ ls -la "$HOME/.config/nix-darwin/home"
 nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake "$HOME/.config/nix-darwin#macbook"
 ```
 
-成功後、次回以降は以下を使います。
+成功後はいったん新しい login shell を開き、`PATH` を更新します。
+
+```bash
+exec "$SHELL" -l
+```
+
+その後、次回以降は以下を使います。
 
 ```bash
 darwin-rebuild switch --flake "$HOME/.config/nix-darwin#macbook"

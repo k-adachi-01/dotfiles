@@ -33,6 +33,7 @@
   system.primaryUser = username;
 
   programs.zsh.enable = true;
+  system.tools.darwin-rebuild.enable = true;
 
   home-manager.backupFileExtension = "hm-backup";
 
