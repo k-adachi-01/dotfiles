@@ -25,6 +25,10 @@
 
   home-manager.backupFileExtension = "hm-backup";
 
+  fonts.packages = with pkgs; [
+    plemoljp-nf
+  ];
+
   environment.systemPackages =
     (with pkgs; [
       vim

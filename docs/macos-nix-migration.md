@@ -1598,7 +1598,7 @@ f3620e1 chore: clean up migration shell config
 | 懸念点 | 状態 | 対応 |
 |---|---|---|
 | WezTerm 実機起動が未確認 | 未解決 | 新 Mac で起動し、pane split / cwd / tab title を確認する |
-| フォントが未整備 | 未解決 | `PlemolJP Console NF` / Nerd Font / emoji fallback を確認する |
+| フォントが未整備 | 対応済み | `PlemolJP Console NF` は `fonts.packages` の `plemoljp-nf` で導入する |
 | Windows フォント `Segoe UI` は macOS にない | 既知 | WezTerm font fallback を macOS 向けに調整する |
 | OrbStack と Docker Desktop の挙動差 | 未確認 | Docker context / compose / volume / Kubernetes を確認する |
 | VS Code / Cursor / Antigravity settings | 対応済み | `nix/editors.nix` で macOS User settings/keybindings を配置する |
