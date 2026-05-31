@@ -1768,8 +1768,8 @@ home-manager が以下を配置します。
 ~/.kiro/powers/
 ```
 
-共通 skills は `github:k-adachi-01/agent-skills` を flake input として固定します。
-ローカルの `~/agent-skills` checkout ではなく、Nix store 上の固定済み source を `~/.agents/skills`, `~/.claude/skills`, `~/.cursor/skills` へ symlink します。
+共通 skills は private repo のローカル checkout `~/agent-skills` を flake input として取り込みます。
+Nix store 上へコピーされた source を `~/.agents/skills`, `~/.claude/skills`, `~/.cursor/skills` へ symlink します。
 
 ### 16.2 Nix で管理しないもの
 
@@ -1809,7 +1809,7 @@ home-manager が以下を配置します。
 1. `k-adachi-01/agent-skills` を編集する。
 2. `.claude/`, cache, workspace, secret が入っていないことを確認する。
 3. `agent-skills` repo を commit / push する。
-4. dotfiles repo で `nix flake lock --update-input agent-skills` を実行する。
+4. dotfiles repo で `nix flake lock --update-input agent-skills` を実行し、local path input の lock を更新する。
 5. `darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` を実行する。
 
 ### 16.5 Antigravity

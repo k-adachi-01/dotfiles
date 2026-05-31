@@ -79,7 +79,7 @@ Not managed by Nix:
 - telemetry/cache/state databases
 - tool-managed system skills such as Codex `.system` skills
 
-Update shared skills in `k-adachi-01/agent-skills`, push that repository, then update the `agent-skills` input in this flake.
+Update shared skills in the local `~/agent-skills` checkout. That repository is private and is consumed by this flake through a local path input.
 
 ## macOS Bootstrap
 

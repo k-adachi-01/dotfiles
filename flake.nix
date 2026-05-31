@@ -9,7 +9,7 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     agent-skills = {
-      url = "git+ssh://git@github.com/k-adachi-01/agent-skills.git";
+      url = "path:/Users/adachi/agent-skills";
       flake = false;
     };
   };
