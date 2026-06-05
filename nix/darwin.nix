@@ -23,6 +23,11 @@
   programs.zsh.enable = true;
   system.tools.darwin-rebuild.enable = true;
 
+  security.pam.services.sudo_local = {
+    touchIdAuth = true;
+    reattach = true;
+  };
+
   home-manager.backupFileExtension = "hm-backup";
 
   fonts.packages = with pkgs; [
