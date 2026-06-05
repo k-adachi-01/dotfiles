@@ -11,9 +11,12 @@ end
 return {
   {
     "keaising/im-select.nvim",
-    enabled = is_mac,
+    enabled = is_mac and vim.fn.executable("macism") == 1,
     config = function()
-      require("im_select").setup()
+      require("im_select").setup({
+        default_command = "macism",
+        keep_quiet_on_no_binary = true,
+      })
     end,
   },
   {

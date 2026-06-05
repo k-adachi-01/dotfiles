@@ -23,6 +23,7 @@ with pkgs;
   jq
   just
   kubectl
+  macism
   mise
   neovim
   nix-output-monitor
