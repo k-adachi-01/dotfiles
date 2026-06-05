@@ -1,7 +1,21 @@
-{ pkgs }:
-
-with pkgs;
-[
+{pkgs}:
+with pkgs; let
+  kiroFixed = kiro.overrideAttrs (oldAttrs: {
+    nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [_7zz];
+    unpackPhase = ''
+      runHook preUnpack
+      7zz x "$src"
+      runHook postUnpack
+    '';
+    sourceRoot = "Kiro.app";
+    postInstall =
+      (oldAttrs.postInstall or "")
+      + ''
+        ln -s code "$out/Applications/Kiro.app/Contents/Resources/app/bin/kiro"
+      '';
+    dontFixup = true;
+  });
+in [
   awscli2
   azure-cli
   alejandra
@@ -22,6 +36,8 @@ with pkgs;
   google-cloud-sdk
   jq
   just
+  kiroFixed
+  kiro-cli
   kubectl
   macism
   mise
