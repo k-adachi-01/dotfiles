@@ -15,6 +15,23 @@ with pkgs; let
       '';
     dontFixup = true;
   });
+  kiroCliFixed = kiro-cli.overrideAttrs (oldAttrs: {
+    postInstall =
+      (oldAttrs.postInstall or "")
+      + ''
+        for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
+          target="$out/Applications/Kiro CLI.app/Contents/MacOS/$bin"
+          if [ -x "$target" ]; then
+            rm -f "$out/bin/$bin"
+            cat > "$out/bin/$bin" <<EOF
+#!${runtimeShell}
+exec "$target" "\$@"
+EOF
+            chmod +x "$out/bin/$bin"
+          fi
+        done
+      '';
+  });
 in [
   awscli2
   azure-cli
@@ -37,7 +54,7 @@ in [
   jq
   just
   kiroFixed
-  kiro-cli
+  kiroCliFixed
   kubectl
   macism
   mise
