@@ -10,6 +10,9 @@ let
   homeDir = config.home.homeDirectory;
   json = pkgs.formats.json { };
   agentSkills = inputs.agent-skills;
+  dotfilesHome = "${homeDir}/.config/nix-darwin/home";
+  mutableHomeFile = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesHome}/${path}";
+  mutableAgentSkill = name: config.lib.file.mkOutOfStoreSymlink "${homeDir}/agent-skills/${name}";
   pnpmHome =
     if pkgs.stdenv.isDarwin then
       "${homeDir}/Library/pnpm"
@@ -338,83 +341,14 @@ in
       '';
     };
 
-    ".codex/AGENTS.md".source = ../home/ai/AGENTS.md;
-    ".codex/keybindings.json".source = json.generate "codex-keybindings.json" [
-      {
-        command = "globalDictationHold";
-        key = "Ctrl+Alt+Z";
-      }
-    ];
-    ".codex/skills/browser-use-local".source = agentSkills + "/browser-use-local";
-    ".codex/skills/vercel-react-best-practices".source = agentSkills + "/vercel-react-best-practices";
-    ".codex/skills/wezterm-config-sync".source = agentSkills + "/wezterm-config-sync";
-    ".codex/config.toml".text = ''
-      model = "gpt-5.5"
-      model_reasoning_effort = "medium"
-      notify = ["bash", "${homeDir}/.codex/notify.sh"]
-      personality = "pragmatic"
-
-      [notice]
-      hide_rate_limit_model_nudge = true
-      fast_default_opt_out = true
-
-      [notice.model_migrations]
-      "gpt-5.2" = "gpt-5.2-codex"
-      "gpt-5.2-codex" = "gpt-5.3-codex"
-      "gpt-5.3-codex" = "gpt-5.4"
-
-      [projects."${homeDir}"]
-      trust_level = "trusted"
-
-      [projects."${homeDir}/.config/nix-darwin"]
-      trust_level = "trusted"
-
-      [projects."${homeDir}/agent-skills"]
-      trust_level = "trusted"
-
-      [projects."${homeDir}/articles"]
-      trust_level = "trusted"
-
-      [projects."${homeDir}/src"]
-      trust_level = "trusted"
-
-      [projects."${homeDir}/talks"]
-      trust_level = "trusted"
-
-      [tui]
-      screen_reader_mode = true
-
-      [plugins."google-calendar@openai-curated"]
-      enabled = true
-
-      [plugins."gmail@openai-curated"]
-      enabled = true
-
-      [plugins."github@openai-curated"]
-      enabled = true
-
-      [plugins."google-drive@openai-curated"]
-      enabled = true
-    '';
-    ".codex/rules/default.rules".source = ../home/agents/codex/default.rules;
-    ".codex/notify.sh" = {
-      executable = true;
-      text = ''
-        #!/usr/bin/env bash
-        set -euo pipefail
-
-        payload=''${1:-{}}
-        last_message=$(printf '%s' "$payload" | jq -r '.["last-assistant-message"] // "Codex task completed"')
-
-        if command -v powershell.exe >/dev/null 2>&1; then
-          powershell.exe -Command "Import-Module BurntToast; New-BurntToastNotification -Text 'Codex', '$last_message'"
-        elif command -v osascript >/dev/null 2>&1; then
-          osascript -e "display notification \"$last_message\" with title \"Codex\""
-        else
-          printf 'Codex: %s\n' "$last_message"
-        fi
-      '';
-    };
+    ".codex/AGENTS.md".source = mutableHomeFile "ai/AGENTS.md";
+    ".codex/keybindings.json".source = mutableHomeFile "agents/codex/keybindings.json";
+    ".codex/skills/browser-use-local".source = mutableAgentSkill "browser-use-local";
+    ".codex/skills/vercel-react-best-practices".source = mutableAgentSkill "vercel-react-best-practices";
+    ".codex/skills/wezterm-config-sync".source = mutableAgentSkill "wezterm-config-sync";
+    ".codex/config.toml".source = mutableHomeFile "agents/codex/config.toml";
+    ".codex/rules/default.rules".source = mutableHomeFile "agents/codex/default.rules";
+    ".codex/notify.sh".source = mutableHomeFile "agents/codex/notify.sh";
 
     ".cursor/AGENTS.md".source = ../home/ai/AGENTS.md;
     ".cursor/mcp.json".source = json.generate "cursor-mcp.json" {

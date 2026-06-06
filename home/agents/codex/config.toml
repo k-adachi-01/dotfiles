@@ -1,0 +1,47 @@
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+
+notify = ["/Users/adachi/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended", "--previous-notify", "[\"bash\",\"\\/Users\\/adachi\\/.codex\\/notify.sh\"]"]
+
+[notice]
+hide_rate_limit_model_nudge = true
+fast_default_opt_out = true
+
+[notice.model_migrations]
+"gpt-5.2" = "gpt-5.2-codex"
+"gpt-5.2-codex" = "gpt-5.3-codex"
+"gpt-5.3-codex" = "gpt-5.4"
+
+[projects."/Users/adachi"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/.config/nix-darwin"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/agent-skills"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/articles"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/src"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/talks"]
+trust_level = "trusted"
+
+[tui]
+screen_reader_mode = true
+
+[plugins."google-calendar@openai-curated"]
+enabled = true
+
+[plugins."gmail@openai-curated"]
+enabled = true
+
+[plugins."github@openai-curated"]
+enabled = true
+
+[plugins."google-drive@openai-curated"]
+enabled = true
