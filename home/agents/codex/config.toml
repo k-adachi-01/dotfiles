@@ -45,3 +45,8 @@ enabled = true
 
 [plugins."google-drive@openai-curated"]
 enabled = true
+
+[marketplaces.openai-bundled]
+last_updated = "2026-06-06T13:16:36Z"
+source_type = "local"
+source = "/Users/adachi/.codex/.tmp/bundled-marketplaces/openai-bundled"

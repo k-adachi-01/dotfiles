@@ -1,6 +1,6 @@
 [
   {
     "command": "globalDictationHold",
-    "key": "Ctrl+Alt+Z"
+    "key": "Command+Alt+Z"
   }
 ]
