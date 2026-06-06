@@ -29,6 +29,21 @@
     file = {
       ".inputrc".source = ../home/inputrc;
       ".mise.toml".source = ../home/mise.toml;
+      ".zprofile".text = ''
+        if [ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+        elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
+          . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
+        fi
+
+        if command -v kiro-cli >/dev/null 2>&1; then
+          source <(SHELL=/bin/zsh kiro-cli init zsh pre)
+        fi
+
+        # Added by OrbStack: command-line tools and integration
+        # This won't be added again if you remove it.
+        source ~/.orbstack/shell/init.zsh 2>/dev/null || :
+      '';
       ".wezterm.lua".source =
         if pkgs.stdenv.isDarwin then
           ../home/wezterm/darwin.lua
@@ -89,6 +104,7 @@
       fi
 
       set -o vi
+      setopt prompt_subst
 
       autoload -Uz vcs_info
       precmd() {
@@ -99,6 +115,10 @@
       zstyle ':vcs_info:git:*' formats ' on %b'
       PROMPT='%F{244}+-%f %F{114}%n%f%F{244}@%f%F{117}%m%f %F{244}in%f %B%F{117}%3~%f%b%F{221}''${vcs_info_msg_0_}%f
 %F{244}+-%f %F{114}%#%f '
+
+      if command -v kiro-cli >/dev/null 2>&1; then
+        source <(SHELL=/bin/zsh kiro-cli init zsh post | sed '/if \[ -z "''${Q_INLINE_OPT_IN_MIGRATION}" \]; then/,/^fi$/d')
+      fi
     '';
   };
 
