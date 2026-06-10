@@ -77,6 +77,7 @@ in [
   uv
   wget
   yq-go
+  zed-editor
   zoxide
   zstd
 ]
