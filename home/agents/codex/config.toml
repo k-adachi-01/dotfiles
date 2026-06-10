@@ -31,8 +31,31 @@ trust_level = "trusted"
 [projects."/Users/adachi/talks"]
 trust_level = "trusted"
 
+[projects."/Users/adachi/src/260605_clouddriver"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/src/changelog-slack-watcher"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/src/aws-sandbox"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/blog"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/tmp"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/src/app_img-uploader-v3"]
+trust_level = "trusted"
+
 [tui]
 screen_reader_mode = true
+status_line = ["model-with-reasoning", "current-dir", "five-hour-limit", "weekly-limit", "context-remaining"]
+status_line_use_colors = true
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
 
 [plugins."google-calendar@openai-curated"]
 enabled = true
@@ -46,7 +69,41 @@ enabled = true
 [plugins."google-drive@openai-curated"]
 enabled = true
 
+[plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."chrome@openai-bundled"]
+enabled = true
+
 [marketplaces.openai-bundled]
-last_updated = "2026-06-06T13:16:36Z"
+last_updated = "2026-06-06T22:31:36Z"
 source_type = "local"
 source = "/Users/adachi/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[features]
+js_repl = false
+
+[mcp_servers.node_repl]
+args = []
+command = "/Applications/Codex.app/Contents/Resources/node_repl"
+startup_timeout_sec = 120
+
+[mcp_servers.node_repl.env]
+NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
+NODE_REPL_NODE_MODULE_DIRS = ""
+NODE_REPL_NODE_PATH = "/Applications/Codex.app/Contents/Resources/node"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/adachi/.codex"
+CODEX_HOME = "/Users/adachi/.codex"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "2de792ebdf729e85542c94275f6654821dddce546d9c7374c915f2297529e313"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
+BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
+BROWSER_USE_CODEX_APP_VERSION = "26.602.40724"
+CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
+
+[mcp_servers.drawio]
+enabled = true
+command = "npx"
+args = ["@drawio/mcp"]
+cwd = "~/src/260605_clouddriver"

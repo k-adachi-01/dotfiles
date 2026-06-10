@@ -46,3 +46,6 @@ prefix_rule(pattern=["browser-use-local", "--session"], decision="allow")
 
 prefix_rule(pattern=["aws", "cloudformation", "list-stacks"], decision="allow")
 prefix_rule(pattern=["aws", "cloudformation", "describe-stacks"], decision="allow")
+prefix_rule(pattern=["pnpm", "run"], decision="allow")
+prefix_rule(pattern=["uv", "run"], decision="allow")
+prefix_rule(pattern=["pnpm", "exec", "cdk"], decision="allow")
