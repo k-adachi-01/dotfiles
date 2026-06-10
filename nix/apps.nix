@@ -15,7 +15,6 @@
       "orbstack"
       "raycast"
       "slack"
-      "visual-studio-code"
       "wezterm"
     ];
   };

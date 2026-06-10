@@ -1,20 +1,5 @@
 {pkgs}:
 with pkgs; let
-  kiroFixed = kiro.overrideAttrs (oldAttrs: {
-    nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [_7zz];
-    unpackPhase = ''
-      runHook preUnpack
-      7zz x "$src"
-      runHook postUnpack
-    '';
-    sourceRoot = "Kiro.app";
-    postInstall =
-      (oldAttrs.postInstall or "")
-      + ''
-        ln -s code "$out/Applications/Kiro.app/Contents/Resources/app/bin/kiro"
-      '';
-    dontFixup = true;
-  });
   kiroCliFixed = kiro-cli.overrideAttrs (oldAttrs: {
     postInstall =
       (oldAttrs.postInstall or "")
@@ -37,6 +22,7 @@ in [
   azure-cli
   alejandra
   bat
+  claude-code
   cmake
   codex
   curl
@@ -53,7 +39,6 @@ in [
   google-cloud-sdk
   jq
   just
-  kiroFixed
   kiroCliFixed
   kubectl
   macism
