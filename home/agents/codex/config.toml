@@ -49,6 +49,12 @@ trust_level = "trusted"
 [projects."/Users/adachi/src/app_img-uploader-v3"]
 trust_level = "trusted"
 
+[projects."/Users/adachi/src/aws-diagrams"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/src/260610_cdkd-cdkl"]
+trust_level = "trusted"
+
 [tui]
 screen_reader_mode = true
 status_line = ["model-with-reasoning", "current-dir", "five-hour-limit", "weekly-limit", "context-remaining"]
@@ -75,10 +81,27 @@ enabled = true
 [plugins."chrome@openai-bundled"]
 enabled = true
 
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
 [marketplaces.openai-bundled]
-last_updated = "2026-06-06T22:31:36Z"
+last_updated = "2026-06-14T00:22:58Z"
 source_type = "local"
 source = "/Users/adachi/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-06-15T11:01:05Z"
+source_type = "local"
+source = "/Users/adachi/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [features]
 js_repl = false
@@ -101,9 +124,3 @@ NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunct
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
 BROWSER_USE_CODEX_APP_VERSION = "26.602.40724"
 CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
-
-[mcp_servers.drawio]
-enabled = true
-command = "npx"
-args = ["@drawio/mcp"]
-cwd = "~/src/260605_clouddriver"
