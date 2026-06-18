@@ -93,6 +93,7 @@
       ca = "claude --enable-auto-mode";
       cc = "claude --permission-mode acceptEdits";
       cdx = "codex --sandbox workspace-write --ask-for-approval on-request";
+      cdx-bedrock = "codex --profile bedrock --sandbox workspace-write --ask-for-approval on-request";
       la = "ls -A";
       ll = "ls -alF";
     };

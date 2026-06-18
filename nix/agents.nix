@@ -347,6 +347,7 @@ in
     ".codex/skills/vercel-react-best-practices".source = mutableAgentSkill "vercel-react-best-practices";
     ".codex/skills/wezterm-config-sync".source = mutableAgentSkill "wezterm-config-sync";
     ".codex/config.toml".source = mutableHomeFile "agents/codex/config.toml";
+    ".codex/bedrock.config.toml".source = mutableHomeFile "agents/codex/bedrock.config.toml";
     ".codex/rules/default.rules".source = mutableHomeFile "agents/codex/default.rules";
     ".codex/notify.sh".source = mutableHomeFile "agents/codex/notify.sh";
 
