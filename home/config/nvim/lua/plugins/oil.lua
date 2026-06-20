@@ -9,7 +9,7 @@ return {
         show_hidden = true,
       },
       keymaps = {
-        yp = {
+        gy = {
           callback = function()
             local oil = require("oil")
             local entry = oil.get_cursor_entry()
@@ -23,6 +23,7 @@ return {
             vim.notify("Copied path: " .. path)
           end,
           desc = "Copy absolute path",
+          mode = "n",
         },
       },
     },
