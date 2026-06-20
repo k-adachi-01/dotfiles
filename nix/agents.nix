@@ -9,10 +9,8 @@
 let
   homeDir = config.home.homeDirectory;
   json = pkgs.formats.json { };
-  agentSkills = inputs.agent-skills;
   dotfilesHome = "${homeDir}/.config/nix-darwin/home";
   mutableHomeFile = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesHome}/${path}";
-  mutableAgentSkill = name: config.lib.file.mkOutOfStoreSymlink "${homeDir}/agent-skills/${name}";
   pnpmHome =
     if pkgs.stdenv.isDarwin then
       "${homeDir}/Library/pnpm"
@@ -79,13 +77,24 @@ let
   };
 in
 {
+  programs.agent-skills = {
+    enable = true;
+    sources.personal = {
+      input = "agent-skills";
+      filter.maxDepth = 1;
+    };
+    skills.enableAll = [ "personal" ];
+    targets.agents.enable = true;
+    targets.claude.enable = true;
+    targets.codex.enable = true;
+    targets.cursor.enable = true;
+  };
+
   home.file = {
     ".agents/AGENTS.md".source = ../home/ai/AGENTS.md;
-    ".agents/skills".source = agentSkills;
 
     ".claude/AGENTS.md".source = ../home/ai/AGENTS.md;
     ".claude/CLAUDE.md".source = ../home/ai/CLAUDE.md;
-    ".claude/skills".source = agentSkills;
     ".claude/settings.json".source = json.generate "claude-settings.json" {
       env = {
         PNPM_HOME = pnpmHome;
@@ -343,9 +352,6 @@ in
 
     ".codex/AGENTS.md".source = mutableHomeFile "ai/AGENTS.md";
     ".codex/keybindings.json".source = mutableHomeFile "agents/codex/keybindings.json";
-    ".codex/skills/browser-use-local".source = mutableAgentSkill "browser-use-local";
-    ".codex/skills/vercel-react-best-practices".source = mutableAgentSkill "vercel-react-best-practices";
-    ".codex/skills/wezterm-config-sync".source = mutableAgentSkill "wezterm-config-sync";
     ".codex/config.toml".source = mutableHomeFile "agents/codex/config.toml";
     ".codex/bedrock.config.toml".source = mutableHomeFile "agents/codex/bedrock.config.toml";
     ".codex/rules/default.rules".source = mutableHomeFile "agents/codex/default.rules";
@@ -379,7 +385,6 @@ in
         };
       };
     };
-    ".cursor/skills".source = agentSkills;
     ".cursor/cli-config.json".source = json.generate "cursor-cli-config.json" {
       permissions = {
         allow = [ "Shell(ls)" ];

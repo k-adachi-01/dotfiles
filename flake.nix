@@ -8,6 +8,7 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    agent-skills-nix.url = "github:Kyure-A/agent-skills-nix";
     agent-skills = {
       url = "path:/Users/adachi/agent-skills";
       flake = false;

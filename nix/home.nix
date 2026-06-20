@@ -9,6 +9,7 @@
 
 {
   imports = [
+    inputs.agent-skills-nix.homeManagerModules.default
     ./agents.nix
     ./editors.nix
   ];
