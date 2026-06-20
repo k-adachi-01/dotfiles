@@ -11,6 +11,37 @@ let
   json = pkgs.formats.json { };
   dotfilesHome = "${homeDir}/.config/nix-darwin/home";
   mutableHomeFile = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesHome}/${path}";
+  kiroPermissions = pkgs.runCommand "kiro-permissions.yaml" {
+    nativeBuildInputs = [ pkgs.ruby ];
+    src = ../home/agents/codex/default.rules;
+  } ''
+    ruby <<'RUBY' > "$out"
+    commands = []
+
+    File.foreach(ENV.fetch("src")) do |line|
+      next unless line =~ /prefix_rule\(pattern=\[(.*?)\], decision="allow"\)/
+
+      command = Regexp.last_match(1)
+        .scan(/"((?:\\.|[^"])*)"/)
+        .flatten
+        .map { |part| part.gsub(/\\"/, '"') }
+        .join(" ")
+
+      commands << command
+    end
+
+    puts "rules:"
+    puts "  - capability: shell"
+    puts "    effect: allow"
+    puts "    match:"
+
+    commands.each do |command|
+      [command, "#{command} *"].uniq.each do |pattern|
+        puts "      - #{pattern.inspect}"
+      end
+    end
+    RUBY
+  '';
   pnpmHome =
     if pkgs.stdenv.isDarwin then
       "${homeDir}/Library/pnpm"
@@ -603,6 +634,7 @@ in
         };
       };
     };
+    ".kiro/settings/permissions.yaml".source = kiroPermissions;
     ".kiro/settings/kiro_cli_theme.json".source = json.generate "kiro-cli-theme.json" {
       responsePreset = "light";
       diffPreset = "dark";
