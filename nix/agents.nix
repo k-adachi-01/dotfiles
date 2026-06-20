@@ -353,6 +353,7 @@ in
     ".codex/AGENTS.md".source = mutableHomeFile "ai/AGENTS.md";
     ".codex/keybindings.json".source = mutableHomeFile "agents/codex/keybindings.json";
     ".codex/config.toml".source = mutableHomeFile "agents/codex/config.toml";
+    ".codex/openai.config.toml".source = mutableHomeFile "agents/codex/openai.config.toml";
     ".codex/bedrock.config.toml".source = mutableHomeFile "agents/codex/bedrock.config.toml";
     ".codex/rules/default.rules".source = mutableHomeFile "agents/codex/default.rules";
     ".codex/notify.sh".source = mutableHomeFile "agents/codex/notify.sh";

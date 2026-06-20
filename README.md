@@ -42,6 +42,9 @@ Managed by Nix:
 - `~/.claude/notify-done.sh`
 - `~/.codex/AGENTS.md`
 - `~/.codex/config.toml`
+- `~/.codex/openai.config.toml`
+- `~/.codex/bedrock.config.toml`
+- `~/.codex/keybindings.json`
 - `~/.codex/rules/default.rules`
 - `~/.codex/notify.sh`
 - `~/.codex/skills/browser-use-local`
@@ -74,11 +77,13 @@ Windows-only settings preserved for handoff:
 
 Not managed by Nix:
 
-- auth files
-- credentials
-- local session history
-- telemetry/cache/state databases
-- tool-managed system skills such as Codex `.system` skills
+- auth files and credentials, including `~/.codex/auth.json`
+- local session and prompt history, including `history.jsonl`, `session_index.jsonl`, `transcription-history.jsonl`, `sessions/`, and `shell_snapshots/`
+- telemetry, cache, and state files, including `*.sqlite*`, `cache/`, `.tmp/`, `tmp/`, `models_cache.json`, and `installation_id`
+- browser and computer-use runtime state, including `chrome-native-hosts*.json` and `computer-use/`
+- tool-managed runtime plugins and system skills, such as Codex `.system` skills
+
+Before pruning Codex runtime state, quit Codex first. Start with cache-only files such as `cache/`, `.tmp/`, `tmp/`, and `models_cache.json`; delete history or SQLite databases only when losing local history/state is intentional.
 
 Update shared skills in the local `~/agent-skills` checkout. That repository is private and is consumed by this flake through a local path input.
 
