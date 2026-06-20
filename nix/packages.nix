@@ -16,6 +16,11 @@ with pkgs; let
   browserUse = browserUseCommand "browser-use";
   browserUseLocal = browserUseCommand "browser-use-local";
   kiroCliFixed = kiro-cli.overrideAttrs (oldAttrs: {
+    version = "2.8.1";
+    src = fetchurl {
+      url = "https://prod.download.cli.kiro.dev/stable/2.8.1/Kiro%20CLI.dmg";
+      hash = "sha256-nN3GHnAdjgIplKgbPgtis4M1lRhyH5s8ilHMjKAuRJU=";
+    };
     postInstall =
       (oldAttrs.postInstall or "")
       + ''

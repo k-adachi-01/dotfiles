@@ -95,6 +95,7 @@
       cc = "claude --permission-mode acceptEdits";
       cdx = "codex --sandbox workspace-write --ask-for-approval on-request";
       cdx-bedrock = "codex --profile bedrock --sandbox workspace-write --ask-for-approval on-request";
+      kiro3 = "kiro-cli --v3";
       la = "ls -A";
       ll = "ls -alF";
     };

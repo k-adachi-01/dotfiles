@@ -532,7 +532,9 @@ in
     ".kiro/powers.mcp.json".source = json.generate "kiro-powers-mcp.json" {
       inherit mcpServers;
     };
-    ".kiro/settings/cli.json".source = json.generate "kiro-cli.json" { };
+    ".kiro/settings/cli.json".source = json.generate "kiro-cli.json" {
+      "chat.defaultModel" = "claude-opus-4.8";
+    };
     ".kiro/settings/mcp.json".source = json.generate "kiro-settings-mcp.json" {
       mcpServers = { };
       powers.mcpServers = {

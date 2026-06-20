@@ -6,6 +6,7 @@
 - **レガシー環境**: Ubuntu 24.04 on WSL2
 - **パッケージ管理の主軸**: Nix (`nix-darwin` + `home-manager`)
 - **Homebrew**: GUI cask のみに限定する
+- **nix-darwin 適用**: このデバイスでは system activation に root 権限が必要。`darwin-rebuild switch` ではなく `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` を使う。
 
 ### WSL2でaptが必要な場合
 
@@ -98,7 +99,7 @@ pnpm = "latest"
 
 - 標準配置: `~/.config/nix-darwin/`（git リポジトリ: `k-adachi-01/dotfiles`）
 - 設定編集: `nix/` または `home/` を直接編集する
-- 適用: `darwin-rebuild switch --flake ~/.config/nix-darwin#macbook`
+- 適用: `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook`
 - 管理対象: shell, git, WezTerm, Neovim, Claude/Codex/Cursor/Agents 設定
 - 除外（秘密情報）: `.aws/`, `.azure/`, `.config/gcloud/`, `.config/gh/hosts.yml`, `.ssh/`, `.gnupg/`, `.env.keys`
 
