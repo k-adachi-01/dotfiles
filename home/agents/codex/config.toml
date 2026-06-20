@@ -13,6 +13,7 @@ fast_default_opt_out = true
 "gpt-5.2" = "gpt-5.2-codex"
 "gpt-5.2-codex" = "gpt-5.3-codex"
 "gpt-5.3-codex" = "gpt-5.4"
+"gpt-5.4" = "gpt-5.5"
 
 [projects."/Users/adachi"]
 trust_level = "trusted"
@@ -54,6 +55,9 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [projects."/Users/adachi/src/260610_cdkd-cdkl"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/src/260618_aws-blocks"]
 trust_level = "trusted"
 
 [tui]
@@ -101,7 +105,7 @@ source_type = "local"
 source = "/Users/adachi/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-06-15T11:01:05Z"
+last_updated = "2026-06-20T04:52:25Z"
 source_type = "local"
 source = "/Users/adachi/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
@@ -127,6 +131,3 @@ BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
 BROWSER_USE_CODEX_APP_VERSION = "26.602.40724"
 CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
 
-[model_providers.amazon-bedrock.aws]
-region = "us-east-2"
-profile = "aws-poc-sandbox"
