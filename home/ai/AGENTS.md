@@ -105,6 +105,17 @@ pnpm = "latest"
 
 **dotfiles を更新した後は、ユーザーへ確認せず、必ず `k-adachi-01/dotfiles` リポジトリへ commit・push すること。**
 
+### Codex / Kiro 設定運用
+
+- Codex durable config は `home/agents/codex/*` を編集し、`~/.codex/*` を直接編集しない
+- Kiro durable config は `nix/agents.nix` と `home/agents/kiro/powers/` を編集し、`~/.kiro/settings/*`, `~/.kiro/powers.json`, `~/.kiro/powers.mcp.json` を直接編集しない
+- Kiro CLI 本体のバージョン・取得元は `nix/packages.nix` で管理する
+- Kiro shell integration / alias は `nix/home.nix` で管理する
+- Kiro v3 permissions は `home/agents/codex/default.rules` を source of truth とし、`nix/agents.nix` の生成処理で `~/.kiro/settings/permissions.yaml` に反映する
+- `home/agents/codex/default.rules` を変更したら、Kiro permissions も変わる前提で `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` 後に `~/.kiro/settings/permissions.yaml` を確認する
+- `~/.kiro/sessions/`, `~/.kiro/logs/`, `~/.kiro/.cli_bash_history`, `~/.kiro/settings/feed_state.json`, `~/.kiro/settings/survey_state.json`, `~/.codex/sessions/`, `~/.codex/cache/`, `~/.codex/*.sqlite*` は runtime state として Nix/Git 管理しない
+- `kiro-cli settings`, `kiro-cli mcp add`, `kiro-cli theme` で試した変更は永続化せず、必要な内容を Nix source に移してから switch する
+
 ## ファイルパス（Windows / WSL2）
 
 - **MUST** ファイルを指定するときに、Windows 形式のパスは Ubuntu のマウントディレクトリのパスに変換すること
