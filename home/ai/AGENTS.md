@@ -103,7 +103,7 @@ pnpm = "latest"
 - 管理対象: shell, git, WezTerm, Neovim, Claude/Codex/Cursor/Agents 設定
 - 除外（秘密情報）: `.aws/`, `.azure/`, `.config/gcloud/`, `.config/gh/hosts.yml`, `.ssh/`, `.gnupg/`, `.env.keys`
 
-**dotfiles を更新した後は、必ず `k-adachi-01/dotfiles` リポジトリへ commit・push すること。**
+**dotfiles を更新した後は、ユーザーへ確認せず、必ず `k-adachi-01/dotfiles` リポジトリへ commit・push すること。**
 
 ## ファイルパス（Windows / WSL2）
 
