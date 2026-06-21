@@ -119,6 +119,12 @@ in
     targets.claude.enable = true;
     targets.codex.enable = true;
     targets.cursor.enable = true;
+    targets.kiro = {
+      dest = "$HOME/.kiro/skills";
+      structure = "symlink-tree";
+      enable = true;
+      systems = [ ];
+    };
   };
 
   home.file = {

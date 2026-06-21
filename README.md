@@ -57,6 +57,7 @@ Managed by Nix:
 - `~/.kiro/powers.json`
 - `~/.kiro/powers.mcp.json`
 - `~/.kiro/settings/`
+- `~/.kiro/skills/`
 - `~/.kiro/powers/`
 
 Editor settings managed by Nix on macOS:
