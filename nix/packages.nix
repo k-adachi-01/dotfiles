@@ -48,6 +48,7 @@ in [
   cmake
   codex
   curl
+  cursor-cli
   deadnix
   delta
   direnv

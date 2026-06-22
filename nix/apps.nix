@@ -10,6 +10,7 @@
       "aqua-voice"
       "bitwarden"
       "codex-app"
+      "cursor"
       "google-chrome"
       "obsidian"
       "orbstack"
