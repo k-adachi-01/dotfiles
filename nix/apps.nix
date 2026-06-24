@@ -6,6 +6,9 @@
       cleanup = "uninstall";
       upgrade = false;
     };
+    brews = [
+      "container"
+    ];
     casks = [
       "aqua-voice"
       "bitwarden"
