@@ -1,0 +1,47 @@
+{pkgs}:
+with pkgs; [
+  bashInteractive
+  coreutils
+  findutils
+  gnugrep
+  gnused
+  gawk
+  curl
+  wget
+  cacert
+  unzip
+  zstd
+  tree
+  git
+  gh
+  jq
+  yq-go
+  ripgrep
+  fd
+  fzf
+  bat
+  eza
+  tmux
+  neovim
+  direnv
+  nix-direnv
+  just
+  gnumake
+  pkg-config
+  cmake
+  nodejs_24
+  pnpm
+  python313
+  uv
+  rustup
+  awscli2
+  kubectl
+  alejandra
+  deadnix
+  statix
+  nixd
+  shellcheck
+  shfmt
+  codex
+  claude-code
+]

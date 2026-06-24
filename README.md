@@ -139,6 +139,45 @@ git commit -m "update environment"
 git push
 ```
 
+## NixOS Agent Container
+
+An isolated aarch64-linux NixOS configuration designed for running AI coding agents (Claude Code, Codex) on Apple Silicon via virtualization or containers. This profile is fully independent of the macOS darwin configuration and has no macOS-specific dependencies.
+
+### Architecture
+
+- Target: `aarch64-linux` NixOS system
+- No dependency on macOS paths, agent-skills input, or GUI tools
+- Secrets and credentials are not included; mount them at runtime
+- Shares source dotfiles (AGENTS.md, CLAUDE.md, nvim config) with the macOS profile but uses a separate Nix module path
+
+### Verification
+
+```bash
+# Check flake evaluates correctly
+nix flake check
+
+# Build the package set
+nix build .#packages.aarch64-linux.agent-container-tools
+
+# Enter the dev shell
+nix develop .#agent-container
+
+# Build the full NixOS system
+nix build .#nixosConfigurations.agent-container-aarch64-linux.config.system.build.toplevel
+```
+
+### Home Manager Standalone Usage
+
+The home-manager configuration at `nix/home-agent-container.nix` can also be used standalone on any aarch64-linux host with home-manager installed:
+
+```bash
+home-manager switch --flake .#adachi
+```
+
+### Future Direction
+
+The NixOS configuration can be used to produce a container image or VM disk via `nixos-generators`, enabling reproducible agent execution environments that boot in seconds.
+
 ## Authentication
 
 Credentials and secrets are not stored in this repository. After switching on a new Mac, re-authenticate:
