@@ -162,9 +162,16 @@ nix build .#packages.aarch64-linux.agent-container-tools
 # Enter the dev shell
 nix develop .#agent-container
 
-# Build the full NixOS system
+# Build the NixOS system closure
 nix build .#nixosConfigurations.agent-container-aarch64-linux.config.system.build.toplevel
 ```
+
+> **System closure vs. bootable image:** The last command builds a system
+> closure (a `/nix/store` path containing the full OS tree), not a bootable
+> disk image. The NixOS module intentionally omits `boot.loader` and
+> `fileSystems` because it is designed to be consumed by `nixos-generators`
+> or similar tooling to produce container or VM images. You cannot deploy it
+> directly with `nixos-rebuild switch` without adding those declarations.
 
 > **Note:** `nix flake check` requires that the `agent-skills` path input
 > (`/Users/adachi/agent-skills`) is accessible. This means full evaluation
@@ -174,6 +181,29 @@ nix build .#nixosConfigurations.agent-container-aarch64-linux.config.system.buil
 > ```bash
 > nix flake check --override-input agent-skills /path/to/local/clone
 > ```
+
+### First-run Prerequisites
+
+The container's git config delegates credential resolution entirely to `gh auth git-credential`. In a freshly-built container, `gh` has no stored token, so git operations (clone, push, pull) will fail silently or hang waiting for interactive input that an agent process cannot provide.
+
+Before running any agent workload, do one of the following:
+
+```bash
+# Interactive login (if a TTY is available)
+gh auth login
+
+# Or mount an existing token from the host
+# (bind-mount or copy ~/.config/gh/hosts.yml into the container)
+```
+
+Similarly, configure any other required credentials at container start:
+
+```bash
+aws configure sso        # or mount ~/.aws/
+gcloud auth login        # or mount ~/.config/gcloud/
+```
+
+These credentials are never stored in the repository image; they must be injected at runtime.
 
 ### Security Trade-offs
 
