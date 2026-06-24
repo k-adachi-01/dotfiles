@@ -1,3 +1,8 @@
+# WARNING: This module is designed exclusively for single-user AI agent
+# containers running on a host-only or isolated network. It disables the
+# firewall and enables passwordless sudo for the wheel group. Do NOT reuse
+# this module in multi-user, network-exposed, or production environments
+# without adding appropriate access controls.
 {
   config,
   lib,

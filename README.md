@@ -166,6 +166,19 @@ nix develop .#agent-container
 nix build .#nixosConfigurations.agent-container-aarch64-linux.config.system.build.toplevel
 ```
 
+> **Note:** `nix flake check` requires that the `agent-skills` path input
+> (`/Users/adachi/agent-skills`) is accessible. This means full evaluation
+> works on the macOS development host where that directory exists. For
+> Linux-only evaluation (e.g. CI or a remote builder), override the input:
+>
+> ```bash
+> nix flake check --override-input agent-skills /path/to/local/clone
+> ```
+
+### Security Trade-offs
+
+The NixOS agent container module (`nix/nixos/agent-container.nix`) disables the firewall and enables passwordless sudo. These choices are intentional for a single-user container on a host-only network where the agent needs unrestricted local access. This module should NOT be reused in multi-user or network-exposed environments without adding proper access controls.
+
 ### Home Manager Standalone Usage
 
 The home-manager configuration at `nix/home-agent-container.nix` can also be used standalone on any aarch64-linux host with home-manager installed:

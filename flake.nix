@@ -9,6 +9,10 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     agent-skills-nix.url = "github:Kyure-A/agent-skills-nix";
+    # Local macOS path used for development on the darwin host.
+    # This input is only consumed by darwinConfigurations.macbook.
+    # On Linux-only evaluation (e.g. CI), override with a local clone:
+    #   nix flake check --override-input agent-skills /path/to/local/clone
     agent-skills = {
       url = "path:/Users/adachi/agent-skills";
       flake = false;
