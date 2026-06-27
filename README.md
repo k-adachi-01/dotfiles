@@ -139,6 +139,88 @@ git commit -m "update environment"
 git push
 ```
 
+## NixOS Agent Container
+
+An isolated aarch64-linux NixOS configuration designed for running AI coding agents (Claude Code, Codex) on Apple Silicon via virtualization or containers. This profile is fully independent of the macOS darwin configuration and has no macOS-specific dependencies.
+
+### Architecture
+
+- Target: `aarch64-linux` NixOS system
+- No dependency on macOS paths, agent-skills input, or GUI tools
+- Secrets and credentials are not included; mount them at runtime
+- Shares source dotfiles (AGENTS.md, CLAUDE.md, nvim config) with the macOS profile but uses a separate Nix module path
+
+### Verification
+
+```bash
+# Check flake evaluates correctly
+nix flake check
+
+# Build the package set
+nix build .#packages.aarch64-linux.agent-container-tools
+
+# Enter the dev shell
+nix develop .#agent-container
+
+# Build the NixOS system closure
+nix build .#nixosConfigurations.agent-container-aarch64-linux.config.system.build.toplevel
+```
+
+> **System closure vs. bootable image:** The last command builds a system
+> closure (a `/nix/store` path containing the full OS tree), not a bootable
+> disk image. The NixOS module intentionally omits `boot.loader` and
+> `fileSystems` because it is designed to be consumed by `nixos-generators`
+> or similar tooling to produce container or VM images. You cannot deploy it
+> directly with `nixos-rebuild switch` without adding those declarations.
+
+> **Note:** `nix flake check` requires that the `agent-skills` path input
+> (`/Users/adachi/agent-skills`) is accessible. This means full evaluation
+> works on the macOS development host where that directory exists. For
+> Linux-only evaluation (e.g. CI or a remote builder), override the input:
+>
+> ```bash
+> nix flake check --override-input agent-skills /path/to/local/clone
+> ```
+
+### First-run Prerequisites
+
+The container's git config delegates credential resolution entirely to `gh auth git-credential`. In a freshly-built container, `gh` has no stored token, so git operations (clone, push, pull) will fail silently or hang waiting for interactive input that an agent process cannot provide.
+
+Before running any agent workload, do one of the following:
+
+```bash
+# Interactive login (if a TTY is available)
+gh auth login
+
+# Or mount an existing token from the host
+# (bind-mount or copy ~/.config/gh/hosts.yml into the container)
+```
+
+Similarly, configure any other required credentials at container start:
+
+```bash
+aws configure sso        # or mount ~/.aws/
+gcloud auth login        # or mount ~/.config/gcloud/
+```
+
+These credentials are never stored in the repository image; they must be injected at runtime.
+
+### Security Trade-offs
+
+The NixOS agent container module (`nix/nixos/agent-container.nix`) disables the firewall and enables passwordless sudo. These choices are intentional for a single-user container on a host-only network where the agent needs unrestricted local access. This module should NOT be reused in multi-user or network-exposed environments without adding proper access controls.
+
+### Home Manager Standalone Usage
+
+The home-manager configuration at `nix/home-agent-container.nix` can also be used standalone on any aarch64-linux host with home-manager installed:
+
+```bash
+home-manager switch --flake .#adachi
+```
+
+### Future Direction
+
+The NixOS configuration can be used to produce a container image or VM disk via `nixos-generators`, enabling reproducible agent execution environments that boot in seconds.
+
 ## Authentication
 
 Credentials and secrets are not stored in this repository. After switching on a new Mac, re-authenticate:
