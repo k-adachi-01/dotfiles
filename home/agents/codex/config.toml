@@ -78,6 +78,12 @@ trust_level = "trusted"
 [projects."/Users/adachi/src/260618_aws-blocks/blocks-amplify-messenger-app"]
 trust_level = "trusted"
 
+[projects."/Users/adachi/src/260618_aws-blocks/blocks-vite-react-template"]
+trust_level = "trusted"
+
+[projects."/Users/adachi/src/260618_aws-blocks/amplify-messenger-app"]
+trust_level = "trusted"
+
 [tui]
 screen_reader_mode = true
 status_line = ["model-with-reasoning", "current-dir", "five-hour-limit", "weekly-limit", "context-remaining"]
@@ -91,9 +97,6 @@ status_line_use_colors = true
 enabled = true
 
 [plugins."gmail@openai-curated"]
-enabled = true
-
-[plugins."github@openai-curated"]
 enabled = true
 
 [plugins."google-drive@openai-curated"]
@@ -148,4 +151,3 @@ NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunct
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
 BROWSER_USE_CODEX_APP_VERSION = "26.602.40724"
 CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
-
