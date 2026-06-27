@@ -107,14 +107,14 @@ pnpm = "latest"
 
 ### Codex / Kiro 設定運用
 
-- Codex durable config は `home/agents/codex/*` を編集し、`~/.codex/*` を直接編集しない
-- Kiro durable config は `nix/agents.nix` と `home/agents/kiro/powers/` を編集し、`~/.kiro/settings/*`, `~/.kiro/powers.json`, `~/.kiro/powers.mcp.json` を直接編集しない
+- Codex durable config は `home/agents/codex/*` を編集し、`~/.codex/*` を直接編集しない。`sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` 時に通常ファイルとして `~/.codex/` へコピーされる
+- Kiro durable config は `nix/agents.nix` と `home/agents/kiro/powers/` を編集し、`~/.kiro/settings/*`, `~/.kiro/powers.json`, `~/.kiro/powers.mcp.json` を直接編集しない。`sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` 時に通常ファイル/通常ディレクトリとして `~/.kiro/` へコピーされる
 - Codex skills と Kiro skills は `/Users/adachi/agent-skills` を共通 source of truth とし、`~/.codex/skills/*` と `~/.kiro/skills/*` を直接編集しない
 - Kiro CLI 本体のバージョン・取得元は `nix/packages.nix` で管理する
 - Kiro shell integration / alias は `nix/home.nix` で管理する
 - Kiro v3 permissions は `home/agents/codex/default.rules` を source of truth とし、`nix/agents.nix` の生成処理で `~/.kiro/settings/permissions.yaml` に反映する
 - `home/agents/codex/default.rules` を変更したら、Kiro permissions も変わる前提で `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` 後に `~/.kiro/settings/permissions.yaml` を確認する
-- Kiro powers は `home/agents/kiro/powers/` で管理し、共通 skills とは別責務として維持する
+- Kiro powers は `home/agents/kiro/powers/` で管理し、共通 skills とは別責務として維持する。`~/.kiro/powers/` 自体は Kiro runtime が `registries/` などを作成できる通常ディレクトリにする
 - `~/.kiro/sessions/`, `~/.kiro/logs/`, `~/.kiro/.cli_bash_history`, `~/.kiro/settings/feed_state.json`, `~/.kiro/settings/survey_state.json`, `~/.codex/sessions/`, `~/.codex/cache/`, `~/.codex/*.sqlite*` は runtime state として Nix/Git 管理しない
 - `kiro-cli settings`, `kiro-cli mcp add`, `kiro-cli theme` で試した変更は永続化せず、必要な内容を Nix source に移してから switch する
 

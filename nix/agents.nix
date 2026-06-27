@@ -9,8 +9,6 @@
 let
   homeDir = config.home.homeDirectory;
   json = pkgs.formats.json { };
-  dotfilesHome = "${homeDir}/.config/nix-darwin/home";
-  mutableHomeFile = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesHome}/${path}";
   kiroPermissions = pkgs.runCommand "kiro-permissions.yaml" {
     nativeBuildInputs = [ pkgs.ruby ];
     src = ../home/agents/codex/default.rules;
@@ -106,6 +104,151 @@ let
       disabled = false;
     };
   };
+  kiroPowersJson = json.generate "kiro-powers.json" {
+    "$schema" = "https://kiro.dev/schemas/powers-manifest.json";
+    version = 1;
+    powers = {
+      stripe = {
+        displayName = "Stripe Payments";
+        description = "Build payment integrations with Stripe - accept payments, manage subscriptions, handle billing, and process refunds";
+        type = "guided-mcp";
+        active = true;
+        source = {
+          type = "local";
+          path = "${homeDir}/.kiro/powers/stripe";
+        };
+        installedAt = "2026-03-29T16:36:05.235Z";
+        updatedAt = "2026-03-29T16:36:05.235Z";
+        keywords = [
+          "stripe"
+          "payments"
+          "checkout"
+          "subscriptions"
+          "billing"
+          "invoices"
+          "refunds"
+          "payment-intents"
+        ];
+        author = "Stripe";
+        mcpServers = [ "stripe" ];
+        steeringFiles = [ "stripe-best-practices" ];
+      };
+      cloud-architect = {
+        displayName = "Build infrastructure on AWS";
+        description = "Build AWS infrastructure with CDK in Python following AWS Well-Architected framework best practices";
+        type = "guided-mcp";
+        active = true;
+        source = {
+          type = "local";
+          path = "${homeDir}/.kiro/powers/cloud-architect";
+        };
+        installedAt = "2026-03-29T16:36:05.538Z";
+        updatedAt = "2026-03-29T16:36:05.538Z";
+        keywords = [
+          "aws"
+          "cdk"
+          "python"
+          "infrastructure"
+          "iac"
+          "cloudformation"
+          "lambda"
+          "well-architected"
+        ];
+        author = "Christian Bonzelet";
+        mcpServers = [
+          "awspricing"
+          "awsknowledge"
+          "awsapi"
+          "context7"
+          "fetch"
+        ];
+        steeringFiles = [
+          "cdk-development-guidelines"
+          "cloud-engineer-agent"
+          "testing-strategy"
+        ];
+      };
+    };
+  };
+  kiroPowersMcpJson = json.generate "kiro-powers-mcp.json" {
+    inherit mcpServers;
+  };
+  kiroCliJson = json.generate "kiro-cli.json" {
+    "chat.defaultModel" = "claude-opus-4.8";
+  };
+  kiroSettingsMcpJson = json.generate "kiro-settings-mcp.json" {
+    mcpServers = { };
+    powers.mcpServers = {
+      "power-aws-sam-awslabs.aws-serverless-mcp-server" = {
+        command = "uvx";
+        args = [ "awslabs.aws-serverless-mcp-server@latest" ];
+        disabled = false;
+        autoApprove = [ "sam_init" ];
+      };
+      "power-aws-sam-fetch" = {
+        command = "uvx";
+        args = [ "mcp-server-fetch" ];
+        env = { };
+        disabled = false;
+      };
+      "power-aws-observability-awslabs.cloudwatch-mcp-server" = {
+        command = "uvx";
+        args = [ "awslabs.cloudwatch-mcp-server@latest" ];
+        env = {
+          AWS_PROFILE = "default";
+          AWS_REGION = "us-east-1";
+          FASTMCP_LOG_LEVEL = "ERROR";
+        };
+        disabled = false;
+      };
+      "power-aws-observability-awslabs.cloudwatch-applicationsignals-mcp-server" = {
+        command = "uvx";
+        args = [ "awslabs.cloudwatch-applicationsignals-mcp-server@latest" ];
+        env = {
+          AWS_PROFILE = "default";
+          AWS_REGION = "us-east-1";
+          FASTMCP_LOG_LEVEL = "ERROR";
+        };
+        disabled = false;
+      };
+      "power-aws-observability-awslabs.cloudtrail-mcp-server" = {
+        command = "uvx";
+        args = [ "awslabs.cloudtrail-mcp-server@latest" ];
+        env = {
+          AWS_PROFILE = "default";
+          AWS_REGION = "us-east-1";
+          FASTMCP_LOG_LEVEL = "ERROR";
+        };
+        disabled = false;
+        transportType = "stdio";
+      };
+      "power-aws-observability-awslabs.aws-documentation-mcp-server" = {
+        command = "uvx";
+        args = [ "awslabs.aws-documentation-mcp-server@latest" ];
+        env.FASTMCP_LOG_LEVEL = "ERROR";
+        disabled = false;
+      };
+      "power-iam-policy-autopilot-power-iam-policy-autopilot-mcp" = {
+        command = "uvx";
+        args = [
+          "iam-policy-autopilot@latest"
+          "mcp-server"
+        ];
+        env = { };
+        disabled = false;
+      };
+      "power-aws-agentcore-agentcore-mcp-server" = {
+        command = "uvx";
+        args = [ "awslabs.amazon-bedrock-agentcore-mcp-server@latest" ];
+        disabled = true;
+      };
+    };
+  };
+  kiroCliThemeJson = json.generate "kiro-cli-theme.json" {
+    responsePreset = "light";
+    diffPreset = "dark";
+    baseTheme = "dark";
+  };
 in
 {
   programs.agent-skills = {
@@ -117,15 +260,80 @@ in
     skills.enableAll = [ "personal" ];
     targets.agents.enable = true;
     targets.claude.enable = true;
-    targets.codex.enable = true;
+    targets.codex = {
+      structure = "copy-tree";
+      enable = true;
+      systems = [ ];
+    };
     targets.cursor.enable = true;
     targets.kiro = {
       dest = "$HOME/.kiro/skills";
-      structure = "symlink-tree";
+      structure = "copy-tree";
       enable = true;
       systems = [ ];
     };
   };
+
+  home.activation.copyCodexKiroFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    set -euo pipefail
+
+    copy_file() {
+      local src="$1"
+      local dest="$2"
+      local mode="''${3:-0644}"
+
+      mkdir -p "$(dirname "$dest")"
+      if [ -L "$dest" ]; then
+        rm -f "$dest"
+      elif [ -e "$dest" ] && [ ! -f "$dest" ]; then
+        echo "copyCodexKiroFiles: $dest exists and is not a regular file" >&2
+        exit 1
+      fi
+
+      install -m "$mode" "$src" "$dest"
+    }
+
+    sync_dir() {
+      local src="$1"
+      local dest="$2"
+
+      if [ -L "$dest" ]; then
+        rm -f "$dest"
+      elif [ -e "$dest" ] && [ ! -d "$dest" ]; then
+        echo "copyCodexKiroFiles: $dest exists and is not a directory" >&2
+        exit 1
+      fi
+
+      mkdir -p "$dest"
+      ${pkgs.rsync}/bin/rsync -a --delete "$src/" "$dest/"
+      chmod -R u+rwX "$dest"
+    }
+
+    copy_file ${../home/ai/AGENTS.md} "$HOME/.codex/AGENTS.md"
+    copy_file ${../home/agents/codex/keybindings.json} "$HOME/.codex/keybindings.json"
+    copy_file ${../home/agents/codex/config.toml} "$HOME/.codex/config.toml"
+    copy_file ${../home/agents/codex/openai.config.toml} "$HOME/.codex/openai.config.toml"
+    copy_file ${../home/agents/codex/bedrock.config.toml} "$HOME/.codex/bedrock.config.toml"
+    copy_file ${../home/agents/codex/default.rules} "$HOME/.codex/rules/default.rules"
+    copy_file ${../home/agents/codex/notify.sh} "$HOME/.codex/notify.sh" 0755
+
+    copy_file ${kiroPowersJson} "$HOME/.kiro/powers.json"
+    copy_file ${kiroPowersMcpJson} "$HOME/.kiro/powers.mcp.json"
+    copy_file ${kiroCliJson} "$HOME/.kiro/settings/cli.json"
+    copy_file ${kiroSettingsMcpJson} "$HOME/.kiro/settings/mcp.json"
+    copy_file ${kiroPermissions} "$HOME/.kiro/settings/permissions.yaml"
+    copy_file ${kiroCliThemeJson} "$HOME/.kiro/settings/kiro_cli_theme.json"
+
+    if [ -L "$HOME/.kiro/powers" ]; then
+      rm -f "$HOME/.kiro/powers"
+    elif [ -e "$HOME/.kiro/powers" ] && [ ! -d "$HOME/.kiro/powers" ]; then
+      echo "copyCodexKiroFiles: $HOME/.kiro/powers exists and is not a directory" >&2
+      exit 1
+    fi
+    mkdir -p "$HOME/.kiro/powers"
+    sync_dir ${../home/agents/kiro/powers/stripe} "$HOME/.kiro/powers/stripe"
+    sync_dir ${../home/agents/kiro/powers/cloud-architect} "$HOME/.kiro/powers/cloud-architect"
+  '';
 
   home.file = {
     ".agents/AGENTS.md".source = ../home/ai/AGENTS.md;
@@ -387,14 +595,6 @@ in
       '';
     };
 
-    ".codex/AGENTS.md".source = mutableHomeFile "ai/AGENTS.md";
-    ".codex/keybindings.json".source = mutableHomeFile "agents/codex/keybindings.json";
-    ".codex/config.toml".source = mutableHomeFile "agents/codex/config.toml";
-    ".codex/openai.config.toml".source = mutableHomeFile "agents/codex/openai.config.toml";
-    ".codex/bedrock.config.toml".source = mutableHomeFile "agents/codex/bedrock.config.toml";
-    ".codex/rules/default.rules".source = mutableHomeFile "agents/codex/default.rules";
-    ".codex/notify.sh".source = mutableHomeFile "agents/codex/notify.sh";
-
     ".cursor/AGENTS.md".source = ../home/ai/AGENTS.md;
     ".cursor/mcp.json".source = json.generate "cursor-mcp.json" {
       mcpServers = {
@@ -500,152 +700,5 @@ in
       '';
     };
 
-    ".kiro/powers.json".source = json.generate "kiro-powers.json" {
-      "$schema" = "https://kiro.dev/schemas/powers-manifest.json";
-      version = 1;
-      powers = {
-        stripe = {
-          displayName = "Stripe Payments";
-          description = "Build payment integrations with Stripe - accept payments, manage subscriptions, handle billing, and process refunds";
-          type = "guided-mcp";
-          active = true;
-          source = {
-            type = "local";
-            path = "${homeDir}/.kiro/powers/stripe";
-          };
-          installedAt = "2026-03-29T16:36:05.235Z";
-          updatedAt = "2026-03-29T16:36:05.235Z";
-          keywords = [
-            "stripe"
-            "payments"
-            "checkout"
-            "subscriptions"
-            "billing"
-            "invoices"
-            "refunds"
-            "payment-intents"
-          ];
-          author = "Stripe";
-          mcpServers = [ "stripe" ];
-          steeringFiles = [ "stripe-best-practices" ];
-        };
-        cloud-architect = {
-          displayName = "Build infrastructure on AWS";
-          description = "Build AWS infrastructure with CDK in Python following AWS Well-Architected framework best practices";
-          type = "guided-mcp";
-          active = true;
-          source = {
-            type = "local";
-            path = "${homeDir}/.kiro/powers/cloud-architect";
-          };
-          installedAt = "2026-03-29T16:36:05.538Z";
-          updatedAt = "2026-03-29T16:36:05.538Z";
-          keywords = [
-            "aws"
-            "cdk"
-            "python"
-            "infrastructure"
-            "iac"
-            "cloudformation"
-            "lambda"
-            "well-architected"
-          ];
-          author = "Christian Bonzelet";
-          mcpServers = [
-            "awspricing"
-            "awsknowledge"
-            "awsapi"
-            "context7"
-            "fetch"
-          ];
-          steeringFiles = [
-            "cdk-development-guidelines"
-            "cloud-engineer-agent"
-            "testing-strategy"
-          ];
-        };
-      };
-    };
-    ".kiro/powers.mcp.json".source = json.generate "kiro-powers-mcp.json" {
-      inherit mcpServers;
-    };
-    ".kiro/settings/cli.json".source = json.generate "kiro-cli.json" {
-      "chat.defaultModel" = "claude-opus-4.8";
-    };
-    ".kiro/settings/mcp.json".source = json.generate "kiro-settings-mcp.json" {
-      mcpServers = { };
-      powers.mcpServers = {
-        "power-aws-sam-awslabs.aws-serverless-mcp-server" = {
-          command = "uvx";
-          args = [ "awslabs.aws-serverless-mcp-server@latest" ];
-          disabled = false;
-          autoApprove = [ "sam_init" ];
-        };
-        "power-aws-sam-fetch" = {
-          command = "uvx";
-          args = [ "mcp-server-fetch" ];
-          env = { };
-          disabled = false;
-        };
-        "power-aws-observability-awslabs.cloudwatch-mcp-server" = {
-          command = "uvx";
-          args = [ "awslabs.cloudwatch-mcp-server@latest" ];
-          env = {
-            AWS_PROFILE = "default";
-            AWS_REGION = "us-east-1";
-            FASTMCP_LOG_LEVEL = "ERROR";
-          };
-          disabled = false;
-        };
-        "power-aws-observability-awslabs.cloudwatch-applicationsignals-mcp-server" = {
-          command = "uvx";
-          args = [ "awslabs.cloudwatch-applicationsignals-mcp-server@latest" ];
-          env = {
-            AWS_PROFILE = "default";
-            AWS_REGION = "us-east-1";
-            FASTMCP_LOG_LEVEL = "ERROR";
-          };
-          disabled = false;
-        };
-        "power-aws-observability-awslabs.cloudtrail-mcp-server" = {
-          command = "uvx";
-          args = [ "awslabs.cloudtrail-mcp-server@latest" ];
-          env = {
-            AWS_PROFILE = "default";
-            AWS_REGION = "us-east-1";
-            FASTMCP_LOG_LEVEL = "ERROR";
-          };
-          disabled = false;
-          transportType = "stdio";
-        };
-        "power-aws-observability-awslabs.aws-documentation-mcp-server" = {
-          command = "uvx";
-          args = [ "awslabs.aws-documentation-mcp-server@latest" ];
-          env.FASTMCP_LOG_LEVEL = "ERROR";
-          disabled = false;
-        };
-        "power-iam-policy-autopilot-power-iam-policy-autopilot-mcp" = {
-          command = "uvx";
-          args = [
-            "iam-policy-autopilot@latest"
-            "mcp-server"
-          ];
-          env = { };
-          disabled = false;
-        };
-        "power-aws-agentcore-agentcore-mcp-server" = {
-          command = "uvx";
-          args = [ "awslabs.amazon-bedrock-agentcore-mcp-server@latest" ];
-          disabled = true;
-        };
-      };
-    };
-    ".kiro/settings/permissions.yaml".source = kiroPermissions;
-    ".kiro/settings/kiro_cli_theme.json".source = json.generate "kiro-cli-theme.json" {
-      responsePreset = "light";
-      diffPreset = "dark";
-      baseTheme = "dark";
-    };
-    ".kiro/powers".source = ../home/agents/kiro/powers;
   };
 }
