@@ -249,6 +249,7 @@ let
     diffPreset = "dark";
     baseTheme = "dark";
   };
+  agentSkillsBundle = config.programs.agent-skills.bundlePath;
 in
 {
   programs.agent-skills = {
@@ -260,82 +261,178 @@ in
     skills.enableAll = [ "personal" ];
     targets.agents.enable = true;
     targets.claude.enable = true;
-    targets.codex = {
-      structure = "copy-tree";
-      enable = true;
-      systems = [ ];
-    };
+    targets.codex.enable = false;
     targets.cursor.enable = true;
     targets.kiro = {
       dest = "$HOME/.kiro/skills";
-      structure = "copy-tree";
-      enable = true;
+      enable = false;
       systems = [ ];
     };
   };
 
-  home.activation.copyCodexKiroFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.seedCodexKiroFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     set -euo pipefail
 
-    copy_file() {
+    is_store_link() {
+      local path="$1"
+      [ -L "$path" ] || return 1
+
+      local target
+      target="$(${pkgs.coreutils}/bin/realpath "$path" 2>/dev/null || true)"
+      [[ "$target" == /nix/store/* ]]
+    }
+
+    seed_file() {
       local src="$1"
       local dest="$2"
       local mode="''${3:-0644}"
 
-      mkdir -p "$(dirname "$dest")"
-      if [ -L "$dest" ]; then
+      if is_store_link "$dest"; then
         rm -f "$dest"
-      elif [ -e "$dest" ] && [ ! -f "$dest" ]; then
-        echo "copyCodexKiroFiles: $dest exists and is not a regular file" >&2
-        exit 1
+      elif [ -e "$dest" ]; then
+        return 0
       fi
 
+      mkdir -p "$(dirname "$dest")"
       install -m "$mode" "$src" "$dest"
     }
 
-    sync_dir() {
+    seed_dir() {
       local src="$1"
       local dest="$2"
 
-      if [ -L "$dest" ]; then
+      if is_store_link "$dest"; then
         rm -f "$dest"
       elif [ -e "$dest" ] && [ ! -d "$dest" ]; then
-        echo "copyCodexKiroFiles: $dest exists and is not a directory" >&2
+        echo "seedCodexKiroFiles: $dest exists and is not a directory" >&2
         exit 1
       fi
 
       mkdir -p "$dest"
-      ${pkgs.rsync}/bin/rsync -a --delete "$src/" "$dest/"
+      ${pkgs.rsync}/bin/rsync -aL --ignore-existing "$src/" "$dest/"
       chmod -R u+rwX "$dest"
     }
 
-    copy_file ${../home/ai/AGENTS.md} "$HOME/.codex/AGENTS.md"
-    copy_file ${../home/agents/codex/keybindings.json} "$HOME/.codex/keybindings.json"
-    copy_file ${../home/agents/codex/config.toml} "$HOME/.codex/config.toml"
-    copy_file ${../home/agents/codex/openai.config.toml} "$HOME/.codex/openai.config.toml"
-    copy_file ${../home/agents/codex/bedrock.config.toml} "$HOME/.codex/bedrock.config.toml"
-    copy_file ${../home/agents/codex/default.rules} "$HOME/.codex/rules/default.rules"
-    copy_file ${../home/agents/codex/notify.sh} "$HOME/.codex/notify.sh" 0755
+    seed_file ${../home/ai/AGENTS.md} "$HOME/.codex/AGENTS.md"
+    seed_file ${../home/agents/codex/keybindings.json} "$HOME/.codex/keybindings.json"
+    seed_file ${../home/agents/codex/config.toml} "$HOME/.codex/config.toml"
+    seed_file ${../home/agents/codex/openai.config.toml} "$HOME/.codex/openai.config.toml"
+    seed_file ${../home/agents/codex/bedrock.config.toml} "$HOME/.codex/bedrock.config.toml"
+    seed_file ${../home/agents/codex/default.rules} "$HOME/.codex/rules/default.rules"
+    seed_file ${../home/agents/codex/notify.sh} "$HOME/.codex/notify.sh" 0755
+    seed_dir ${agentSkillsBundle} "$HOME/.codex/skills"
 
-    copy_file ${kiroPowersJson} "$HOME/.kiro/powers.json"
-    copy_file ${kiroPowersMcpJson} "$HOME/.kiro/powers.mcp.json"
-    copy_file ${kiroCliJson} "$HOME/.kiro/settings/cli.json"
-    copy_file ${kiroSettingsMcpJson} "$HOME/.kiro/settings/mcp.json"
-    copy_file ${kiroPermissions} "$HOME/.kiro/settings/permissions.yaml"
-    copy_file ${kiroCliThemeJson} "$HOME/.kiro/settings/kiro_cli_theme.json"
-
-    if [ -L "$HOME/.kiro/powers" ]; then
-      rm -f "$HOME/.kiro/powers"
-    elif [ -e "$HOME/.kiro/powers" ] && [ ! -d "$HOME/.kiro/powers" ]; then
-      echo "copyCodexKiroFiles: $HOME/.kiro/powers exists and is not a directory" >&2
-      exit 1
-    fi
-    mkdir -p "$HOME/.kiro/powers"
-    sync_dir ${../home/agents/kiro/powers/stripe} "$HOME/.kiro/powers/stripe"
-    sync_dir ${../home/agents/kiro/powers/cloud-architect} "$HOME/.kiro/powers/cloud-architect"
+    seed_file ${kiroPowersJson} "$HOME/.kiro/powers.json"
+    seed_file ${kiroPowersMcpJson} "$HOME/.kiro/powers.mcp.json"
+    seed_file ${kiroCliJson} "$HOME/.kiro/settings/cli.json"
+    seed_file ${kiroSettingsMcpJson} "$HOME/.kiro/settings/mcp.json"
+    seed_file ${kiroPermissions} "$HOME/.kiro/settings/permissions.yaml"
+    seed_file ${kiroCliThemeJson} "$HOME/.kiro/settings/kiro_cli_theme.json"
+    seed_dir ${../home/agents/kiro/powers/stripe} "$HOME/.kiro/powers/stripe"
+    seed_dir ${../home/agents/kiro/powers/cloud-architect} "$HOME/.kiro/powers/cloud-architect"
+    seed_dir ${agentSkillsBundle} "$HOME/.kiro/skills"
   '';
 
   home.file = {
+    ".local/bin/sync-codex-config" = {
+      executable = true;
+      text = ''
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        backup_root="$HOME/.codex/backups/manual-sync-$(date +%Y%m%d%H%M%S)"
+
+        backup_path() {
+          local path="$1"
+          if [ -e "$path" ] || [ -L "$path" ]; then
+            local rel="''${path#$HOME/.codex/}"
+            mkdir -p "$backup_root/$(dirname "$rel")"
+            cp -a "$path" "$backup_root/$rel"
+          fi
+        }
+
+        sync_file() {
+          local src="$1"
+          local dest="$2"
+          local mode="''${3:-0644}"
+          backup_path "$dest"
+          mkdir -p "$(dirname "$dest")"
+          rm -f "$dest"
+          install -m "$mode" "$src" "$dest"
+        }
+
+        sync_dir() {
+          local src="$1"
+          local dest="$2"
+          backup_path "$dest"
+          mkdir -p "$dest"
+          ${pkgs.rsync}/bin/rsync -aL "$src/" "$dest/"
+          chmod -R u+rwX "$dest"
+        }
+
+        sync_file ${../home/ai/AGENTS.md} "$HOME/.codex/AGENTS.md"
+        sync_file ${../home/agents/codex/keybindings.json} "$HOME/.codex/keybindings.json"
+        sync_file ${../home/agents/codex/config.toml} "$HOME/.codex/config.toml"
+        sync_file ${../home/agents/codex/openai.config.toml} "$HOME/.codex/openai.config.toml"
+        sync_file ${../home/agents/codex/bedrock.config.toml} "$HOME/.codex/bedrock.config.toml"
+        sync_file ${../home/agents/codex/default.rules} "$HOME/.codex/rules/default.rules"
+        sync_file ${../home/agents/codex/notify.sh} "$HOME/.codex/notify.sh" 0755
+        sync_dir ${agentSkillsBundle} "$HOME/.codex/skills"
+
+        echo "sync-codex-config: backup written to $backup_root"
+      '';
+    };
+
+    ".local/bin/sync-kiro-config" = {
+      executable = true;
+      text = ''
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        backup_root="$HOME/.kiro/backups/manual-sync-$(date +%Y%m%d%H%M%S)"
+
+        backup_path() {
+          local path="$1"
+          if [ -e "$path" ] || [ -L "$path" ]; then
+            local rel="''${path#$HOME/.kiro/}"
+            mkdir -p "$backup_root/$(dirname "$rel")"
+            cp -a "$path" "$backup_root/$rel"
+          fi
+        }
+
+        sync_file() {
+          local src="$1"
+          local dest="$2"
+          local mode="''${3:-0644}"
+          backup_path "$dest"
+          mkdir -p "$(dirname "$dest")"
+          rm -f "$dest"
+          install -m "$mode" "$src" "$dest"
+        }
+
+        sync_dir() {
+          local src="$1"
+          local dest="$2"
+          backup_path "$dest"
+          mkdir -p "$dest"
+          ${pkgs.rsync}/bin/rsync -aL "$src/" "$dest/"
+          chmod -R u+rwX "$dest"
+        }
+
+        sync_file ${kiroPowersJson} "$HOME/.kiro/powers.json"
+        sync_file ${kiroPowersMcpJson} "$HOME/.kiro/powers.mcp.json"
+        sync_file ${kiroCliJson} "$HOME/.kiro/settings/cli.json"
+        sync_file ${kiroSettingsMcpJson} "$HOME/.kiro/settings/mcp.json"
+        sync_file ${kiroPermissions} "$HOME/.kiro/settings/permissions.yaml"
+        sync_file ${kiroCliThemeJson} "$HOME/.kiro/settings/kiro_cli_theme.json"
+        sync_dir ${../home/agents/kiro/powers/stripe} "$HOME/.kiro/powers/stripe"
+        sync_dir ${../home/agents/kiro/powers/cloud-architect} "$HOME/.kiro/powers/cloud-architect"
+        sync_dir ${agentSkillsBundle} "$HOME/.kiro/skills"
+
+        echo "sync-kiro-config: backup written to $backup_root"
+      '';
+    };
+
     ".agents/AGENTS.md".source = ../home/ai/AGENTS.md;
 
     ".claude/AGENTS.md".source = ../home/ai/AGENTS.md;
