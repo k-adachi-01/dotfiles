@@ -25,8 +25,7 @@ prefix_rule(pattern=["curl", "--head"], decision="allow")
 prefix_rule(pattern=["curl", "--max-time"], decision="allow")
 
 prefix_rule(pattern=["agent-browser"], decision="allow")
-
-prefix_rule(pattern=["browser-use-local", "doctor"], decision="allow")
+prefix_rule(pattern=["playwright-cli"], decision="allow")
 
 prefix_rule(pattern=["nix", "eval"], decision="allow")
 prefix_rule(pattern=["nix", "eval", "~/.config/nix-darwin#darwinConfigurations.macbook.config.home-manager.users.adachi.programs.agent-skills.catalog", "--json"], decision="allow")

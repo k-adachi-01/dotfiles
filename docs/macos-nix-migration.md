@@ -196,7 +196,6 @@ WSL の pnpm global dependencies:
 @openai/codex
 agent-browser
 defuddle
-dev-browser
 excalidraw-mcp
 vercel
 ```
@@ -342,7 +341,6 @@ Homebrew cask の実インストールは新 Mac 側で行う。
 このPCで確認した `package.json`:
 
 ```text
-/home/adachi/.dev-browser/package.json
 /home/adachi/articles/package.json
 /home/adachi/blog/tech-blog-writing/package.json
 /home/adachi/package.json
@@ -768,14 +766,14 @@ CLI は原則 Nix に追加します。
 ```text
 @openai/codex
 agent-browser
-dev-browser
+@playwright/cli
 defuddle
 ```
 
 例:
 
 ```bash
-pnpm add -g @openai/codex agent-browser dev-browser defuddle
+pnpm add -g @openai/codex agent-browser @playwright/cli defuddle
 ```
 
 ただしこれは恒久運用ではありません。
@@ -1626,7 +1624,7 @@ f3620e1 chore: clean up migration shell config
 | Python 3.13 が全プロジェクトに合うとは限らない | 既知 | project-local `flake.nix` で個別固定する |
 | Rust は `rustup` 依存のまま | 意図的暫定 | 必要なら `fenix` / `rust-overlay` を検討する |
 | Dioxus CLI が Nix package set にない | 未解決 | Dioxus project 移行時に追加判断する |
-| Playwright / browser automation の依存が未確認 | 未解決 | macOS 実機で browser install / permission を確認する |
+| Playwright / browser automation の依存が未確認 | 解決 | `agent-browser` と `playwright-cli` を Nix 管理へ移行する |
 | CDK / AWS 系プロジェクトの追加依存が未確認 | 未解決 | project 移行時に `awscli2`, Docker, CDK 周辺を確認する |
 
 ### 13.7 pnpm global / AI tools の懸念
@@ -1635,7 +1633,7 @@ f3620e1 chore: clean up migration shell config
 |---|---|---|
 | pnpm global tools をまだ再現していない | 未解決 | 必要になった順に一時導入する |
 | `@openai/codex` の導入方法が未固定 | 未解決 | 公式手順または pnpm global で暫定導入する |
-| `agent-browser` / `dev-browser` が未導入 | 未解決 | browser automation が必要になった時点で導入する |
+| `agent-browser` / `playwright-cli` が未導入 | 解決 | `nix/packages.nix` で Nix 管理する |
 | MCP / Google Workspace 系 CLI が未整理 | 未解決 | 常用性を確認して project-local へ寄せる |
 | Claude / Codex の credential/cache は dotfiles 管理外 | 既知 | 新 Mac で再認証する |
 
@@ -1757,7 +1755,6 @@ home-manager が以下を配置します。
 ~/.codex/config.toml
 ~/.codex/rules/default.rules
 ~/.codex/notify.sh
-~/.codex/skills/browser-use-local
 ~/.codex/skills/vercel-react-best-practices
 ~/.codex/skills/wezterm-config-sync
 ~/.cursor/AGENTS.md

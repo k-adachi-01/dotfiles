@@ -4,47 +4,45 @@
   pkgs,
   inputs,
   ...
-}:
-
-let
+}: let
   homeDir = config.home.homeDirectory;
-  json = pkgs.formats.json { };
-  kiroPermissions = pkgs.runCommand "kiro-permissions.yaml" {
-    nativeBuildInputs = [ pkgs.ruby ];
-    src = ../home/agents/codex/default.rules;
-  } ''
-    ruby <<'RUBY' > "$out"
-    commands = []
+  json = pkgs.formats.json {};
+  kiroPermissions =
+    pkgs.runCommand "kiro-permissions.yaml" {
+      nativeBuildInputs = [pkgs.ruby];
+      src = ../home/agents/codex/default.rules;
+    } ''
+      ruby <<'RUBY' > "$out"
+      commands = []
 
-    File.foreach(ENV.fetch("src")) do |line|
-      next unless line =~ /prefix_rule\(pattern=\[(.*?)\], decision="allow"\)/
+      File.foreach(ENV.fetch("src")) do |line|
+        next unless line =~ /prefix_rule\(pattern=\[(.*?)\], decision="allow"\)/
 
-      command = Regexp.last_match(1)
-        .scan(/"((?:\\.|[^"])*)"/)
-        .flatten
-        .map { |part| part.gsub(/\\"/, '"') }
-        .join(" ")
+        command = Regexp.last_match(1)
+          .scan(/"((?:\\.|[^"])*)"/)
+          .flatten
+          .map { |part| part.gsub(/\\"/, '"') }
+          .join(" ")
 
-      commands << command
-    end
-
-    puts "rules:"
-    puts "  - capability: shell"
-    puts "    effect: allow"
-    puts "    match:"
-
-    commands.each do |command|
-      [command, "#{command} *"].uniq.each do |pattern|
-        puts "      - #{pattern.inspect}"
+        commands << command
       end
-    end
-    RUBY
-  '';
+
+      puts "rules:"
+      puts "  - capability: shell"
+      puts "    effect: allow"
+      puts "    match:"
+
+      commands.each do |command|
+        [command, "#{command} *"].uniq.each do |pattern|
+          puts "      - #{pattern.inspect}"
+        end
+      end
+      RUBY
+    '';
   pnpmHome =
-    if pkgs.stdenv.isDarwin then
-      "${homeDir}/Library/pnpm"
-    else
-      "${homeDir}/.local/share/pnpm";
+    if pkgs.stdenv.isDarwin
+    then "${homeDir}/Library/pnpm"
+    else "${homeDir}/.local/share/pnpm";
   presentationMcpDir = "${homeDir}/talks/sample-spec-driven-presentation-maker/mcp-local";
   mcpServers = {
     stripe = {
@@ -54,7 +52,7 @@ let
     awspricing = {
       type = "stdio";
       command = "uvx";
-      args = [ "awslabs.aws-pricing-mcp-server@latest" ];
+      args = ["awslabs.aws-pricing-mcp-server@latest"];
       env.FASTMCP_LOG_LEVEL = "ERROR";
       timeout = 120000;
       disabled = false;
@@ -67,10 +65,10 @@ let
     };
     awsapi = {
       command = "uvx";
-      args = [ "awslabs.aws-api-mcp-server@latest" ];
+      args = ["awslabs.aws-api-mcp-server@latest"];
       env.AWS_REGION = "us-east-2";
       disabled = false;
-      autoApprove = [ ];
+      autoApprove = [];
       _power = "cloud-architect";
     };
     context7 = {
@@ -86,8 +84,8 @@ let
     };
     fetch = {
       command = "uvx";
-      args = [ "mcp-server-fetch" ];
-      env = { };
+      args = ["mcp-server-fetch"];
+      env = {};
       disabled = false;
       _power = "cloud-architect";
     };
@@ -130,8 +128,8 @@ let
           "payment-intents"
         ];
         author = "Stripe";
-        mcpServers = [ "stripe" ];
-        steeringFiles = [ "stripe-best-practices" ];
+        mcpServers = ["stripe"];
+        steeringFiles = ["stripe-best-practices"];
       };
       cloud-architect = {
         displayName = "Build infrastructure on AWS";
@@ -177,23 +175,23 @@ let
     "chat.defaultModel" = "claude-opus-4.8";
   };
   kiroSettingsMcpJson = json.generate "kiro-settings-mcp.json" {
-    mcpServers = { };
+    mcpServers = {};
     powers.mcpServers = {
       "power-aws-sam-awslabs.aws-serverless-mcp-server" = {
         command = "uvx";
-        args = [ "awslabs.aws-serverless-mcp-server@latest" ];
+        args = ["awslabs.aws-serverless-mcp-server@latest"];
         disabled = false;
-        autoApprove = [ "sam_init" ];
+        autoApprove = ["sam_init"];
       };
       "power-aws-sam-fetch" = {
         command = "uvx";
-        args = [ "mcp-server-fetch" ];
-        env = { };
+        args = ["mcp-server-fetch"];
+        env = {};
         disabled = false;
       };
       "power-aws-observability-awslabs.cloudwatch-mcp-server" = {
         command = "uvx";
-        args = [ "awslabs.cloudwatch-mcp-server@latest" ];
+        args = ["awslabs.cloudwatch-mcp-server@latest"];
         env = {
           AWS_PROFILE = "default";
           AWS_REGION = "us-east-1";
@@ -203,7 +201,7 @@ let
       };
       "power-aws-observability-awslabs.cloudwatch-applicationsignals-mcp-server" = {
         command = "uvx";
-        args = [ "awslabs.cloudwatch-applicationsignals-mcp-server@latest" ];
+        args = ["awslabs.cloudwatch-applicationsignals-mcp-server@latest"];
         env = {
           AWS_PROFILE = "default";
           AWS_REGION = "us-east-1";
@@ -213,7 +211,7 @@ let
       };
       "power-aws-observability-awslabs.cloudtrail-mcp-server" = {
         command = "uvx";
-        args = [ "awslabs.cloudtrail-mcp-server@latest" ];
+        args = ["awslabs.cloudtrail-mcp-server@latest"];
         env = {
           AWS_PROFILE = "default";
           AWS_REGION = "us-east-1";
@@ -224,7 +222,7 @@ let
       };
       "power-aws-observability-awslabs.aws-documentation-mcp-server" = {
         command = "uvx";
-        args = [ "awslabs.aws-documentation-mcp-server@latest" ];
+        args = ["awslabs.aws-documentation-mcp-server@latest"];
         env.FASTMCP_LOG_LEVEL = "ERROR";
         disabled = false;
       };
@@ -234,12 +232,12 @@ let
           "iam-policy-autopilot@latest"
           "mcp-server"
         ];
-        env = { };
+        env = {};
         disabled = false;
       };
       "power-aws-agentcore-agentcore-mcp-server" = {
         command = "uvx";
-        args = [ "awslabs.amazon-bedrock-agentcore-mcp-server@latest" ];
+        args = ["awslabs.amazon-bedrock-agentcore-mcp-server@latest"];
         disabled = true;
       };
     };
@@ -250,15 +248,14 @@ let
     baseTheme = "dark";
   };
   agentSkillsBundle = config.programs.agent-skills.bundlePath;
-in
-{
+in {
   programs.agent-skills = {
     enable = true;
     sources.personal = {
       input = "agent-skills";
       filter.maxDepth = 1;
     };
-    skills.enableAll = [ "personal" ];
+    skills.enableAll = ["personal"];
     targets.agents.enable = true;
     targets.claude.enable = true;
     targets.codex.enable = false;
@@ -266,11 +263,11 @@ in
     targets.kiro = {
       dest = "$HOME/.kiro/skills";
       enable = false;
-      systems = [ ];
+      systems = [];
     };
   };
 
-  home.activation.seedCodexKiroFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.seedCodexKiroFiles = lib.hm.dag.entryAfter ["writeBoundary"] ''
     set -euo pipefail
 
     is_store_link() {
@@ -313,6 +310,22 @@ in
       chmod -R u+rwX "$dest"
     }
 
+    seed_agent_skills_dir() {
+      local src="$1"
+      local dest="$2"
+
+      if is_store_link "$dest"; then
+        rm -f "$dest"
+      elif [ -e "$dest" ] && [ ! -d "$dest" ]; then
+        echo "seedCodexKiroFiles: $dest exists and is not a directory" >&2
+        exit 1
+      fi
+
+      mkdir -p "$dest"
+      ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' "$src/" "$dest/"
+      chmod -R u+rwX "$dest"
+    }
+
     seed_file ${../home/ai/AGENTS.md} "$HOME/.codex/AGENTS.md"
     seed_file ${../home/agents/codex/keybindings.json} "$HOME/.codex/keybindings.json"
     seed_file ${../home/agents/codex/config.toml} "$HOME/.codex/config.toml"
@@ -320,7 +333,7 @@ in
     seed_file ${../home/agents/codex/bedrock.config.toml} "$HOME/.codex/bedrock.config.toml"
     seed_file ${../home/agents/codex/default.rules} "$HOME/.codex/rules/default.rules"
     seed_file ${../home/agents/codex/notify.sh} "$HOME/.codex/notify.sh" 0755
-    seed_dir ${agentSkillsBundle} "$HOME/.codex/skills"
+    seed_agent_skills_dir ${agentSkillsBundle} "$HOME/.codex/skills"
 
     seed_file ${kiroPowersJson} "$HOME/.kiro/powers.json"
     seed_file ${kiroPowersMcpJson} "$HOME/.kiro/powers.mcp.json"
@@ -330,7 +343,7 @@ in
     seed_file ${kiroCliThemeJson} "$HOME/.kiro/settings/kiro_cli_theme.json"
     seed_dir ${../home/agents/kiro/powers/stripe} "$HOME/.kiro/powers/stripe"
     seed_dir ${../home/agents/kiro/powers/cloud-architect} "$HOME/.kiro/powers/cloud-architect"
-    seed_dir ${agentSkillsBundle} "$HOME/.kiro/skills"
+    seed_agent_skills_dir ${agentSkillsBundle} "$HOME/.kiro/skills"
   '';
 
   home.file = {
@@ -370,6 +383,15 @@ in
           chmod -R u+rwX "$dest"
         }
 
+        sync_agent_skills_dir() {
+          local src="$1"
+          local dest="$2"
+          backup_path "$dest"
+          mkdir -p "$dest"
+          ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' "$src/" "$dest/"
+          chmod -R u+rwX "$dest"
+        }
+
         sync_file ${../home/ai/AGENTS.md} "$HOME/.codex/AGENTS.md"
         sync_file ${../home/agents/codex/keybindings.json} "$HOME/.codex/keybindings.json"
         sync_file ${../home/agents/codex/config.toml} "$HOME/.codex/config.toml"
@@ -377,7 +399,7 @@ in
         sync_file ${../home/agents/codex/bedrock.config.toml} "$HOME/.codex/bedrock.config.toml"
         sync_file ${../home/agents/codex/default.rules} "$HOME/.codex/rules/default.rules"
         sync_file ${../home/agents/codex/notify.sh} "$HOME/.codex/notify.sh" 0755
-        sync_dir ${agentSkillsBundle} "$HOME/.codex/skills"
+        sync_agent_skills_dir ${agentSkillsBundle} "$HOME/.codex/skills"
 
         echo "sync-codex-config: backup written to $backup_root"
       '';
@@ -419,6 +441,15 @@ in
           chmod -R u+rwX "$dest"
         }
 
+        sync_agent_skills_dir() {
+          local src="$1"
+          local dest="$2"
+          backup_path "$dest"
+          mkdir -p "$dest"
+          ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' "$src/" "$dest/"
+          chmod -R u+rwX "$dest"
+        }
+
         sync_file ${kiroPowersJson} "$HOME/.kiro/powers.json"
         sync_file ${kiroPowersMcpJson} "$HOME/.kiro/powers.mcp.json"
         sync_file ${kiroCliJson} "$HOME/.kiro/settings/cli.json"
@@ -427,7 +458,7 @@ in
         sync_file ${kiroCliThemeJson} "$HOME/.kiro/settings/kiro_cli_theme.json"
         sync_dir ${../home/agents/kiro/powers/stripe} "$HOME/.kiro/powers/stripe"
         sync_dir ${../home/agents/kiro/powers/cloud-architect} "$HOME/.kiro/powers/cloud-architect"
-        sync_dir ${agentSkillsBundle} "$HOME/.kiro/skills"
+        sync_agent_skills_dir ${agentSkillsBundle} "$HOME/.kiro/skills"
 
         echo "sync-kiro-config: backup written to $backup_root"
       '';
@@ -508,7 +539,8 @@ in
           "Bash(pnpm dlx *)"
           "Bash(pnpm test *)"
           "Bash(vitest *)"
-          "Bash(dev-browser *)"
+          "Bash(agent-browser *)"
+          "Bash(playwright-cli *)"
         ];
         deny = [
           "Bash(sudo *)"
@@ -704,7 +736,7 @@ in
         };
         "awslabs.aws-documentation-mcp-server" = {
           command = "uvx";
-          args = [ "awslabs.aws-documentation-mcp-server@latest" ];
+          args = ["awslabs.aws-documentation-mcp-server@latest"];
           env = {
             FASTMCP_LOG_LEVEL = "ERROR";
             AWS_DOCUMENTATION_PARTITION = "aws";
@@ -722,8 +754,8 @@ in
     };
     ".cursor/cli-config.json".source = json.generate "cursor-cli-config.json" {
       permissions = {
-        allow = [ "Shell(ls)" ];
-        deny = [ ];
+        allow = ["Shell(ls)"];
+        deny = [];
       };
       version = 1;
       editor.vimMode = false;
@@ -744,15 +776,15 @@ in
         displayModelId = "auto";
         displayName = "Auto";
         displayNameShort = "Auto";
-        aliases = [ "auto" ];
+        aliases = ["auto"];
         maxMode = false;
       };
       hasChangedDefaultModel = true;
       maxMode = false;
-      modelParameters.default = [ ];
+      modelParameters.default = [];
       selectedModel = {
         modelId = "default";
-        parameters = [ ];
+        parameters = [];
       };
       network.useHttp1ForAgent = false;
       approvalMode = "allowlist";
@@ -796,6 +828,5 @@ in
           "$model" "$wt" "$short" "$pct" "$branch_sfx"
       '';
     };
-
   };
 }

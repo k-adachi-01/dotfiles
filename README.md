@@ -47,7 +47,6 @@ Managed by Nix:
 - `~/.codex/keybindings.json`
 - `~/.codex/rules/default.rules`
 - `~/.codex/notify.sh`
-- `~/.codex/skills/browser-use-local`
 - `~/.codex/skills/vercel-react-best-practices`
 - `~/.codex/skills/wezterm-config-sync`
 - `~/.cursor/AGENTS.md`
