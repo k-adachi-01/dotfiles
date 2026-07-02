@@ -5,13 +5,13 @@
   inputs,
   username,
   ...
-}:
-
-{
+}: {
   imports = [
     inputs.agent-skills-nix.homeManagerModules.default
+    inputs.nixvim.homeModules.nixvim
     ./agents.nix
     ./editors.nix
+    ./nixvim.nix
   ];
 
   home = {
@@ -27,42 +27,37 @@
       "$HOME/.local/bin"
       "$PNPM_HOME"
     ];
-    file = {
-      ".inputrc".source = ../home/inputrc;
-      ".mise.toml".source = ../home/mise.toml;
-      ".zprofile".text = ''
-        if [ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-        elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
-          . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
-        fi
+    file =
+      {
+        ".inputrc".source = ../home/inputrc;
+        ".mise.toml".source = ../home/mise.toml;
+        ".zprofile".text = ''
+          if [ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+            . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
+            . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
+          fi
 
-        if command -v kiro-cli >/dev/null 2>&1; then
-          source <(SHELL=/bin/zsh kiro-cli init zsh pre)
-        fi
+          if command -v kiro-cli >/dev/null 2>&1; then
+            source <(SHELL=/bin/zsh kiro-cli init zsh pre)
+          fi
 
-        # Added by OrbStack: command-line tools and integration
-        # This won't be added again if you remove it.
-        source ~/.orbstack/shell/init.zsh 2>/dev/null || :
-      '';
-      ".wezterm.lua".source =
-        if pkgs.stdenv.isDarwin then
-          ../home/wezterm/darwin.lua
-        else
-          ../home/wezterm/linux.lua;
-    }
-    // lib.optionalAttrs (!pkgs.stdenv.isDarwin) {
-      ".bashrc".source = ../home/bashrc;
-      ".profile".source = ../home/profile;
-    };
+          # Added by OrbStack: command-line tools and integration
+          # This won't be added again if you remove it.
+          source ~/.orbstack/shell/init.zsh 2>/dev/null || :
+        '';
+        ".wezterm.lua".source =
+          if pkgs.stdenv.isDarwin
+          then ../home/wezterm/darwin.lua
+          else ../home/wezterm/linux.lua;
+      }
+      // lib.optionalAttrs (!pkgs.stdenv.isDarwin) {
+        ".bashrc".source = ../home/bashrc;
+        ".profile".source = ../home/profile;
+      };
   };
 
   programs.home-manager.enable = true;
-
-  xdg.configFile."nvim" = {
-    source = ../home/config/nvim;
-    recursive = true;
-  };
 
   programs.git = {
     enable = true;

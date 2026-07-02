@@ -73,7 +73,6 @@ in [
   kubectl
   macism
   mise
-  neovim
   nix-output-monitor
   nixd
   nodejs_24

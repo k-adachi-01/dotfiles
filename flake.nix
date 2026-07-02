@@ -8,6 +8,7 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    nixvim.url = "github:nix-community/nixvim";
     agent-skills-nix.url = "github:Kyure-A/agent-skills-nix";
     agent-skills = {
       url = "path:/Users/adachi/agent-skills";
@@ -15,46 +16,43 @@
     };
   };
 
-  outputs =
-    inputs@{
-      self,
-      nixpkgs,
-      nix-darwin,
-      home-manager,
-      nix-homebrew,
-      ...
-    }:
-    let
-      username = "adachi";
-      system = "aarch64-darwin";
-    in
-    {
-      darwinConfigurations.macbook = nix-darwin.lib.darwinSystem {
-        inherit system;
-        specialArgs = {
-          inherit inputs self username system;
-        };
-        modules = [
-          ./nix/darwin.nix
-          nix-homebrew.darwinModules.nix-homebrew
-          home-manager.darwinModules.home-manager
-          {
-            nix-homebrew = {
-              enable = true;
-              enableRosetta = true;
-              user = username;
-            };
-
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              extraSpecialArgs = {
-                inherit inputs username system;
-              };
-              users.${username} = import ./nix/home.nix;
-            };
-          }
-        ];
+  outputs = inputs @ {
+    self,
+    nixpkgs,
+    nix-darwin,
+    home-manager,
+    nix-homebrew,
+    ...
+  }: let
+    username = "adachi";
+    system = "aarch64-darwin";
+  in {
+    darwinConfigurations.macbook = nix-darwin.lib.darwinSystem {
+      inherit system;
+      specialArgs = {
+        inherit inputs self username system;
       };
+      modules = [
+        ./nix/darwin.nix
+        nix-homebrew.darwinModules.nix-homebrew
+        home-manager.darwinModules.home-manager
+        {
+          nix-homebrew = {
+            enable = true;
+            enableRosetta = true;
+            user = username;
+          };
+
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            extraSpecialArgs = {
+              inherit inputs username system;
+            };
+            users.${username} = import ./nix/home.nix;
+          };
+        }
+      ];
     };
+  };
 }
