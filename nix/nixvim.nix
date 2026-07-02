@@ -5,6 +5,11 @@
     viAlias = true;
     vimAlias = true;
 
+    globals = {
+      mapleader = " ";
+      maplocalleader = " ";
+    };
+
     opts = {
       autoread = true;
       clipboard = "unnamedplus";
