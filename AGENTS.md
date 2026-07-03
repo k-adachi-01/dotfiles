@@ -58,7 +58,7 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 ## Agent Skills
 
 - 共有 skills は別リポジトリ `/Users/adachi/agent-skills`（private, `k-adachi-01/agent-skills`）を flake input として取り込む
-- flake input は `git+https://github.com/k-adachi-01/agent-skills.git`（`nix/home.nix` で設定済みの `gh auth git-credential` ヘルパーを再利用。`github:owner/repo` 形式は private repo だと別途 `access-tokens` の設定が必要になるため使わない）
+- flake input は `github:k-adachi-01/agent-skills`（PR12〜。Nix 組み込みの GitHub API フェッチャーで、認証は `/etc/nix/nix.custom.conf` の `access-tokens`（fine-grained PAT、対象リポジトリのみ Contents: Read-only）。以前は `git+https://...` + `gh auth git-credential` ヘルパー方式だったが、`sudo darwin-rebuild switch` は root として評価するため adachi のログインキーチェーンに保存された gh のトークンを読めず、root からのフェッチが構造的に失敗していた。詳細は `docs/management-policy.md`）
 - skills を更新する標準手順は `~/.local/bin/skills-push "commit message"` を実行するだけ（commit・push・`nix flake update agent-skills`・`sudo darwin-rebuild switch`・反映確認・`flake.lock` の commit/push を一括で行う）
 - push せずローカルの skills 変更だけを試す場合は `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook --override-input agent-skills path:/Users/adachi/agent-skills`
 - 個別に手順を追う場合は `nix flake update agent-skills --flake ~/.config/nix-darwin` を実行してから `sudo darwin-rebuild switch` する。`nix flake update`（引数なし = 全 input 更新）と混同しない
@@ -68,6 +68,7 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 コミット前に必ず確認する:
 
 - `.aws/`, `.azure/`, `.config/gcloud/`, `.config/gh/hosts.yml`, `.ssh/`, `.gnupg/`, `.env*`, `*.pem`, `*.key`, `auth.json`, `DOTENV_PRIVATE_KEY*` を含めない
+- `/etc/nix/nix.custom.conf`（`agent-skills` 用 GitHub PAT を含む、リポジトリ外）の中身をこのリポジトリの追跡ファイルにコピーしない
 - `home/agents/codex/config.toml` などクラスAの seed/宣言ファイルに `[projects.*]` のようなランタイム状態（プロジェクトパス、第三者名を含みうる）やタイムスタンプ付きキャッシュパスを混入させない（詳細は `home/ai/AGENTS.md` の Codex/Kiro 設定運用節）
 - 迷ったら `docs/management-policy.md` の分類表とクラスC一覧を確認する
 

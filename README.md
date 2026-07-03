@@ -112,13 +112,16 @@ mkdir -p "$HOME/.config"
 git clone https://github.com/k-adachi-01/dotfiles.git "$HOME/.config/nix-darwin"
 ```
 
-3. Authenticate GitHub so the private `agent-skills` flake input can be fetched over `git+https://`. `gh` is normally installed via `nix/packages.nix`, but on a brand-new Mac nothing has been switched yet, so run it ad hoc through `nix run` first:
+3. Authenticate Nix so the private `agent-skills` flake input (`github:k-adachi-01/agent-skills`) can be fetched by Nix's built-in GitHub fetcher. This must be a fine-grained Personal Access Token in `nix.conf`, not `gh auth login`: `sudo darwin-rebuild switch` evaluates the flake as root, and root cannot read the `gh` OAuth token stored in the `adachi` user's macOS login Keychain, so a git-credential-helper-based approach silently fails the moment root needs to fetch a new revision.
+
+- Create a fine-grained PAT at GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens, scoped to the `k-adachi-01/agent-skills` repository only, with `Contents: Read-only` permission.
+- Append it to `/etc/nix/nix.custom.conf` (a file Determinate Nix already `!include`s for local customization, outside this repository and never committed):
 
 ```bash
-nix run nixpkgs#gh -- auth login
+echo 'access-tokens = github.com=<paste-the-PAT-here>' | sudo tee -a /etc/nix/nix.custom.conf
 ```
 
-Accept the prompt to authenticate Git with your GitHub credentials (or run `nix run nixpkgs#gh -- auth setup-git` afterward). Skip this step only if git is already configured with working GitHub HTTPS credentials by some other means.
+See [`docs/management-policy.md`](docs/management-policy.md) for why this replaced the earlier `git+https://` + `gh auth git-credential` design.
 
 4. Build and switch to the macOS profile for the first time.
 
