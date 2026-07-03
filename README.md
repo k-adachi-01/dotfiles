@@ -95,7 +95,7 @@ Not managed by Nix:
 
 Before pruning Codex runtime state, quit Codex first. Start with cache-only files such as `cache/`, `.tmp/`, `tmp/`, and `models_cache.json`; delete history or SQLite databases only when losing local history/state is intentional.
 
-Update shared skills in the local `~/agent-skills` checkout, then run `~/.local/bin/skills-push "message"` to commit/push to GitHub and switch in one step. No `flake.lock` update is needed — the flake reads the local directory directly.
+Update shared skills in the local `~/agent-skills` checkout, then run `~/.local/bin/skills-push "message"` to commit/push to GitHub, refresh the local path hash in `flake.lock`, and switch in one step. If you edit `~/agent-skills` manually, run `nix flake lock --update-input agent-skills --flake ~/.config/nix-darwin` before `darwin-rebuild switch` to avoid a `NAR hash mismatch` error.
 
 ## macOS Bootstrap
 

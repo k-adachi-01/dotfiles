@@ -105,6 +105,9 @@ in {
         echo "==> pushing $skills_dir"
         git -C "$skills_dir" push origin HEAD
 
+        echo "==> refreshing agent-skills path hash in flake.lock"
+        nix flake lock --update-input agent-skills --flake "$dotfiles_dir"
+
         echo "==> sudo darwin-rebuild switch"
         sudo darwin-rebuild switch --flake "$dotfiles_dir#macbook"
 
@@ -120,6 +123,14 @@ in {
           fi
         done
 
+        echo "==> committing updated flake.lock in $dotfiles_dir"
+        if ! git -C "$dotfiles_dir" diff --quiet -- flake.lock; then
+          git -C "$dotfiles_dir" add flake.lock
+          git -C "$dotfiles_dir" commit -m "chore: refresh agent-skills path narHash"
+          git -C "$dotfiles_dir" push origin HEAD
+        else
+          echo "skills-push: flake.lock unchanged"
+        fi
       '';
     };
   };

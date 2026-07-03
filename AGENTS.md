@@ -59,7 +59,8 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 
 - 共有 skills は別リポジトリ `/Users/adachi/agent-skills`（private, `k-adachi-01/agent-skills`）を flake input として取り込む
 - flake input は `path:/Users/adachi/agent-skills`（ローカル checkout。`darwin-rebuild` の Nix 評価中に GitHub 認証は不要。新 Mac では `~/agent-skills` を clone する bootstrap 手順が必要。詳細は `docs/management-policy.md`）
-- skills を更新する標準手順は `~/.local/bin/skills-push "commit message"` を実行するだけ（`~/agent-skills` の commit/push → `sudo darwin-rebuild switch` → 反映確認。`flake.lock` の更新は不要）
+- skills を更新する標準手順は `~/.local/bin/skills-push "commit message"` を実行するだけ（`~/agent-skills` の commit/push → `flake.lock` の narHash 更新 → `sudo darwin-rebuild switch` → 反映確認。narHash 更新はローカル hash 計算のみで GitHub 認証不要）
+- `~/agent-skills` を手動編集したあと `switch` する場合は、先に `nix flake lock --update-input agent-skills --flake ~/.config/nix-darwin` を実行しないと `NAR hash mismatch` になる
 
 ## 秘密情報・ローカル情報の防御
 
