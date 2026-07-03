@@ -51,9 +51,11 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 
 ## Agent Skills
 
-- 共有 skills は別リポジトリ `/Users/adachi/agent-skills`（private）を flake input として取り込む
-- 現在はローカル絶対パス入力（`path:/Users/adachi/agent-skills`）。`github:k-adachi-01/agent-skills` への切り替えは PR5 で実施予定（[`docs/management-policy.md`](docs/management-policy.md) の移行状況表を参照）
-- skills を更新したら、`nix flake lock --update-input agent-skills`（または切り替え後は `nix flake update agent-skills`）を実行してから `sudo darwin-rebuild switch` する。`nix flake update`（全体更新）と混同しない
+- 共有 skills は別リポジトリ `/Users/adachi/agent-skills`（private, `k-adachi-01/agent-skills`）を flake input として取り込む
+- flake input は `git+https://github.com/k-adachi-01/agent-skills.git`（`nix/home.nix` で設定済みの `gh auth git-credential` ヘルパーを再利用。`github:owner/repo` 形式は private repo だと別途 `access-tokens` の設定が必要になるため使わない）
+- skills を更新する標準手順は `~/.local/bin/skills-push "commit message"` を実行するだけ（commit・push・`nix flake update agent-skills`・`sudo darwin-rebuild switch`・反映確認・`flake.lock` の commit/push を一括で行う）
+- push せずローカルの skills 変更だけを試す場合は `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook --override-input agent-skills path:/Users/adachi/agent-skills`
+- 個別に手順を追う場合は `nix flake update agent-skills --flake ~/.config/nix-darwin` を実行してから `sudo darwin-rebuild switch` する。`nix flake update`（引数なし = 全 input 更新）と混同しない
 
 ## 秘密情報・ローカル情報の防御
 

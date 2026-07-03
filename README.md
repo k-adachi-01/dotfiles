@@ -91,7 +91,7 @@ Not managed by Nix:
 
 Before pruning Codex runtime state, quit Codex first. Start with cache-only files such as `cache/`, `.tmp/`, `tmp/`, and `models_cache.json`; delete history or SQLite databases only when losing local history/state is intentional.
 
-Update shared skills in the local `~/agent-skills` checkout. See [`docs/management-policy.md`](docs/management-policy.md) for how that repository is currently wired into this flake and the plan to pin it via GitHub.
+Update shared skills in the local `~/agent-skills` checkout, then run `~/.local/bin/skills-push "message"` to publish, re-pin the flake input, and switch in one step. See [`docs/management-policy.md`](docs/management-policy.md) for how that repository is wired into this flake.
 
 ## macOS Bootstrap
 
@@ -108,7 +108,15 @@ mkdir -p "$HOME/.config"
 git clone https://github.com/k-adachi-01/dotfiles.git "$HOME/.config/nix-darwin"
 ```
 
-3. Build and switch to the macOS profile for the first time.
+3. Authenticate GitHub so the private `agent-skills` flake input can be fetched over `git+https://`. `gh` is normally installed via `nix/packages.nix`, but on a brand-new Mac nothing has been switched yet, so run it ad hoc through `nix run` first:
+
+```bash
+nix run nixpkgs#gh -- auth login
+```
+
+Accept the prompt to authenticate Git with your GitHub credentials (or run `nix run nixpkgs#gh -- auth setup-git` afterward). Skip this step only if git is already configured with working GitHub HTTPS credentials by some other means.
+
+4. Build and switch to the macOS profile for the first time.
 
 ```bash
 nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake "$HOME/.config/nix-darwin#macbook"

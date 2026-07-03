@@ -10,8 +10,13 @@
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     nixvim.url = "github:nix-community/nixvim";
     agent-skills-nix.url = "github:Kyure-A/agent-skills-nix";
+    # k-adachi-01/agent-skills is a private repo. Fetched over git+https so it
+    # reuses the `gh auth git-credential` helper already configured in
+    # nix/home.nix (programs.git.settings.credential), instead of requiring a
+    # separate GitHub PAT in nix.conf. For local skills development, override
+    # with: --override-input agent-skills path:/Users/adachi/agent-skills
     agent-skills = {
-      url = "path:/Users/adachi/agent-skills";
+      url = "git+https://github.com/k-adachi-01/agent-skills.git";
       flake = false;
     };
   };
