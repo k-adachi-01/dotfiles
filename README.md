@@ -9,7 +9,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 - `home-manager` manages user dotfiles, shell, git, editor, and AI-agent config.
 - Homebrew is limited to GUI casks.
 - `mise` is temporary and will be removed after active projects move to project-local `flake.nix`.
-- Agent skills are consumed from a local checkout of the private `k-adachi-01/agent-skills` repository (`path:/Users/adachi/agent-skills` flake input). See [`docs/management-policy.md`](docs/management-policy.md) for details.
+- Agent skills are consumed from a local checkout (`path:/Users/adachi/agent-skills` flake input). See [`docs/management-policy.md`](docs/management-policy.md) for details.
 
 ## Managed Files
 
@@ -95,7 +95,7 @@ Not managed by Nix:
 
 Before pruning Codex runtime state, quit Codex first. Start with cache-only files such as `cache/`, `.tmp/`, `tmp/`, and `models_cache.json`; delete history or SQLite databases only when losing local history/state is intentional.
 
-Update shared skills in the local `~/agent-skills` checkout, then run `~/.local/bin/skills-push "message"` to commit/push to GitHub, refresh the local path hash in `flake.lock`, and switch in one step. If you edit `~/agent-skills` manually, run `nix flake lock --update-input agent-skills --flake ~/.config/nix-darwin` before `darwin-rebuild switch` to avoid a `NAR hash mismatch` error.
+Update shared skills in `~/agent-skills`, then run `~/.local/bin/skills-push "message"`. For manual edits, run `nix flake update agent-skills --flake ~/.config/nix-darwin` before `darwin-rebuild switch` (not `nix flake lock --update-input ... --flake`, which is invalid syntax).
 
 ## macOS Bootstrap
 
@@ -156,7 +156,7 @@ git push
 
 ## Continuous Integration
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and every pull request: `alejandra --check`, `statix check`, `deadnix --fail`, and `gitleaks detect --config .gitleaks.toml`. It does not run `nix build`/`darwin-rebuild build`, since the `agent-skills` flake input is a private repository CI has no credentials for; run that locally before pushing (see [`AGENTS.md`](AGENTS.md)). Before committing, it's also worth running `gitleaks protect --staged --config .gitleaks.toml` to catch secrets before they ever reach a commit.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and every pull request: `alejandra --check`, `statix check`, `deadnix --fail`, and `gitleaks detect --config .gitleaks.toml`. It does not run `nix build`/`darwin-rebuild build`; run that locally before pushing (see [`AGENTS.md`](AGENTS.md)).
 
 ## Authentication
 

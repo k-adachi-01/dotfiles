@@ -57,10 +57,9 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 
 ## Agent Skills
 
-- 共有 skills は別リポジトリ `/Users/adachi/agent-skills`（private, `k-adachi-01/agent-skills`）を flake input として取り込む
-- flake input は `path:/Users/adachi/agent-skills`（ローカル checkout。`darwin-rebuild` の Nix 評価中に GitHub 認証は不要。新 Mac では `~/agent-skills` を clone する bootstrap 手順が必要。詳細は `docs/management-policy.md`）
-- skills を更新する標準手順は `~/.local/bin/skills-push "commit message"` を実行するだけ（`~/agent-skills` の commit/push → `flake.lock` の narHash 更新 → `sudo darwin-rebuild switch` → 反映確認。narHash 更新はローカル hash 計算のみで GitHub 認証不要）
-- `~/agent-skills` を手動編集したあと `switch` する場合は、先に `nix flake lock --update-input agent-skills --flake ~/.config/nix-darwin` を実行しないと `NAR hash mismatch` になる
+- 共有 skills は別リポジトリ `/Users/adachi/agent-skills`（private, `k-adachi-01/agent-skills`）を flake input `path:/Users/adachi/agent-skills` として取り込む
+- `darwin-rebuild` の Nix 評価中に GitHub 認証は不要。新 Mac では `~/agent-skills` を clone する bootstrap が必要（詳細は `docs/management-policy.md`）
+- `~/agent-skills` 編集後は switch の前に `nix flake update agent-skills --flake ~/.config/nix-darwin`（または `cd ~/.config/nix-darwin && nix flake update agent-skills`）を実行しないと `NAR hash mismatch` になる。`skills-push` が自動で行う
 
 ## 秘密情報・ローカル情報の防御
 
@@ -82,7 +81,7 @@ sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook
 agents-diff                                                     # 次の switch での変更点とアプリ所有キーの確認（読み取り専用）
 ```
 
-CI（GitHub Actions, `.github/workflows/ci.yml`）は push/PR ごとに lint（alejandra/statix/deadnix）と gitleaks を実行する。`agent-skills` が private repo のため、CI に認証情報を渡さない設計上の理由でフルの `nix build`/`darwin-rebuild build` は CI に含めていない。これは必ずローカルで実行すること。
+CI（GitHub Actions, `.github/workflows/ci.yml`）は push/PR ごとに lint（alejandra/statix/deadnix）と gitleaks を実行する。フルの `nix build`/`darwin-rebuild build` は CI に含めていない。これは必ずローカルで実行すること。
 
 ## 変更後の運用
 

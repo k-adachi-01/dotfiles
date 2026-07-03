@@ -10,11 +10,11 @@
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     nixvim.url = "github:nix-community/nixvim";
     agent-skills-nix.url = "github:Kyure-A/agent-skills-nix";
-    # k-adachi-01/agent-skills is a private repo, consumed as a local path
-    # input so darwin-rebuild never needs GitHub credentials for Nix evaluation.
-    # Clone ~/agent-skills on each Mac (see README bootstrap). Push changes to
-    # GitHub with skills-push for backup/sync across machines — that uses gh
-    # only for git push, not for Nix flake fetching.
+    # Local checkout of k-adachi-01/agent-skills (private). Flake path input
+    # copies ~/agent-skills into the store at eval time (module-level `path`
+    # cannot be read under the default eval sandbox). After editing skills,
+    # refresh the pinned narHash before switch:
+    #   nix flake update agent-skills --flake ~/.config/nix-darwin
     agent-skills = {
       url = "path:/Users/adachi/agent-skills";
       flake = false;
