@@ -2,7 +2,24 @@
 # infrastructure lives in lib.nix (class A merge helper) and mcp.nix
 # (shared MCP/power definitions). See docs/management-policy.md for the
 # class A/B/C model this is built around and AGENTS.md for the source map.
-{...}: {
+{
+  config,
+  lib,
+  ...
+}: {
+  options.dotfilesAgents.classAMerges = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [];
+    internal = true;
+    description = ''
+      One shell snippet per class A (declare + merge) file, each of which
+      prints what the next `switch` would change plus any live keys not
+      declared in Nix. Every tool file (codex.nix, claude.nix, cursor.nix,
+      kiro.nix) appends to this list via nix/agents/lib.nix's
+      mkDiffCommand. Aggregated into ~/.local/bin/agents-diff.
+    '';
+  };
+
   imports = [
     ./codex.nix
     ./claude.nix
@@ -10,7 +27,7 @@
     ./kiro.nix
   ];
 
-  programs.agent-skills = {
+  config.programs.agent-skills = {
     enable = true;
     sources.personal = {
       input = "agent-skills";
@@ -28,8 +45,25 @@
     };
   };
 
-  home.file = {
+  config.home.file = {
     ".agents/AGENTS.md".source = ../../home/ai/AGENTS.md;
+
+    ".local/bin/agents-diff" = {
+      executable = true;
+      text = ''
+        #!/usr/bin/env bash
+        # Shows, for every class A (declare + merge) file across all AI
+        # agent tools, what the next `darwin-rebuild switch` would change
+        # and which live keys are app-owned (not declared in Nix, so never
+        # touched by the merge). Read-only: never writes to any live file.
+        # See docs/management-policy.md section 4 for the promotion
+        # workflow (live app-owned key -> repo attrset -> switch).
+        set -uo pipefail
+
+        ${lib.concatStringsSep "\n" config.dotfilesAgents.classAMerges}
+        exit 0
+      '';
+    };
 
     ".local/bin/skills-push" = {
       executable = true;

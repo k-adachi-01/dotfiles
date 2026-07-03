@@ -46,9 +46,9 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 やってはいけないこと:
 
 - `~/.codex/*`, `~/.claude/*`, `~/.cursor/*`, `~/.kiro/*` を直接編集して「設定した」つもりにならない。これらは生成先であり、変更は必ず `nix/agents/*` または `home/agents/*` に対して行い、`sudo darwin-rebuild switch` で反映する
-  - 例外: Codex のクラスB ファイル（`~/.codex/AGENTS.md` 等）と Claude/Cursor 移行後のクラスB ファイルは repo への symlink なので、`home/agents/*` を編集すれば switch なしで即反映される
-- クラスA移行済みのツール（Codex の `config.toml` 等）で、宣言外キー（アプリが書いた実行時状態）を repo 側の attrset へ無条件にコピーしない。昇格は `agents-diff`（PR8で追加予定。それまでは live ファイルを直接確認する）で確認してから明示的に行う
-- Codex・Kiro はいずれも移行済み。`nix/agents/{codex,kiro}.nix` や `home/agents/{codex,kiro}/*` を編集したら `sudo darwin-rebuild switch` だけで自動的に merge/link される。`sync-codex-config`/`sync-kiro-config` はもう存在しない
+  - 例外: クラスB ファイル（`~/.codex/AGENTS.md`、`~/.claude/statusline.py`、`~/.cursor/statusline.sh` 等）は repo への symlink なので、`home/agents/*` を編集すれば switch なしで即反映される
+- クラスA移行済みのツールで、宣言外キー（アプリが書いた実行時状態）を repo 側の attrset へ無条件にコピーしない。昇格は `agents-diff` で確認してから明示的に行う
+- Codex/Claude Code/Cursor/Kiro の4ツールすべてが統一モデルへ移行済み（PR6〜PR8完了）。`nix/agents/*.nix` や `home/agents/*/*` を編集したら `sudo darwin-rebuild switch` だけで自動的に merge/link される。`sync-codex-config`/`sync-kiro-config` のような手動再同期スクリプトはもう存在しない
 - merge は辞書のみ再帰処理する。配列（例: Kiro `permissions.yaml` の `rules`）は宣言側で丸ごと置き換わり、要素単位のマージはしない。配列に対するアプリの追記を保持したくなったら、そのフィールドをクラスCへ動かすことを検討する
 
 ## Agent Skills
@@ -74,6 +74,7 @@ git status --short --branch
 nix build '.#darwinConfigurations.macbook.system' --no-link   # sudo 不要のビルド検証
 sudo darwin-rebuild build --flake ~/.config/nix-darwin#macbook  # 適用前のフル検証
 sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook
+agents-diff                                                     # 次の switch での変更点とアプリ所有キーの確認（読み取り専用）
 ```
 
 ## 変更後の運用

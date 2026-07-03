@@ -10,6 +10,13 @@
   dotfilesRepo = "${config.home.homeDirectory}/.config/nix-darwin";
   mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
   agentSkillsBundle = config.programs.agent-skills.bundlePath;
+
+  configEntry = {
+    format = "toml";
+    value = builtins.fromTOML (builtins.readFile ../../home/agents/codex/config.toml);
+    dest = "$HOME/.codex/config.toml";
+    label = "codex-config";
+  };
 in {
   # Class A: home/agents/codex/config.toml is the human-editable declaration
   # of the keys we own (model, personality, notice, tui, plugins, features,
@@ -17,14 +24,10 @@ in {
   # trust decisions, [marketplaces.*] cache paths, [mcp_servers.node_repl] —
   # is left alone because it is simply absent from the declared value.
   home.activation.mergeCodexConfig = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation {
-      format = "toml";
-      value = builtins.fromTOML (builtins.readFile ../../home/agents/codex/config.toml);
-      dest = "$HOME/.codex/config.toml";
-      backupDir = "$HOME/.codex/backups";
-      label = "codex-config";
-    }
+    agentsLib.mkMergeActivation (configEntry // {backupDir = "$HOME/.codex/backups";})
   );
+
+  dotfilesAgents.classAMerges = [(agentsLib.mkDiffCommand configEntry)];
 
   # Class B: Codex never writes to any of these, so a repo-editable symlink
   # is safe and gives "edit repo, effective immediately" without a switch.

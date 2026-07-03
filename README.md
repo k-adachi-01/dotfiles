@@ -20,7 +20,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 | `nix/` | nix-darwin and home-manager modules |
 | `nix/agents/` | Claude Code / Codex / Cursor / Kiro / MCP configuration (see below) |
 | `home/` | source files installed by home-manager |
-| `home/agents/` | Codex config sources and Kiro powers installed by home-manager |
+| `home/agents/` | class B asset sources (Codex/Claude/Cursor scripts and config, Kiro powers) installed by home-manager |
 | `home/editors/` | editor extension manifests derived from Windows |
 | `windows/` | Windows-only fallback settings kept for handoff |
 | `docs/management-policy.md` | classification policy for Nix-managed / app-managed / local / secret files |
@@ -31,20 +31,20 @@ This repository used to be a chezmoi source tree. The target state is now:
 `nix/agents/` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration (one file per tool, plus `lib.nix` for the merge helper and `mcp.nix` for shared definitions).
 `nix/editors.nix` manages VS Code, Cursor, Antigravity, and Antigravity IDE user settings on macOS.
 
-The management mechanism differs per tool today (Nix store symlink for Claude/Cursor, merge + out-of-store symlink for Codex and Kiro, because these apps write back to their own config files in different ways). The full classification, rationale, and migration plan toward a unified model are documented in [`docs/management-policy.md`](docs/management-policy.md); do not assume all four tools behave the same way until that document says the migration is complete.
+All four tools now share one management mechanism: class A files are deep-merged into the live file on every switch (declared keys always win, app-written keys the repo doesn't declare are preserved), and class B files are out-of-store symlinks to `home/agents/*` (edit the repo, no switch needed). The full classification and rationale are documented in [`docs/management-policy.md`](docs/management-policy.md). `~/.local/bin/agents-diff` shows, read-only, what the next switch would change per class A file and which live keys aren't declared in Nix yet (promotion candidates).
 
 Managed by Nix:
 
 - `~/.agents/AGENTS.md`
 - `~/.agents/skills` (dynamically populated from the enabled Agent Skills catalog; the exact skill set is not a fixed list in this file)
-- `~/.claude/AGENTS.md`
-- `~/.claude/CLAUDE.md`
+- `~/.claude/AGENTS.md` (out-of-store symlink)
+- `~/.claude/CLAUDE.md` (out-of-store symlink)
 - `~/.claude/skills` (same dynamic catalog as above)
-- `~/.claude/settings.json`
-- `~/.claude/keybindings.json`
-- `~/.claude/.mcp.json`
-- `~/.claude/statusline.py`
-- `~/.claude/notify-done.sh`
+- `~/.claude/settings.json` (deep-merged on every switch)
+- `~/.claude/keybindings.json` (deep-merged on every switch)
+- `~/.claude/.mcp.json` (deep-merged on every switch)
+- `~/.claude/statusline.py` (out-of-store symlink to `home/agents/claude/statusline.py`)
+- `~/.claude/notify-done.sh` (out-of-store symlink to `home/agents/claude/notify-done.sh`)
 - `~/.codex/AGENTS.md` (out-of-store symlink to `home/ai/AGENTS.md`: edit the repo file, no switch needed)
 - `~/.codex/config.toml` (deep-merged on every switch: declared keys in `home/agents/codex/config.toml` always win, keys Codex wrote itself like `[projects.*]` are preserved; see `docs/management-policy.md`)
 - `~/.codex/openai.config.toml` (out-of-store symlink)
@@ -53,17 +53,18 @@ Managed by Nix:
 - `~/.codex/rules/default.rules` (out-of-store symlink)
 - `~/.codex/notify.sh` (out-of-store symlink)
 - `~/.codex/skills/*` (always re-synced on switch, dynamic catalog)
-- `~/.cursor/AGENTS.md`
+- `~/.cursor/AGENTS.md` (out-of-store symlink)
 - `~/.cursor/skills` (dynamic catalog)
-- `~/.cursor/cli-config.json`
-- `~/.cursor/statusline.sh`
+- `~/.cursor/cli-config.json` (deep-merged on every switch: Cursor's own runtime state like `hasChangedDefaultModel`/`selectedModel` is preserved)
+- `~/.cursor/mcp.json` (deep-merged on every switch)
+- `~/.cursor/statusline.sh` (out-of-store symlink to `home/agents/cursor/statusline.sh`)
 - `~/.kiro/powers.json` (deep-merged on every switch)
 - `~/.kiro/powers.mcp.json` (deep-merged on every switch)
 - `~/.kiro/settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml` (deep-merged on every switch; `permissions.yaml` is generated from `home/agents/codex/default.rules`)
 - `~/.kiro/skills/` (always re-synced on switch, dynamic catalog)
 - `~/.kiro/powers/**` (individual files are out-of-store symlinks to `home/agents/kiro/powers/`; the `powers/` and `powers/<name>/` directories themselves stay real directories so Kiro can create its own `registries/` etc. alongside them)
 
-Codex and Kiro no longer need a manual re-sync script (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
+None of the four tools need a manual re-sync script anymore (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
 
 Editor settings managed by Nix on macOS:
 

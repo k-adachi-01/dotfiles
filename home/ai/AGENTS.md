@@ -105,12 +105,15 @@ pnpm = "latest"
 
 **dotfiles を更新した後は、ユーザーへ確認せず、必ず `k-adachi-01/dotfiles` リポジトリへ commit・push すること。**
 
-### Codex / Kiro 設定運用
+### Codex / Claude Code / Cursor / Kiro 設定運用
 
-- Codex/Kiro はいずれも統一管理モデル（`docs/management-policy.md`）のクラスA/Bへ移行済み（PR6/PR7）。両ツールとも `sync-codex-config`/`sync-kiro-config` のようなスクリプトはもう存在しない。`sudo darwin-rebuild switch` を実行するだけで、クラスAは deep-merge、クラスBは symlink 経由で常に最新の宣言が反映される
+- Codex/Claude Code/Cursor/Kiro の4ツールすべてが統一管理モデル（`docs/management-policy.md`）のクラスA/Bへ移行済み（PR6〜PR8完了）。`sync-codex-config`/`sync-kiro-config` のようなツール固有の再同期スクリプトはもう存在しない。`sudo darwin-rebuild switch` を実行するだけで、クラスAは deep-merge、クラスBは symlink 経由で常に最新の宣言が反映される
 - Codex: `home/agents/codex/config.toml` が `nix/agents/codex.nix` 経由で `~/.codex/config.toml` へ **switch のたびに deep-merge** される（宣言キーは常に上書き、`[projects.*]` 等アプリが書いた宣言外キーは保持）。`~/.codex/AGENTS.md`・`keybindings.json`・`openai.config.toml`・`bedrock.config.toml`・`rules/default.rules`・`notify.sh` は `home/agents/codex/*` への out-of-store symlink（repo を編集すれば switch 不要で即反映）
+- Claude Code: `nix/agents/claude.nix` の attrset が `~/.claude/settings.json`・`.mcp.json`・`keybindings.json` へ deep-merge される。`~/.claude/AGENTS.md`・`CLAUDE.md`・`statusline.py`・`notify-done.sh` は `home/ai/`・`home/agents/claude/*` への out-of-store symlink
+- Cursor: `nix/agents/cursor.nix` の attrset が `~/.cursor/cli-config.json`・`mcp.json` へ deep-merge される（Cursor 自身が書く `hasChangedDefaultModel`/`selectedModel` 等は宣言外キーとして保持される）。`~/.cursor/AGENTS.md`・`statusline.sh` は out-of-store symlink
 - Kiro: `nix/agents/kiro.nix`（`nix/agents/mcp.nix` の値を参照）が `~/.kiro/powers.json`・`powers.mcp.json`・`settings/cli.json`・`settings/mcp.json`・`settings/kiro_cli_theme.json`・`settings/permissions.yaml` を同様に deep-merge する。`home/agents/kiro/powers/**` の個別ファイルは out-of-store symlink。`~/.kiro/powers/` 自体は Kiro runtime が `registries/` などを作成できるよう通常ディレクトリのまま維持する
 - merge は辞書（テーブル/オブジェクト）のみを再帰マージする。配列は宣言側で丸ごと置き換わる（例: `permissions.yaml` の `rules` リストに Kiro が独自に追記しても、次の switch で宣言値に戻る）。配列への追記を保持したいフィールドが見つかったら、そのフィールドは merge の対象から外しクラスCとして扱うことを検討する
+- `agents-diff`（`~/.local/bin/agents-diff`）を実行すると、4ツールすべての class A ファイルについて「次の switch で何が変わるか」と「宣言されていないアプリ所有キー」を読み取り専用で確認できる。ローカルで試した設定を恒久化したい時は、これで確認してから該当する `nix/agents/<tool>.nix` の attrset へ手動で移す
 - Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は switch のたびに常に再同期される動的カタログ（merge/link のどちらでもない、専用の rsync ミラー）
 - Kiro CLI 本体のバージョン・取得元は `nix/packages.nix` で管理する
 - Kiro shell integration / alias は `nix/home.nix` で管理する

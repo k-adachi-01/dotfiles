@@ -21,17 +21,49 @@
   dotfilesRepo = "${config.home.homeDirectory}/.config/nix-darwin";
   mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
 
-  mergeEntry = {
+  mkEntry = {
     name,
     format ? "json",
     declaredFile,
     dest,
-  }:
-    agentsLib.mkMergeActivation {
-      inherit format declaredFile dest;
-      backupDir = "$HOME/.kiro/backups";
-      label = "kiro-${name}";
-    };
+  }: {
+    inherit format declaredFile dest;
+    label = "kiro-${name}";
+  };
+
+  entries = [
+    (mkEntry {
+      name = "powers-json";
+      declaredFile = kiroPowersJson;
+      dest = "$HOME/.kiro/powers.json";
+    })
+    (mkEntry {
+      name = "powers-mcp-json";
+      declaredFile = kiroPowersMcpJson;
+      dest = "$HOME/.kiro/powers.mcp.json";
+    })
+    (mkEntry {
+      name = "settings-cli-json";
+      declaredFile = kiroCliJson;
+      dest = "$HOME/.kiro/settings/cli.json";
+    })
+    (mkEntry {
+      name = "settings-mcp-json";
+      declaredFile = kiroSettingsMcpJson;
+      dest = "$HOME/.kiro/settings/mcp.json";
+    })
+    (mkEntry {
+      name = "settings-cli-theme-json";
+      declaredFile = kiroCliThemeJson;
+      dest = "$HOME/.kiro/settings/kiro_cli_theme.json";
+    })
+    (mkEntry {
+      name = "settings-permissions-yaml";
+      format = "yaml";
+      declaredFile = kiroPermissions;
+      dest = "$HOME/.kiro/settings/permissions.yaml";
+    })
+  ];
 in {
   # Class A: each of these is a full file Kiro also writes to (or could
   # write to) at runtime; only merge-on-switch keeps declared keys durable
@@ -39,42 +71,31 @@ in {
   # ever observed appending to a *list* inside one of these (e.g. growing an
   # array of rules in place) that field should move to class C instead, see
   # nix/agents/lib.nix.
-  home.activation.mergeKiroPowersJson = lib.hm.dag.entryAfter ["writeBoundary"] (mergeEntry {
-    name = "powers-json";
-    declaredFile = kiroPowersJson;
-    dest = "$HOME/.kiro/powers.json";
-  });
+  home.activation.mergeKiroPowersJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    agentsLib.mkMergeActivation ((builtins.elemAt entries 0) // {backupDir = "$HOME/.kiro/backups";})
+  );
 
-  home.activation.mergeKiroPowersMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (mergeEntry {
-    name = "powers-mcp-json";
-    declaredFile = kiroPowersMcpJson;
-    dest = "$HOME/.kiro/powers.mcp.json";
-  });
+  home.activation.mergeKiroPowersMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    agentsLib.mkMergeActivation ((builtins.elemAt entries 1) // {backupDir = "$HOME/.kiro/backups";})
+  );
 
-  home.activation.mergeKiroCliJson = lib.hm.dag.entryAfter ["writeBoundary"] (mergeEntry {
-    name = "settings-cli-json";
-    declaredFile = kiroCliJson;
-    dest = "$HOME/.kiro/settings/cli.json";
-  });
+  home.activation.mergeKiroCliJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    agentsLib.mkMergeActivation ((builtins.elemAt entries 2) // {backupDir = "$HOME/.kiro/backups";})
+  );
 
-  home.activation.mergeKiroSettingsMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (mergeEntry {
-    name = "settings-mcp-json";
-    declaredFile = kiroSettingsMcpJson;
-    dest = "$HOME/.kiro/settings/mcp.json";
-  });
+  home.activation.mergeKiroSettingsMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    agentsLib.mkMergeActivation ((builtins.elemAt entries 3) // {backupDir = "$HOME/.kiro/backups";})
+  );
 
-  home.activation.mergeKiroCliThemeJson = lib.hm.dag.entryAfter ["writeBoundary"] (mergeEntry {
-    name = "settings-cli-theme-json";
-    declaredFile = kiroCliThemeJson;
-    dest = "$HOME/.kiro/settings/kiro_cli_theme.json";
-  });
+  home.activation.mergeKiroCliThemeJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    agentsLib.mkMergeActivation ((builtins.elemAt entries 4) // {backupDir = "$HOME/.kiro/backups";})
+  );
 
-  home.activation.mergeKiroPermissions = lib.hm.dag.entryAfter ["writeBoundary"] (mergeEntry {
-    name = "settings-permissions-yaml";
-    format = "yaml";
-    declaredFile = kiroPermissions;
-    dest = "$HOME/.kiro/settings/permissions.yaml";
-  });
+  home.activation.mergeKiroPermissions = lib.hm.dag.entryAfter ["writeBoundary"] (
+    agentsLib.mkMergeActivation ((builtins.elemAt entries 5) // {backupDir = "$HOME/.kiro/backups";})
+  );
+
+  dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand entries;
 
   # Class B: Kiro reads these power source files but does not write to them.
   # ~/.kiro/powers/ itself stays a real (non-symlinked) directory because
