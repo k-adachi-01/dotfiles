@@ -3,17 +3,13 @@
     "agent-skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1783095424,
-        "narHash": "sha256-S1kFpvzHJuZCyj/IDzI2i8RBikwv/IdPXFx1a4/HC6w=",
-        "ref": "refs/heads/main",
-        "rev": "577594edfff4446d2b7c5181aadb4e64b297c5db",
-        "revCount": 18,
-        "type": "git",
-        "url": "https://github.com/k-adachi-01/agent-skills.git"
+        "narHash": "sha256-gPYc235ofYz4plGGCMr6KQYmNBcyFIrPxk1vHAmhG40=",
+        "path": "/Users/adachi/agent-skills",
+        "type": "path"
       },
       "original": {
-        "type": "git",
-        "url": "https://github.com/k-adachi-01/agent-skills.git"
+        "path": "/Users/adachi/agent-skills",
+        "type": "path"
       }
     },
     "agent-skills-nix": {

@@ -10,20 +10,13 @@
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     nixvim.url = "github:nix-community/nixvim";
     agent-skills-nix.url = "github:Kyure-A/agent-skills-nix";
-    # k-adachi-01/agent-skills is a private repo, fetched via Nix's built-in
-    # GitHub API fetcher (respects `access-tokens` in nix.conf). This used to
-    # be `git+https://...` reusing the `gh auth git-credential` helper from
-    # nix/home.nix, but that helper only works for the `adachi` user session:
-    # `sudo darwin-rebuild switch` runs as root, whose $HOME (/var/root) has
-    # no gh config, and even pointing GH_CONFIG_DIR at adachi's config still
-    # fails because gh's OAuth token lives in adachi's macOS login Keychain,
-    # which root cannot read non-interactively. A fine-grained PAT via
-    # access-tokens sidesteps both the git-CLI credential helper and the
-    # Keychain entirely. See docs/management-policy.md for setup.
-    # For local skills development, override with:
-    #   --override-input agent-skills path:/Users/adachi/agent-skills
+    # k-adachi-01/agent-skills is a private repo, consumed as a local path
+    # input so darwin-rebuild never needs GitHub credentials for Nix evaluation.
+    # Clone ~/agent-skills on each Mac (see README bootstrap). Push changes to
+    # GitHub with skills-push for backup/sync across machines — that uses gh
+    # only for git push, not for Nix flake fetching.
     agent-skills = {
-      url = "github:k-adachi-01/agent-skills";
+      url = "path:/Users/adachi/agent-skills";
       flake = false;
     };
   };

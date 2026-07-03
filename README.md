@@ -9,7 +9,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 - `home-manager` manages user dotfiles, shell, git, editor, and AI-agent config.
 - Homebrew is limited to GUI casks.
 - `mise` is temporary and will be removed after active projects move to project-local `flake.nix`.
-- Agent skills are consumed from the private `k-adachi-01/agent-skills` repository as a flake input. See [`docs/management-policy.md`](docs/management-policy.md) for the current input type and migration status.
+- Agent skills are consumed from a local checkout of the private `k-adachi-01/agent-skills` repository (`path:/Users/adachi/agent-skills` flake input). See [`docs/management-policy.md`](docs/management-policy.md) for details.
 
 ## Managed Files
 
@@ -95,7 +95,7 @@ Not managed by Nix:
 
 Before pruning Codex runtime state, quit Codex first. Start with cache-only files such as `cache/`, `.tmp/`, `tmp/`, and `models_cache.json`; delete history or SQLite databases only when losing local history/state is intentional.
 
-Update shared skills in the local `~/agent-skills` checkout, then run `~/.local/bin/skills-push "message"` to publish, re-pin the flake input, and switch in one step. See [`docs/management-policy.md`](docs/management-policy.md) for how that repository is wired into this flake.
+Update shared skills in the local `~/agent-skills` checkout, then run `~/.local/bin/skills-push "message"` to commit/push to GitHub and switch in one step. No `flake.lock` update is needed — the flake reads the local directory directly.
 
 ## macOS Bootstrap
 
@@ -112,16 +112,11 @@ mkdir -p "$HOME/.config"
 git clone https://github.com/k-adachi-01/dotfiles.git "$HOME/.config/nix-darwin"
 ```
 
-3. Authenticate Nix so the private `agent-skills` flake input (`github:k-adachi-01/agent-skills`) can be fetched by Nix's built-in GitHub fetcher. This must be a fine-grained Personal Access Token in `nix.conf`, not `gh auth login`: `sudo darwin-rebuild switch` evaluates the flake as root, and root cannot read the `gh` OAuth token stored in the `adachi` user's macOS login Keychain, so a git-credential-helper-based approach silently fails the moment root needs to fetch a new revision.
-
-- Create a fine-grained PAT at GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens, scoped to the `k-adachi-01/agent-skills` repository only, with `Contents: Read-only` permission.
-- Append it to `/etc/nix/nix.custom.conf` (a file Determinate Nix already `!include`s for local customization, outside this repository and never committed):
+3. Clone the Agent Skills repository (private; `gh auth login` must be done first if using `gh`):
 
 ```bash
-echo 'access-tokens = github.com=<paste-the-PAT-here>' | sudo tee -a /etc/nix/nix.custom.conf
+gh repo clone k-adachi-01/agent-skills "$HOME/agent-skills"
 ```
-
-See [`docs/management-policy.md`](docs/management-policy.md) for why this replaced the earlier `git+https://` + `gh auth git-credential` design.
 
 4. Build and switch to the macOS profile for the first time.
 
