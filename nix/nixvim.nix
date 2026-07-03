@@ -18,6 +18,51 @@
       winblend = 0;
     };
 
+    plugins = {
+      which-key.enable = true;
+
+      treesitter = {
+        enable = true;
+        grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
+          bash
+          html
+          javascript
+          json
+          lua
+          markdown
+          markdown_inline
+          nix
+          python
+          query
+          regex
+          tsx
+          typescript
+          vim
+          yaml
+        ];
+        settings = {
+          highlight.enable = true;
+          indent.enable = true;
+        };
+      };
+
+      lsp = {
+        enable = true;
+        servers = {
+          nixd.enable = true;
+          lua_ls = {
+            enable = true;
+            settings = {
+              diagnostics.globals = ["vim"];
+              workspace.checkThirdParty = false;
+            };
+          };
+          ts_ls.enable = true;
+          pyright.enable = true;
+        };
+      };
+    };
+
     extraPlugins = with pkgs.vimPlugins; [
       im-select-nvim
       kanagawa-nvim
