@@ -82,6 +82,15 @@ Claude Code と Cursor は、Codex/Kiro が確立した merge 機構（`nix/agen
 
 `~/.local/bin/agents-diff` は、上記すべての class A ファイルについて「次の switch で何が変わるか」と「宣言されていない（アプリ所有の）キー」を読み取り専用で表示する。実装は `nix/agents/lib.nix` の `mkDiffCommand`（`merge-agent-config --check` を呼ぶだけで、`dest` には一切書き込まない）と、各 `nix/agents/<tool>.nix` が `dotfilesAgents.classAMerges`（文字列のリスト型オプション、`nix/agents/default.nix` で定義）へ自分の diff コマンドを追加する仕組みからなる。`--check` モードは各フォーマットの正規化済みテキスト同士の unified diff に加えて、live 側にだけ存在するトップレベル（以深）キーのパス一覧を出力する。後者が「repo の attrset へ昇格する候補」であり、昇格は必ず人間/agentが手動で `nix/agents/<tool>.nix` を編集して行う（自動逆同期はしない）。
 
+### エディタ GUI 設定（`nix/editors.nix`、PR10で確定）
+
+VS Code / Cursor / Antigravity / Antigravity IDE の `settings.json` はクラスA/B/Cの判定基準（「アプリが書き込むか」）で見ると、AI エージェント設定と全く同じ性質を持つ。各アプリの GUI 設定エディタ（Settings UI）はテーマ選択・言語別オーバーライドの追加などをこのファイルへ直接書き込むため、これまでの `home.file.<path>.source`（Nix store symlink）方式では**GUI から設定を変更しても保存できない**問題があった。PR10 で `nix/agents/lib.nix` の merge 基盤をそのまま再利用し、4アプリの `settings.json` をクラスA merge へ移行した。
+
+- 宣言データはこれまでどおり Nix attrset（`commonSettings`/`cursorSettings`）のまま。`mkMergeActivation`/`mkDiffCommand` の `value` 引数に渡すだけで済むため、Codex/Kiro のような TOML パースや store ファイル読み込みの追加実装は不要だった
+- `dotfilesAgents.classAMerges`（`nix/agents/default.nix` で定義したオプション）は `nix/agents/*.nix` からしか設定していなかったが、home-manager のモジュールシステム上はどのモジュールからでも同じオプションへ追記できるため、`nix/editors.nix`（`nix/agents/` の外にある兄弟モジュール）からも `agentsLib.mkDiffCommand` の結果を追加している。`agents-diff` の出力には自動的にエディタ4本の diff も含まれる
+- `keybindings.json`（Cursor/Antigravity/Antigravity IDE のみ）は**クラスA化していない**。VS Code系の keybindings.json はトップレベルが辞書ではなく配列であり、`nix/agents/lib.nix` の merge はトップレベルが辞書のときしか宣言外キーを保持できない（配列は宣言側で丸ごと置換される）。トップレベル自体が配列だと GUI がキーバインドを追加しても次の switch で全消去されてしまうため、意図的に旧来どおりの生成ファイル（Nix store symlink）のまま残した。将来 GUI からのキーバインド追加を保存可能にしたい場合は、配列をラップする形式変更をエディタ側が提供しない限り、この制約は解消しない
+- 検証: `merge-agent-config` をサンドボックス内で直接実行し、(a) GUI が書いたと仮定する未宣言キー（`editor.fontSize`、`workbench.colorTheme` 等）が merge 後も残ること、(b) 宣言キー（`window.commandCenter` 等）を live 側で書き換えても switch で宣言値に戻ること、(c) 一度 merge した結果を再度 merge しても差分が出ないこと（冪等性）の3点を確認済み。`nix build .#darwinConfigurations.macbook.system` も成功することを確認済み。実機での `sudo darwin-rebuild switch` と GUI からの実際の保存操作は Touch ID 認証と GUI 操作が必要なため人間が実行して最終確認すること
+
 ### Agent Skills input の実装メモ（PR5で確定）
 
 `github:owner/repo` 参照は private リポジトリに対して GitHub API 経由でアーカイブを取得するため `access-tokens` を `nix.conf` に設定する必要がある（新しい秘密情報をディスクに書く運用が増える）。代わりに `git+https://github.com/k-adachi-01/agent-skills.git` を使うと、`nix/home.nix` の `programs.git.settings.credential` で既に設定済みの `gh auth git-credential` ヘルパーをそのまま再利用でき、新たな認証情報の保存が不要になる。新しい Mac では `gh auth login` を済ませておけば、このフェッチはそのまま動作する。

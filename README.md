@@ -34,7 +34,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 `nix/agents/` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration (one file per tool, plus `lib.nix` for the merge helper and `mcp.nix` for shared definitions).
 `nix/editors.nix` manages VS Code, Cursor, Antigravity, and Antigravity IDE user settings on macOS.
 
-All four tools now share one management mechanism: class A files are deep-merged into the live file on every switch (declared keys always win, app-written keys the repo doesn't declare are preserved), and class B files are out-of-store symlinks to `home/agents/*` (edit the repo, no switch needed). The full classification and rationale are documented in [`docs/management-policy.md`](docs/management-policy.md). `~/.local/bin/agents-diff` shows, read-only, what the next switch would change per class A file and which live keys aren't declared in Nix yet (promotion candidates).
+All four tools now share one management mechanism: class A files are deep-merged into the live file on every switch (declared keys always win, app-written keys the repo doesn't declare are preserved), and class B files are out-of-store symlinks to `home/agents/*` (edit the repo, no switch needed). The full classification and rationale are documented in [`docs/management-policy.md`](docs/management-policy.md). `~/.local/bin/agents-diff` shows, read-only, what the next switch would change per class A file and which live keys aren't declared in Nix yet (promotion candidates). The same class A merge mechanism is also used for the editor GUI `settings.json` files below (`nix/editors.nix`), so `agents-diff` covers those too.
 
 Managed by Nix:
 
@@ -69,15 +69,15 @@ Managed by Nix:
 
 None of the four tools need a manual re-sync script anymore (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
 
-Editor settings managed by Nix on macOS:
+Editor settings managed by Nix on macOS (`nix/editors.nix`, using the same class A merge helper as the AI agent configs above, added in PR10):
 
-- `~/Library/Application Support/Code/User/settings.json`
-- `~/Library/Application Support/Cursor/User/settings.json`
-- `~/Library/Application Support/Cursor/User/keybindings.json`
-- `~/Library/Application Support/Antigravity/User/settings.json`
-- `~/Library/Application Support/Antigravity/User/keybindings.json`
-- `~/Library/Application Support/Antigravity IDE/User/settings.json`
-- `~/Library/Application Support/Antigravity IDE/User/keybindings.json`
+- `~/Library/Application Support/Code/User/settings.json` (deep-merged on every switch)
+- `~/Library/Application Support/Cursor/User/settings.json` (deep-merged on every switch)
+- `~/Library/Application Support/Cursor/User/keybindings.json` (generated file, not merged: its top level is a JSON array, and the merge helper only preserves undeclared keys inside dicts, so keeping it merge-based would silently drop any keybinding added through the GUI on the next switch)
+- `~/Library/Application Support/Antigravity/User/settings.json` (deep-merged on every switch)
+- `~/Library/Application Support/Antigravity/User/keybindings.json` (generated file, not merged; see Cursor keybindings.json note above)
+- `~/Library/Application Support/Antigravity IDE/User/settings.json` (deep-merged on every switch)
+- `~/Library/Application Support/Antigravity IDE/User/keybindings.json` (generated file, not merged; see Cursor keybindings.json note above)
 
 Windows-only settings preserved for handoff:
 

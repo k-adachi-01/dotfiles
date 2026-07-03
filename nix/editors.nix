@@ -1,4 +1,18 @@
-{pkgs, ...}: let
+# VS Code family GUI settings. `settings.json` is class A (declare + merge,
+# see docs/management-policy.md): the GUI Settings UI writes to this same
+# file (theme picks, per-language overrides added via the UI, etc.), so a
+# plain home.file symlink made it read-only and broke "change a setting in
+# the GUI" for these apps. `keybindings.json` stays a plain generated file
+# (Nix store symlink) for now: unlike settings.json its top level is a bare
+# JSON array, so the class A merge (dict-only, see nix/agents/lib.nix) can't
+# preserve GUI-added shortcuts anyway — declaring it there would just
+# silently discard any keybinding a user adds via the GUI on every switch.
+{
+  lib,
+  pkgs,
+  ...
+}: let
+  agentsLib = import ./agents/lib.nix {inherit pkgs;};
   json = pkgs.formats.json {};
   vimSettings = {
     "vim.easymotion" = true;
@@ -99,24 +113,69 @@
       when = "terminalFocus";
     }
   ];
+
+  mkSettingsEntry = {
+    appDir,
+    value,
+    label,
+  }: {
+    format = "json";
+    inherit value label;
+    dest = "$HOME/Library/Application Support/${appDir}/User/settings.json";
+  };
+
+  vscodeSettingsEntry = mkSettingsEntry {
+    appDir = "Code";
+    value = commonSettings;
+    label = "vscode-settings";
+  };
+  cursorSettingsEntry = mkSettingsEntry {
+    appDir = "Cursor";
+    value = cursorSettings;
+    label = "cursor-editor-settings";
+  };
+  antigravitySettingsEntry = mkSettingsEntry {
+    appDir = "Antigravity";
+    value = cursorSettings;
+    label = "antigravity-settings";
+  };
+  antigravityIdeSettingsEntry = mkSettingsEntry {
+    appDir = "Antigravity IDE";
+    value = cursorSettings;
+    label = "antigravity-ide-settings";
+  };
+  settingsEntries = [
+    vscodeSettingsEntry
+    cursorSettingsEntry
+    antigravitySettingsEntry
+    antigravityIdeSettingsEntry
+  ];
+
+  backupDirFor = entry: "${builtins.dirOf entry.dest}/backups";
+  mkActivation = entry:
+    lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation (entry // {backupDir = backupDirFor entry;})
+    );
 in {
-  home.file = {
-    "Library/Application Support/Code/User/settings.json".source =
-      json.generate "vscode-settings.json" commonSettings;
+  dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand settingsEntries;
 
-    "Library/Application Support/Cursor/User/settings.json".source =
-      json.generate "cursor-settings.json" cursorSettings;
-    "Library/Application Support/Cursor/User/keybindings.json".source =
-      json.generate "cursor-keybindings.json" cursorKeybindings;
+  home = {
+    activation = {
+      mergeVscodeSettings = mkActivation vscodeSettingsEntry;
+      mergeCursorEditorSettings = mkActivation cursorSettingsEntry;
+      mergeAntigravitySettings = mkActivation antigravitySettingsEntry;
+      mergeAntigravityIdeSettings = mkActivation antigravityIdeSettingsEntry;
+    };
 
-    "Library/Application Support/Antigravity/User/settings.json".source =
-      json.generate "antigravity-settings.json" cursorSettings;
-    "Library/Application Support/Antigravity/User/keybindings.json".source =
-      json.generate "antigravity-keybindings.json" cursorKeybindings;
+    file = {
+      "Library/Application Support/Cursor/User/keybindings.json".source =
+        json.generate "cursor-keybindings.json" cursorKeybindings;
 
-    "Library/Application Support/Antigravity IDE/User/settings.json".source =
-      json.generate "antigravity-ide-settings.json" cursorSettings;
-    "Library/Application Support/Antigravity IDE/User/keybindings.json".source =
-      json.generate "antigravity-ide-keybindings.json" cursorKeybindings;
+      "Library/Application Support/Antigravity/User/keybindings.json".source =
+        json.generate "antigravity-keybindings.json" cursorKeybindings;
+
+      "Library/Application Support/Antigravity IDE/User/keybindings.json".source =
+        json.generate "antigravity-ide-keybindings.json" cursorKeybindings;
+    };
   };
 }

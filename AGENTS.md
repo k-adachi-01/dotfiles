@@ -33,7 +33,7 @@ nix build '.#darwinConfigurations.macbook.system' --no-link
 | `nix/packages.nix` | CLI 一式 | system packages |
 | `nix/home.nix` | shell/git/direnv/fzf/tmux | home-manager ネイティブ |
 | `nix/nixvim.nix` | Neovim 全設定 | nixvim（Neovim の唯一のソース。`home/config/nvim/` のような別ツリーを作らない） |
-| `nix/editors.nix` | VS Code/Cursor/Antigravity の `settings.json`/`keybindings.json` | home.file symlink |
+| `nix/editors.nix` | VS Code/Cursor/Antigravity/Antigravity IDE の `settings.json`（クラスA merge、`nix/agents/lib.nix` を共用） / `keybindings.json`（home.file symlink、配列トップレベルのため merge 非対応） | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
 | `nix/agents/*` | Claude/Codex/Cursor/Kiro の user-level 設定、MCP 定義 | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
 | `home/*` | 上記から参照される実ファイル本体 | — |
 
