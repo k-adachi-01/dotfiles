@@ -223,8 +223,8 @@ in {
     # symlink is safe and gives "edit repo, effective immediately" without
     # a switch.
     file = {
-      ".claude/AGENTS.md".source = ../../home/ai/AGENTS.md;
-      ".claude/CLAUDE.md".source = ../../home/ai/CLAUDE.md;
+      ".claude/AGENTS.md".source = mkLink "home/ai/AGENTS.md";
+      ".claude/CLAUDE.md".source = mkLink "home/ai/CLAUDE.md";
       ".claude/statusline.py".source = mkLink "home/agents/claude/statusline.py";
       ".claude/notify-done.sh".source = mkLink "home/agents/claude/notify-done.sh";
     };

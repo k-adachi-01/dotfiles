@@ -36,6 +36,9 @@ nix build '.#darwinConfigurations.macbook.system' --no-link
 | `nix/editors.nix` | VS Code/Cursor/Antigravity/Antigravity IDE の `settings.json`（クラスA merge、`nix/agents/lib.nix` を共用） / `keybindings.json`（home.file symlink、配列トップレベルのため merge 非対応） | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
 | `nix/agents/*` | Claude/Codex/Cursor/Kiro の user-level 設定、MCP 定義 | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
 | `home/*` | 上記から参照される実ファイル本体 | — |
+| `.gitleaks.toml` | 秘密情報スキャン設定（デフォルトルール拡張、Nix SRIハッシュを許可リスト化） | commit 前 `gitleaks protect --staged` と CI `gitleaks detect` の両方が参照 |
+| `statix.toml` | statix lint 設定（`repeated_keys` を無効化） | — |
+| `.github/workflows/ci.yml` | push/PR ごとの lint + secret scan | 詳細は本ファイルの「検証コマンド」節 |
 
 ## AI エージェント設定の管理方式（最重要）
 
@@ -50,6 +53,7 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 - クラスA移行済みのツールで、宣言外キー（アプリが書いた実行時状態）を repo 側の attrset へ無条件にコピーしない。昇格は `agents-diff` で確認してから明示的に行う
 - Codex/Claude Code/Cursor/Kiro の4ツールすべてが統一モデルへ移行済み（PR6〜PR8完了）。`nix/agents/*.nix` や `home/agents/*/*` を編集したら `sudo darwin-rebuild switch` だけで自動的に merge/link される。`sync-codex-config`/`sync-kiro-config` のような手動再同期スクリプトはもう存在しない
 - merge は辞書のみ再帰処理する。配列（例: Kiro `permissions.yaml` の `rules`）は宣言側で丸ごと置き換わり、要素単位のマージはしない。配列に対するアプリの追記を保持したくなったら、そのフィールドをクラスCへ動かすことを検討する
+- クラスBファイルを追加・編集するときは、必ず各 `nix/agents/<tool>.nix` 内の `mkLink` ヘルパー（`config.lib.file.mkOutOfStoreSymlink` のラッパー）経由にする。`.source = ../../home/...` のような生の Nix パス参照を書くと、eval・build は問題なく通るのに実体は Nix store コピーへ静かに退化し、「repo を編集すれば switch 不要で即反映」という前提が崩れる。過去に `.claude/AGENTS.md`・`.claude/CLAUDE.md`・`.cursor/AGENTS.md`・`.agents/AGENTS.md` の4箇所で実際にこれが起きていた（PR11で修正、詳細は `docs/management-policy.md`）。新規/既存のクラスBエントリを触ったら `.source` の右辺が `mkLink "..."` になっているか目視確認すること
 
 ## Agent Skills
 

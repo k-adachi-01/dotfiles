@@ -122,7 +122,7 @@ in {
     # symlink is safe and gives "edit repo, effective immediately" without
     # a switch.
     file = {
-      ".cursor/AGENTS.md".source = ../../home/ai/AGENTS.md;
+      ".cursor/AGENTS.md".source = mkLink "home/ai/AGENTS.md";
       ".cursor/statusline.sh".source = mkLink "home/agents/cursor/statusline.sh";
     };
   };

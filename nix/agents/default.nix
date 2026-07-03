@@ -6,7 +6,10 @@
   config,
   lib,
   ...
-}: {
+}: let
+  dotfilesRepo = "${config.home.homeDirectory}/.config/nix-darwin";
+  mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
+in {
   options.dotfilesAgents.classAMerges = lib.mkOption {
     type = lib.types.listOf lib.types.str;
     default = [];
@@ -46,7 +49,13 @@
   };
 
   config.home.file = {
-    ".agents/AGENTS.md".source = ../../home/ai/AGENTS.md;
+    # Class B: agents.md target reads this but never writes to it, so an
+    # out-of-store symlink (edit the repo, no switch needed) is safe. This
+    # must match every other class B AGENTS.md/CLAUDE.md symlink below (see
+    # nix/agents/{claude,codex,cursor}.nix) — a plain Nix path here would
+    # silently degrade to a store copy that only updates on switch, which is
+    # exactly the seed-only drift this model exists to avoid.
+    ".agents/AGENTS.md".source = mkLink "home/ai/AGENTS.md";
 
     ".local/bin/agents-diff" = {
       executable = true;
