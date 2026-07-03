@@ -48,7 +48,8 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 - `~/.codex/*`, `~/.claude/*`, `~/.cursor/*`, `~/.kiro/*` を直接編集して「設定した」つもりにならない。これらは生成先であり、変更は必ず `nix/agents/*` または `home/agents/*` に対して行い、`sudo darwin-rebuild switch` で反映する
   - 例外: Codex のクラスB ファイル（`~/.codex/AGENTS.md` 等）と Claude/Cursor 移行後のクラスB ファイルは repo への symlink なので、`home/agents/*` を編集すれば switch なしで即反映される
 - クラスA移行済みのツール（Codex の `config.toml` 等）で、宣言外キー（アプリが書いた実行時状態）を repo 側の attrset へ無条件にコピーしない。昇格は `agents-diff`（PR8で追加予定。それまでは live ファイルを直接確認する）で確認してから明示的に行う
-- Kiro はまだ未移行（seed-only）なので、`nix/agents/kiro.nix` や `home/agents/kiro/*` を編集しても `sync-kiro-config` を明示実行しない限り `~/.kiro/*` へ反映されない。Codex は移行済みなので `sudo darwin-rebuild switch` だけで自動的に merge/link される
+- Codex・Kiro はいずれも移行済み。`nix/agents/{codex,kiro}.nix` や `home/agents/{codex,kiro}/*` を編集したら `sudo darwin-rebuild switch` だけで自動的に merge/link される。`sync-codex-config`/`sync-kiro-config` はもう存在しない
+- merge は辞書のみ再帰処理する。配列（例: Kiro `permissions.yaml` の `rules`）は宣言側で丸ごと置き換わり、要素単位のマージはしない。配列に対するアプリの追記を保持したくなったら、そのフィールドをクラスCへ動かすことを検討する
 
 ## Agent Skills
 

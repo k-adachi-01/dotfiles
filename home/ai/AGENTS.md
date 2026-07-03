@@ -107,15 +107,15 @@ pnpm = "latest"
 
 ### Codex / Kiro 設定運用
 
-- Codex は統一管理モデル（`docs/management-policy.md`）のクラスA/Bへ移行済み。`home/agents/codex/config.toml` は `nix/agents/codex.nix` 経由で `~/.codex/config.toml` へ **switch のたびに deep-merge** される（宣言キーは常に上書き、`[projects.*]` 等アプリが書いた宣言外キーは保持）。`~/.codex/AGENTS.md`・`keybindings.json`・`openai.config.toml`・`bedrock.config.toml`・`rules/default.rules`・`notify.sh` は `home/agents/codex/*` への out-of-store symlink（repo を編集すれば switch 不要で即反映）
-- Kiro はまだ seed-only（`nix/agents/kiro.nix` と `home/agents/kiro/powers/`）。`sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` は存在しない `~/.kiro/*` だけを初期作成し、既存ファイル/ディレクトリは上書きしない（Kiro の merge 移行は未着手、`docs/management-policy.md` の移行状況表を参照）
-- Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は switch のたびに常に再同期される動的カタログ（seed-only ではない）
-- Kiro の dotfiles 宣言を明示的に反映したい場合だけ `sync-kiro-config` を実行する。上書き前に `~/.kiro/backups/` へバックアップを作る（Codex にはこのスクリプトはない。switch のたびに自動で merge されるため不要）
+- Codex/Kiro はいずれも統一管理モデル（`docs/management-policy.md`）のクラスA/Bへ移行済み（PR6/PR7）。両ツールとも `sync-codex-config`/`sync-kiro-config` のようなスクリプトはもう存在しない。`sudo darwin-rebuild switch` を実行するだけで、クラスAは deep-merge、クラスBは symlink 経由で常に最新の宣言が反映される
+- Codex: `home/agents/codex/config.toml` が `nix/agents/codex.nix` 経由で `~/.codex/config.toml` へ **switch のたびに deep-merge** される（宣言キーは常に上書き、`[projects.*]` 等アプリが書いた宣言外キーは保持）。`~/.codex/AGENTS.md`・`keybindings.json`・`openai.config.toml`・`bedrock.config.toml`・`rules/default.rules`・`notify.sh` は `home/agents/codex/*` への out-of-store symlink（repo を編集すれば switch 不要で即反映）
+- Kiro: `nix/agents/kiro.nix`（`nix/agents/mcp.nix` の値を参照）が `~/.kiro/powers.json`・`powers.mcp.json`・`settings/cli.json`・`settings/mcp.json`・`settings/kiro_cli_theme.json`・`settings/permissions.yaml` を同様に deep-merge する。`home/agents/kiro/powers/**` の個別ファイルは out-of-store symlink。`~/.kiro/powers/` 自体は Kiro runtime が `registries/` などを作成できるよう通常ディレクトリのまま維持する
+- merge は辞書（テーブル/オブジェクト）のみを再帰マージする。配列は宣言側で丸ごと置き換わる（例: `permissions.yaml` の `rules` リストに Kiro が独自に追記しても、次の switch で宣言値に戻る）。配列への追記を保持したいフィールドが見つかったら、そのフィールドは merge の対象から外しクラスCとして扱うことを検討する
+- Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は switch のたびに常に再同期される動的カタログ（merge/link のどちらでもない、専用の rsync ミラー）
 - Kiro CLI 本体のバージョン・取得元は `nix/packages.nix` で管理する
 - Kiro shell integration / alias は `nix/home.nix` で管理する
-- Kiro v3 permissions の seed は `home/agents/codex/default.rules` を source of truth とし、`nix/agents/mcp.nix` の生成処理で作る
-- `home/agents/codex/default.rules` を変更し、既存の `~/.kiro/settings/permissions.yaml` に反映したい場合は `sync-kiro-config` を実行してから内容を確認する
-- Kiro powers の seed は `home/agents/kiro/powers/` で管理し、共通 skills とは別責務として維持する。`~/.kiro/powers/` 自体は Kiro runtime が `registries/` などを作成できる通常ディレクトリにする
+- Kiro v3 permissions の宣言は `home/agents/codex/default.rules` を source of truth とし、`nix/agents/mcp.nix` の `kiroPermissions` 生成処理で YAML へ変換してから merge する
+- Kiro powers の seed は `home/agents/kiro/powers/` で管理し、共通 skills とは別責務として維持する
 - `~/.kiro/sessions/`, `~/.kiro/logs/`, `~/.kiro/.cli_bash_history`, `~/.kiro/settings/feed_state.json`, `~/.kiro/settings/survey_state.json`, `~/.codex/sessions/`, `~/.codex/cache/`, `~/.codex/*.sqlite*` は runtime state として Nix/Git 管理しない
 - `kiro-cli settings`, `kiro-cli mcp add`, `kiro-cli theme` で試した変更は永続化せず、必要な内容を Nix source に移してから switch する
 - `home/agents/codex/config.toml` は「switch のたびに live ファイルへ merge される管理キーの宣言」を最小に維持する。次のものは **コミットしない**（アプリが実行時に生成するランタイム状態であり、宣言に混ぜると個人のプロジェクト構成やローカルパスが漏れる。混ぜても実害はない——宣言外キーとしてそのまま live 側に残るだけだが、public repo に個人情報を置くこと自体が問題）:

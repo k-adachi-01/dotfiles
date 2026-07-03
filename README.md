@@ -31,7 +31,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 `nix/agents/` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration (one file per tool, plus `lib.nix` for the merge helper and `mcp.nix` for shared definitions).
 `nix/editors.nix` manages VS Code, Cursor, Antigravity, and Antigravity IDE user settings on macOS.
 
-The management mechanism differs per tool today (Nix store symlink for Claude/Cursor, seed-only activation for Kiro, merge + out-of-store symlink for Codex, because these apps write back to their own config files in different ways). The full classification, rationale, and migration plan toward a unified model are documented in [`docs/management-policy.md`](docs/management-policy.md); do not assume all four tools behave the same way until that document says the migration is complete.
+The management mechanism differs per tool today (Nix store symlink for Claude/Cursor, merge + out-of-store symlink for Codex and Kiro, because these apps write back to their own config files in different ways). The full classification, rationale, and migration plan toward a unified model are documented in [`docs/management-policy.md`](docs/management-policy.md); do not assume all four tools behave the same way until that document says the migration is complete.
 
 Managed by Nix:
 
@@ -57,13 +57,13 @@ Managed by Nix:
 - `~/.cursor/skills` (dynamic catalog)
 - `~/.cursor/cli-config.json`
 - `~/.cursor/statusline.sh`
-- `~/.kiro/powers.json` (seed-only)
-- `~/.kiro/powers.mcp.json` (seed-only)
-- `~/.kiro/settings/` (seed-only)
-- `~/.kiro/skills/` (seed-only, dynamic catalog)
-- `~/.kiro/powers/` (seed-only)
+- `~/.kiro/powers.json` (deep-merged on every switch)
+- `~/.kiro/powers.mcp.json` (deep-merged on every switch)
+- `~/.kiro/settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml` (deep-merged on every switch; `permissions.yaml` is generated from `home/agents/codex/default.rules`)
+- `~/.kiro/skills/` (always re-synced on switch, dynamic catalog)
+- `~/.kiro/powers/**` (individual files are out-of-store symlinks to `home/agents/kiro/powers/`; the `powers/` and `powers/<name>/` directories themselves stay real directories so Kiro can create its own `registries/` etc. alongside them)
 
-"Seed-only" means `sudo darwin-rebuild switch` only creates the file if it does not already exist; it does not overwrite files the app has since modified. Run `~/.local/bin/sync-kiro-config` to explicitly re-apply the Kiro dotfiles source (a timestamped backup is written first). Codex no longer needs an equivalent script: `~/.codex/config.toml` is merged automatically on every switch, and the other `~/.codex/*` entries above are symlinks that reflect repo edits immediately.
+Codex and Kiro no longer need a manual re-sync script (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
 
 Editor settings managed by Nix on macOS:
 
