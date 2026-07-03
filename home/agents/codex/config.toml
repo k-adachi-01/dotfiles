@@ -1,9 +1,9 @@
 model = "gpt-5.4-mini"
 model_reasoning_effort = "medium"
 personality = "pragmatic"
-
-notify = ["/Users/adachi/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended", "--previous-notify", "[\"bash\",\"\\/Users\\/adachi\\/.codex\\/notify.sh\"]"]
 approvals_reviewer = "user"
+
+notify = ["bash", "/Users/adachi/.codex/notify.sh"]
 
 [notice]
 hide_rate_limit_model_nudge = true
@@ -14,87 +14,6 @@ fast_default_opt_out = true
 "gpt-5.2-codex" = "gpt-5.3-codex"
 "gpt-5.3-codex" = "gpt-5.4"
 "gpt-5.4" = "gpt-5.5"
-
-[projects."/Users/adachi"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/.config/nix-darwin"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/agent-skills"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/articles"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/talks"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260605_clouddriver"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/changelog-slack-watcher"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/aws-sandbox"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/blog"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/tmp"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/app_img-uploader-v3"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/aws-diagrams"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260610_cdkd-cdkl"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/.codex"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/.config"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/.kiro"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks/amplify-serverless-full-stack-webapp"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks/blocks-serverless-full-stack-webapp"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks/blocks-amplify-messenger-app"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks/blocks-vite-react-template"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks/amplify-messenger-app"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks/260627_ryo-suzuki-blog"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks/260629_ryo-suzuki-blog"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/260618_aws-blocks/kiro-aws-blocks"]
-trust_level = "trusted"
-
-[projects."/Users/adachi/src/codex-cursor"]
-trust_level = "trusted"
 
 [tui]
 screen_reader_mode = true
@@ -135,37 +54,8 @@ enabled = true
 [plugins."template-creator@openai-primary-runtime"]
 enabled = true
 
-[marketplaces.openai-bundled]
-last_updated = "2026-06-27T15:04:48Z"
-source_type = "local"
-source = "/Users/adachi/.codex/.tmp/bundled-marketplaces/openai-bundled"
-
-[marketplaces.openai-primary-runtime]
-last_updated = "2026-06-27T13:53:29Z"
-source_type = "local"
-source = "/Users/adachi/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
-
 [features]
 js_repl = false
-
-[mcp_servers.node_repl]
-args = []
-command = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node_repl"
-startup_timeout_sec = 120
-
-[mcp_servers.node_repl.env]
-NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
-NODE_REPL_NODE_MODULE_DIRS = "/Applications/Codex.app/Contents/Resources/cua_node/lib/node_modules"
-NODE_REPL_NODE_PATH = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node"
-NODE_REPL_TRUSTED_CODE_PATHS = "/Users/adachi/.codex"
-CODEX_HOME = "/Users/adachi/.codex"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "59e7bb81812ddd5f102e1d580335166e552c91686b5726218a985b59b4f89ca1"
-BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
-NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
-BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.623.42026"
-CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
 
 [desktop]
 followUpQueueMode = "queue"

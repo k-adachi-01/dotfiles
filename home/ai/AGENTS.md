@@ -118,6 +118,12 @@ pnpm = "latest"
 - Kiro powers の seed は `home/agents/kiro/powers/` で管理し、共通 skills とは別責務として維持する。`~/.kiro/powers/` 自体は Kiro runtime が `registries/` などを作成できる通常ディレクトリにする
 - `~/.kiro/sessions/`, `~/.kiro/logs/`, `~/.kiro/.cli_bash_history`, `~/.kiro/settings/feed_state.json`, `~/.kiro/settings/survey_state.json`, `~/.codex/sessions/`, `~/.codex/cache/`, `~/.codex/*.sqlite*` は runtime state として Nix/Git 管理しない
 - `kiro-cli settings`, `kiro-cli mcp add`, `kiro-cli theme` で試した変更は永続化せず、必要な内容を Nix source に移してから switch する
+- `home/agents/codex/config.toml` は「最小 seed」を維持する。次のものは **コミットしない**（アプリが実行時に生成するランタイム状態であり、seed に混ぜると個人のプロジェクト構成やローカルパスが漏れる）:
+  - `[projects.*]`（trust_level の記録。プロジェクトディレクトリ名を通じて業務内容や第三者名が漏れる可能性がある）
+  - `[marketplaces.*]`（`last_updated` タイムスタンプと `.tmp/`/`.cache/` 配下のローカル絶対パス）
+  - `[mcp_servers.node_repl]` とその `env`（Codex.app のビルド固有パス・バージョン文字列）
+  - `notify` に computer-use 由来の `.app` バンドル絶対パスを含めない。`notify = ["bash", "/Users/adachi/.codex/notify.sh"]` の形だけを維持する
+  - `home/agents/codex/config.toml` を変更する PR では、上記パターンが紛れ込んでいないか diff を確認してからコミットする
 
 ## ファイルパス（Windows / WSL2）
 
