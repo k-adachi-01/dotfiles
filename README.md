@@ -25,6 +25,9 @@ This repository used to be a chezmoi source tree. The target state is now:
 | `windows/` | Windows-only fallback settings kept for handoff |
 | `docs/management-policy.md` | classification policy for Nix-managed / app-managed / local / secret files |
 | `docs/macos-nix-migration.md` | migration runbook |
+| `.gitleaks.toml` | secret-scanning config (extends gitleaks defaults, allowlists Nix SRI hashes) |
+| `statix.toml` | statix lint config for this repo |
+| `.github/workflows/ci.yml` | CI: lint (alejandra/statix/deadnix) + secret scan (gitleaks) on push/PR |
 
 ## AI Agent Configuration
 
@@ -152,6 +155,10 @@ git add -A
 git commit -m "update environment"
 git push
 ```
+
+## Continuous Integration
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and every pull request: `alejandra --check`, `statix check`, `deadnix --fail`, and `gitleaks detect --config .gitleaks.toml`. It does not run `nix build`/`darwin-rebuild build`, since the `agent-skills` flake input is a private repository CI has no credentials for; run that locally before pushing (see [`AGENTS.md`](AGENTS.md)). Before committing, it's also worth running `gitleaks protect --staged --config .gitleaks.toml` to catch secrets before they ever reach a commit.
 
 ## Authentication
 

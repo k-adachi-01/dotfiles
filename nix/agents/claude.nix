@@ -201,29 +201,32 @@
     label = "claude-keybindings";
   };
 in {
-  # Class A: Claude writes trust decisions, model selection, and other UI
-  # state into settings.json/.mcp.json at runtime; merge-on-switch keeps our
-  # declared keys durable without clobbering that state. See
-  # nix/agents/lib.nix for the dict-only merge caveat.
-  home.activation.mergeClaudeSettings = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation (settingsEntry // {inherit backupDir;})
-  );
-  home.activation.mergeClaudeMcp = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation (mcpEntry // {inherit backupDir;})
-  );
-  home.activation.mergeClaudeKeybindings = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation (keybindingsEntry // {inherit backupDir;})
-  );
-
   dotfilesAgents.classAMerges =
     map agentsLib.mkDiffCommand [settingsEntry mcpEntry keybindingsEntry];
 
-  # Class B: Claude never writes to any of these, so a repo-editable symlink
-  # is safe and gives "edit repo, effective immediately" without a switch.
-  home.file = {
-    ".claude/AGENTS.md".source = ../../home/ai/AGENTS.md;
-    ".claude/CLAUDE.md".source = ../../home/ai/CLAUDE.md;
-    ".claude/statusline.py".source = mkLink "home/agents/claude/statusline.py";
-    ".claude/notify-done.sh".source = mkLink "home/agents/claude/notify-done.sh";
+  home = {
+    # Class A: Claude writes trust decisions, model selection, and other UI
+    # state into settings.json/.mcp.json at runtime; merge-on-switch keeps
+    # our declared keys durable without clobbering that state. See
+    # nix/agents/lib.nix for the dict-only merge caveat.
+    activation.mergeClaudeSettings = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation (settingsEntry // {inherit backupDir;})
+    );
+    activation.mergeClaudeMcp = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation (mcpEntry // {inherit backupDir;})
+    );
+    activation.mergeClaudeKeybindings = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation (keybindingsEntry // {inherit backupDir;})
+    );
+
+    # Class B: Claude never writes to any of these, so a repo-editable
+    # symlink is safe and gives "edit repo, effective immediately" without
+    # a switch.
+    file = {
+      ".claude/AGENTS.md".source = ../../home/ai/AGENTS.md;
+      ".claude/CLAUDE.md".source = ../../home/ai/CLAUDE.md;
+      ".claude/statusline.py".source = mkLink "home/agents/claude/statusline.py";
+      ".claude/notify-done.sh".source = mkLink "home/agents/claude/notify-done.sh";
+    };
   };
 }

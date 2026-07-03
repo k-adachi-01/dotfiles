@@ -104,23 +104,26 @@
     label = "cursor-cli-config";
   };
 in {
-  # Class A: see cliConfigValue comment above for why this can't be a
-  # symlink. Merge-on-switch keeps declared keys durable without clobbering
-  # Cursor's own runtime state. See nix/agents/lib.nix for the dict-only
-  # merge caveat.
-  home.activation.mergeCursorMcp = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation (mcpEntry // {inherit backupDir;})
-  );
-  home.activation.mergeCursorCliConfig = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation (cliConfigEntry // {inherit backupDir;})
-  );
-
   dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand [mcpEntry cliConfigEntry];
 
-  # Class B: Cursor never writes to any of these, so a repo-editable symlink
-  # is safe and gives "edit repo, effective immediately" without a switch.
-  home.file = {
-    ".cursor/AGENTS.md".source = ../../home/ai/AGENTS.md;
-    ".cursor/statusline.sh".source = mkLink "home/agents/cursor/statusline.sh";
+  home = {
+    # Class A: see cliConfigValue comment above for why this can't be a
+    # symlink. Merge-on-switch keeps declared keys durable without
+    # clobbering Cursor's own runtime state. See nix/agents/lib.nix for the
+    # dict-only merge caveat.
+    activation.mergeCursorMcp = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation (mcpEntry // {inherit backupDir;})
+    );
+    activation.mergeCursorCliConfig = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation (cliConfigEntry // {inherit backupDir;})
+    );
+
+    # Class B: Cursor never writes to any of these, so a repo-editable
+    # symlink is safe and gives "edit repo, effective immediately" without
+    # a switch.
+    file = {
+      ".cursor/AGENTS.md".source = ../../home/ai/AGENTS.md;
+      ".cursor/statusline.sh".source = mkLink "home/agents/cursor/statusline.sh";
+    };
   };
 }

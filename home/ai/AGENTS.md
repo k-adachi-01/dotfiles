@@ -102,6 +102,7 @@ pnpm = "latest"
 - 適用: `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook`
 - 管理対象: shell, git, WezTerm, Neovim, Claude/Codex/Cursor/Agents 設定
 - 除外（秘密情報）: `.aws/`, `.azure/`, `.config/gcloud/`, `.config/gh/hosts.yml`, `.ssh/`, `.gnupg/`, `.env.keys`
+- コミット前に `gitleaks protect --staged --config .gitleaks.toml` を実行する（`gitleaks` は `nix/packages.nix` で管理）。push 後は GitHub Actions（`.github/workflows/ci.yml`）が同じ設定で `gitleaks detect` を実行する
 
 **dotfiles を更新した後は、ユーザーへ確認せず、必ず `k-adachi-01/dotfiles` リポジトリへ commit・push すること。**
 

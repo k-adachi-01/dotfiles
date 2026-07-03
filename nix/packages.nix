@@ -64,6 +64,7 @@ in [
   fzf
   gh
   git
+  gitleaks
   gnumake
   gnupg
   google-cloud-sdk

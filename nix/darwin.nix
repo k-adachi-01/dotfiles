@@ -3,9 +3,7 @@
   username,
   system,
   ...
-}:
-
-{
+}: {
   imports = [
     ./apps.nix
   ];
@@ -38,7 +36,7 @@
     (with pkgs; [
       vim
     ])
-    ++ import ./packages.nix { inherit pkgs; };
+    ++ import ./packages.nix {inherit pkgs;};
 
   system = {
     stateVersion = 6;

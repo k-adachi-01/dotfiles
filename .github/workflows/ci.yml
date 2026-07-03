@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A full `darwin-rebuild build` needs the private `agent-skills` flake input
+# (see docs/management-policy.md section 5), which this public repo's CI
+# has no credentials for. This workflow is therefore lint + secret-scan
+# only; `nix build`/`darwin-rebuild build` remain a required local step
+# before every push (see AGENTS.md).
+jobs:
+  lint:
+    name: alejandra / statix / deadnix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: DeterminateSystems/nix-installer-action@v22
+      - name: alejandra --check
+        run: nix run nixpkgs#alejandra -- --check .
+      - name: statix check
+        run: nix run nixpkgs#statix -- check .
+      - name: deadnix
+        run: nix run nixpkgs#deadnix -- --fail .
+
+  secrets:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: DeterminateSystems/nix-installer-action@v22
+      - name: gitleaks detect
+        run: nix run nixpkgs#gitleaks -- detect --source . --config .gitleaks.toml --redact -v

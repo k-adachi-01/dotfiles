@@ -106,10 +106,11 @@ skills を更新する日常運用は `skills-push` スクリプト（`~/.local/
 ## 5. 秘密情報の防御
 
 1. `.gitignore`: `result`, `result-*`, `*.hm-backup`, `.env`, `.env.*`, `*.pem`, `*.key`, `auth.json`, `DOTENV_PRIVATE_KEY*`
-2. コミット前チェック: `gitleaks protect --staged`（PR9 で導入）
-3. CI: `gitleaks detect` + `alejandra --check` + `statix check` + `deadnix`（PR9 で導入。private な `agent-skills` input への認証が必要なため、フルの `darwin-rebuild build` は CI に含めずローカル必須手順とする）
-4. 構造的防御: クラスA merge は repo→live の一方向のみ。アプリが live に書いた内容が自動で repo に来る経路は存在しない
-5. クラスB のレビュー規約: `home/agents/` への変更では、絶対パス・タイムスタンプ・第三者名の混入がないか diff を確認してからコミットする
+2. コミット前チェック: `gitleaks protect --staged --config .gitleaks.toml`（`nix/packages.nix` に `gitleaks` を追加済み。PR9 で導入）
+3. CI（`.github/workflows/ci.yml`、PR9 で導入）: `alejandra --check` + `statix check` + `deadnix --fail` + `gitleaks detect --config .gitleaks.toml`。private な `agent-skills` input への認証が GitHub Actions 側にないため、フルの `darwin-rebuild build`/`nix build` は CI に含めずローカル必須手順のままとする。CI は `DeterminateSystems/nix-installer-action` で Nix を入れ、各ツールを `nix run nixpkgs#<tool>` で実行するだけの2ジョブ構成（lint / secrets）
+4. `.gitleaks.toml`: デフォルトルールセット（`useDefault = true`）を拡張し、`sha256-`/`sha512-`/`sha1-`/`md5-` プレフィックス付きの SRI ハッシュ文字列（`flake.lock` の `narHash`、`fetchFromGitHub`/`fetchurl` の `hash`、`npmDepsHash` 等）だけを許可リスト化している。これらは公開ソースの内容アドレスであり秘密情報ではないが、gitleaks の汎用高エントロピー文字列検出が将来誤検知する可能性があるための予防的措置（現時点の `gitleaks detect`/`--config` 込みの実行では誤検知は未発生）
+5. 構造的防御: クラスA merge は repo→live の一方向のみ。アプリが live に書いた内容が自動で repo に来る経路は存在しない
+6. クラスB のレビュー規約: `home/agents/` への変更では、絶対パス・タイムスタンプ・第三者名の混入がないか diff を確認してからコミットする
 
 ## 6. 新しい AI ツールを追加する時の手順
 

@@ -1,0 +1,12 @@
+title = "dotfiles gitleaks config"
+
+# Extend, don't replace, gitleaks' default ruleset (generic-api-key,
+# private keys, cloud provider tokens, etc.).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Nix content-addressed hashes are not secrets: they're SRI-style digests of publicly fetchable sources (fetchFromGitHub, fetchurl, npmDepsHash, flake.lock narHash/rev), always prefixed with a named hash algorithm."
+regexes = [
+  '''(sha256|sha512|sha1|md5)-[A-Za-z0-9+/=]{20,}''',
+]

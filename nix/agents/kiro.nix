@@ -65,60 +65,62 @@
     })
   ];
 in {
-  # Class A: each of these is a full file Kiro also writes to (or could
-  # write to) at runtime; only merge-on-switch keeps declared keys durable
-  # without clobbering app state. Note the merge is dict-only — if Kiro is
-  # ever observed appending to a *list* inside one of these (e.g. growing an
-  # array of rules in place) that field should move to class C instead, see
-  # nix/agents/lib.nix.
-  home.activation.mergeKiroPowersJson = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation ((builtins.elemAt entries 0) // {backupDir = "$HOME/.kiro/backups";})
-  );
-
-  home.activation.mergeKiroPowersMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation ((builtins.elemAt entries 1) // {backupDir = "$HOME/.kiro/backups";})
-  );
-
-  home.activation.mergeKiroCliJson = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation ((builtins.elemAt entries 2) // {backupDir = "$HOME/.kiro/backups";})
-  );
-
-  home.activation.mergeKiroSettingsMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation ((builtins.elemAt entries 3) // {backupDir = "$HOME/.kiro/backups";})
-  );
-
-  home.activation.mergeKiroCliThemeJson = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation ((builtins.elemAt entries 4) // {backupDir = "$HOME/.kiro/backups";})
-  );
-
-  home.activation.mergeKiroPermissions = lib.hm.dag.entryAfter ["writeBoundary"] (
-    agentsLib.mkMergeActivation ((builtins.elemAt entries 5) // {backupDir = "$HOME/.kiro/backups";})
-  );
-
   dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand entries;
 
-  # Class B: Kiro reads these power source files but does not write to them.
-  # ~/.kiro/powers/ itself stays a real (non-symlinked) directory because
-  # Kiro creates its own registries/ etc. alongside stripe/ and
-  # cloud-architect/; only the individual files inside are linked.
-  home.file = {
-    ".kiro/powers/stripe/POWER.md".source = mkLink "home/agents/kiro/powers/stripe/POWER.md";
-    ".kiro/powers/stripe/mcp.json".source = mkLink "home/agents/kiro/powers/stripe/mcp.json";
-    ".kiro/powers/stripe/steering/stripe-best-practices.md".source = mkLink "home/agents/kiro/powers/stripe/steering/stripe-best-practices.md";
+  home = {
+    # Class A: each of these is a full file Kiro also writes to (or could
+    # write to) at runtime; only merge-on-switch keeps declared keys
+    # durable without clobbering app state. Note the merge is dict-only —
+    # if Kiro is ever observed appending to a *list* inside one of these
+    # (e.g. growing an array of rules in place) that field should move to
+    # class C instead, see nix/agents/lib.nix.
+    activation.mergeKiroPowersJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation ((builtins.elemAt entries 0) // {backupDir = "$HOME/.kiro/backups";})
+    );
 
-    ".kiro/powers/cloud-architect/POWER.md".source = mkLink "home/agents/kiro/powers/cloud-architect/POWER.md";
-    ".kiro/powers/cloud-architect/mcp.json".source = mkLink "home/agents/kiro/powers/cloud-architect/mcp.json";
-    ".kiro/powers/cloud-architect/steering/cdk-development-guidelines.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/cdk-development-guidelines.md";
-    ".kiro/powers/cloud-architect/steering/cloud-engineer-agent.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/cloud-engineer-agent.md";
-    ".kiro/powers/cloud-architect/steering/testing-strategy.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/testing-strategy.md";
+    activation.mergeKiroPowersMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation ((builtins.elemAt entries 1) // {backupDir = "$HOME/.kiro/backups";})
+    );
+
+    activation.mergeKiroCliJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation ((builtins.elemAt entries 2) // {backupDir = "$HOME/.kiro/backups";})
+    );
+
+    activation.mergeKiroSettingsMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation ((builtins.elemAt entries 3) // {backupDir = "$HOME/.kiro/backups";})
+    );
+
+    activation.mergeKiroCliThemeJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation ((builtins.elemAt entries 4) // {backupDir = "$HOME/.kiro/backups";})
+    );
+
+    activation.mergeKiroPermissions = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation ((builtins.elemAt entries 5) // {backupDir = "$HOME/.kiro/backups";})
+    );
+
+    # Class B: Kiro reads these power source files but does not write to
+    # them. ~/.kiro/powers/ itself stays a real (non-symlinked) directory
+    # because Kiro creates its own registries/ etc. alongside stripe/ and
+    # cloud-architect/; only the individual files inside are linked.
+    file = {
+      ".kiro/powers/stripe/POWER.md".source = mkLink "home/agents/kiro/powers/stripe/POWER.md";
+      ".kiro/powers/stripe/mcp.json".source = mkLink "home/agents/kiro/powers/stripe/mcp.json";
+      ".kiro/powers/stripe/steering/stripe-best-practices.md".source = mkLink "home/agents/kiro/powers/stripe/steering/stripe-best-practices.md";
+
+      ".kiro/powers/cloud-architect/POWER.md".source = mkLink "home/agents/kiro/powers/cloud-architect/POWER.md";
+      ".kiro/powers/cloud-architect/mcp.json".source = mkLink "home/agents/kiro/powers/cloud-architect/mcp.json";
+      ".kiro/powers/cloud-architect/steering/cdk-development-guidelines.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/cdk-development-guidelines.md";
+      ".kiro/powers/cloud-architect/steering/cloud-engineer-agent.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/cloud-engineer-agent.md";
+      ".kiro/powers/cloud-architect/steering/testing-strategy.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/testing-strategy.md";
+    };
+
+    # Skills are a dynamic catalog, not a class A/B file: always mirror the
+    # built bundle on every switch (delete+resync), independent of the
+    # merge model above.
+    activation.syncKiroSkills = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      mkdir -p "$HOME/.kiro/skills"
+      ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' ${agentSkillsBundle}/ "$HOME/.kiro/skills/"
+      chmod -R u+rwX "$HOME/.kiro/skills"
+    '';
   };
-
-  # Skills are a dynamic catalog, not a class A/B file: always mirror the
-  # built bundle on every switch (delete+resync), independent of the merge
-  # model above.
-  home.activation.syncKiroSkills = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    mkdir -p "$HOME/.kiro/skills"
-    ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' ${agentSkillsBundle}/ "$HOME/.kiro/skills/"
-    chmod -R u+rwX "$HOME/.kiro/skills"
-  '';
 }

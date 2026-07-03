@@ -72,10 +72,14 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 ```bash
 git status --short --branch
 nix build '.#darwinConfigurations.macbook.system' --no-link   # sudo 不要のビルド検証
+alejandra --check . && statix check . && deadnix --fail .      # CI（.github/workflows/ci.yml）と同じ lint
+gitleaks protect --staged --config .gitleaks.toml              # commit 前の秘密情報チェック
 sudo darwin-rebuild build --flake ~/.config/nix-darwin#macbook  # 適用前のフル検証
 sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook
 agents-diff                                                     # 次の switch での変更点とアプリ所有キーの確認（読み取り専用）
 ```
+
+CI（GitHub Actions, `.github/workflows/ci.yml`）は push/PR ごとに lint（alejandra/statix/deadnix）と gitleaks を実行する。`agent-skills` が private repo のため、CI に認証情報を渡さない設計上の理由でフルの `nix build`/`darwin-rebuild build` は CI に含めていない。これは必ずローカルで実行すること。
 
 ## 変更後の運用
 

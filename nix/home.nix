@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   inputs,
@@ -95,28 +94,28 @@
       ll = "ls -alF";
     };
     initContent = ''
-      if [ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-      elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
-        . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
-      fi
+            if [ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+              . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+            elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
+              . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
+            fi
 
-      set -o vi
-      setopt prompt_subst
+            set -o vi
+            setopt prompt_subst
 
-      autoload -Uz vcs_info
-      precmd() {
-        vcs_info
-        print -Pn "\e]2;%~\a"
-      }
+            autoload -Uz vcs_info
+            precmd() {
+              vcs_info
+              print -Pn "\e]2;%~\a"
+            }
 
-      zstyle ':vcs_info:git:*' formats ' on %b'
-      PROMPT='%F{244}+-%f %F{114}%n%f%F{244}@%f%F{117}%m%f %F{244}in%f %B%F{117}%3~%f%b%F{221}''${vcs_info_msg_0_}%f
-%F{244}+-%f %F{114}%#%f '
+            zstyle ':vcs_info:git:*' formats ' on %b'
+            PROMPT='%F{244}+-%f %F{114}%n%f%F{244}@%f%F{117}%m%f %F{244}in%f %B%F{117}%3~%f%b%F{221}''${vcs_info_msg_0_}%f
+      %F{244}+-%f %F{114}%#%f '
 
-      if command -v kiro-cli >/dev/null 2>&1; then
-        source <(SHELL=/bin/zsh kiro-cli init zsh post | sed '/if \[ -z "''${Q_INLINE_OPT_IN_MIGRATION}" \]; then/,/^fi$/d')
-      fi
+            if command -v kiro-cli >/dev/null 2>&1; then
+              source <(SHELL=/bin/zsh kiro-cli init zsh post | sed '/if \[ -z "''${Q_INLINE_OPT_IN_MIGRATION}" \]; then/,/^fi$/d')
+            fi
     '';
   };
 
