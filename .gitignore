@@ -1,1 +1,16 @@
 .playwright-cli/
+
+# Nix build outputs
+result
+result-*
+
+# home-manager collision backups
+*.hm-backup
+
+# secrets / local env files that must never be committed
+.env
+.env.*
+*.pem
+*.key
+auth.json
+DOTENV_PRIVATE_KEY*
