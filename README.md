@@ -9,18 +9,21 @@ This repository used to be a chezmoi source tree. The target state is now:
 - `home-manager` manages user dotfiles, shell, git, editor, and AI-agent config.
 - Homebrew is limited to GUI casks.
 - `mise` is temporary and will be removed after active projects move to project-local `flake.nix`.
-- Agent skills are managed as an immutable Nix flake input from `k-adachi-01/agent-skills`.
+- Agent skills are consumed from the private `k-adachi-01/agent-skills` repository as a flake input. See [`docs/management-policy.md`](docs/management-policy.md) for the current input type and migration status.
 
 ## Managed Files
 
 | Path | Description |
 |---|---|
 | `flake.nix` | macOS flake entrypoint |
+| `AGENTS.md` | guide for AI agents editing this repository (not the global AI config) |
 | `nix/` | nix-darwin and home-manager modules |
+| `nix/agents/` | Claude Code / Codex / Cursor / Kiro / MCP configuration (see below) |
 | `home/` | source files installed by home-manager |
-| `home/agents/` | Codex rules and Kiro powers installed by home-manager |
+| `home/agents/` | Codex config sources and Kiro powers installed by home-manager |
 | `home/editors/` | editor extension manifests derived from Windows |
 | `windows/` | Windows-only fallback settings kept for handoff |
+| `docs/management-policy.md` | classification policy for Nix-managed / app-managed / local / secret files |
 | `docs/macos-nix-migration.md` | migration runbook |
 
 ## AI Agent Configuration
@@ -28,36 +31,39 @@ This repository used to be a chezmoi source tree. The target state is now:
 `nix/agents.nix` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration.
 `nix/editors.nix` manages VS Code, Cursor, Antigravity, and Antigravity IDE user settings on macOS.
 
+The management mechanism differs per tool today (Nix store symlink for Claude/Cursor, seed-only activation for Codex/Kiro because those apps write back to their own config files). The full classification, rationale, and migration plan toward a unified model are documented in [`docs/management-policy.md`](docs/management-policy.md); do not assume all four tools behave the same way until that document says the migration is complete.
+
 Managed by Nix:
 
 - `~/.agents/AGENTS.md`
-- `~/.agents/skills`
+- `~/.agents/skills` (dynamically populated from the enabled Agent Skills catalog; the exact skill set is not a fixed list in this file)
 - `~/.claude/AGENTS.md`
 - `~/.claude/CLAUDE.md`
-- `~/.claude/skills`
+- `~/.claude/skills` (same dynamic catalog as above)
 - `~/.claude/settings.json`
 - `~/.claude/keybindings.json`
 - `~/.claude/.mcp.json`
 - `~/.claude/statusline.py`
 - `~/.claude/notify-done.sh`
-- `~/.codex/AGENTS.md`
-- `~/.codex/config.toml`
-- `~/.codex/openai.config.toml`
-- `~/.codex/bedrock.config.toml`
-- `~/.codex/keybindings.json`
-- `~/.codex/rules/default.rules`
-- `~/.codex/notify.sh`
-- `~/.codex/skills/vercel-react-best-practices`
-- `~/.codex/skills/wezterm-config-sync`
+- `~/.codex/AGENTS.md` (seed-only: created if missing, not overwritten on later switches; see `docs/management-policy.md`)
+- `~/.codex/config.toml` (seed-only)
+- `~/.codex/openai.config.toml` (seed-only)
+- `~/.codex/bedrock.config.toml` (seed-only)
+- `~/.codex/keybindings.json` (seed-only)
+- `~/.codex/rules/default.rules` (seed-only)
+- `~/.codex/notify.sh` (seed-only)
+- `~/.codex/skills/*` (seed-only, dynamic catalog)
 - `~/.cursor/AGENTS.md`
-- `~/.cursor/skills`
+- `~/.cursor/skills` (dynamic catalog)
 - `~/.cursor/cli-config.json`
 - `~/.cursor/statusline.sh`
-- `~/.kiro/powers.json`
-- `~/.kiro/powers.mcp.json`
-- `~/.kiro/settings/`
-- `~/.kiro/skills/`
-- `~/.kiro/powers/`
+- `~/.kiro/powers.json` (seed-only)
+- `~/.kiro/powers.mcp.json` (seed-only)
+- `~/.kiro/settings/` (seed-only)
+- `~/.kiro/skills/` (seed-only, dynamic catalog)
+- `~/.kiro/powers/` (seed-only)
+
+"Seed-only" means `sudo darwin-rebuild switch` only creates the file if it does not already exist; it does not overwrite files the app has since modified. Run `~/.local/bin/sync-codex-config` or `~/.local/bin/sync-kiro-config` to explicitly re-apply the dotfiles source (a timestamped backup is written first).
 
 Editor settings managed by Nix on macOS:
 
@@ -85,7 +91,7 @@ Not managed by Nix:
 
 Before pruning Codex runtime state, quit Codex first. Start with cache-only files such as `cache/`, `.tmp/`, `tmp/`, and `models_cache.json`; delete history or SQLite databases only when losing local history/state is intentional.
 
-Update shared skills in the local `~/agent-skills` checkout. That repository is private and is consumed by this flake through a local path input.
+Update shared skills in the local `~/agent-skills` checkout. See [`docs/management-policy.md`](docs/management-policy.md) for how that repository is currently wired into this flake and the plan to pin it via GitHub.
 
 ## macOS Bootstrap
 
@@ -167,3 +173,7 @@ The full migration record, risks, and next actions are in:
 ```text
 docs/macos-nix-migration.md
 ```
+
+## For AI Agents
+
+If you are an AI coding agent editing this repository, read [`AGENTS.md`](AGENTS.md) first. It covers the source map, the required `sudo darwin-rebuild switch` command, and the AI agent configuration classification defined in `docs/management-policy.md`.
