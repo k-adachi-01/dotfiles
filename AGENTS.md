@@ -46,8 +46,9 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 やってはいけないこと:
 
 - `~/.codex/*`, `~/.claude/*`, `~/.cursor/*`, `~/.kiro/*` を直接編集して「設定した」つもりにならない。これらは生成先であり、変更は必ず `nix/agents/*` または `home/agents/*` に対して行い、`sudo darwin-rebuild switch` で反映する
-- クラスA移行済みのツールで、宣言外キー（アプリが書いた実行時状態）を repo 側の attrset へ無条件にコピーしない。昇格は `agents-diff` で確認してから明示的に行う
-- Codex/Kiro が未移行の間は、`home/agents/codex/*` や `nix/agents.nix` の Kiro 生成物を編集しても `sync-codex-config`/`sync-kiro-config` を明示実行しない限り `~/.codex/*` `~/.kiro/*` へ反映されない
+  - 例外: Codex のクラスB ファイル（`~/.codex/AGENTS.md` 等）と Claude/Cursor 移行後のクラスB ファイルは repo への symlink なので、`home/agents/*` を編集すれば switch なしで即反映される
+- クラスA移行済みのツール（Codex の `config.toml` 等）で、宣言外キー（アプリが書いた実行時状態）を repo 側の attrset へ無条件にコピーしない。昇格は `agents-diff`（PR8で追加予定。それまでは live ファイルを直接確認する）で確認してから明示的に行う
+- Kiro はまだ未移行（seed-only）なので、`nix/agents/kiro.nix` や `home/agents/kiro/*` を編集しても `sync-kiro-config` を明示実行しない限り `~/.kiro/*` へ反映されない。Codex は移行済みなので `sudo darwin-rebuild switch` だけで自動的に merge/link される
 
 ## Agent Skills
 

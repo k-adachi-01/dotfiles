@@ -28,10 +28,10 @@ This repository used to be a chezmoi source tree. The target state is now:
 
 ## AI Agent Configuration
 
-`nix/agents.nix` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration.
+`nix/agents/` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration (one file per tool, plus `lib.nix` for the merge helper and `mcp.nix` for shared definitions).
 `nix/editors.nix` manages VS Code, Cursor, Antigravity, and Antigravity IDE user settings on macOS.
 
-The management mechanism differs per tool today (Nix store symlink for Claude/Cursor, seed-only activation for Codex/Kiro because those apps write back to their own config files). The full classification, rationale, and migration plan toward a unified model are documented in [`docs/management-policy.md`](docs/management-policy.md); do not assume all four tools behave the same way until that document says the migration is complete.
+The management mechanism differs per tool today (Nix store symlink for Claude/Cursor, seed-only activation for Kiro, merge + out-of-store symlink for Codex, because these apps write back to their own config files in different ways). The full classification, rationale, and migration plan toward a unified model are documented in [`docs/management-policy.md`](docs/management-policy.md); do not assume all four tools behave the same way until that document says the migration is complete.
 
 Managed by Nix:
 
@@ -45,14 +45,14 @@ Managed by Nix:
 - `~/.claude/.mcp.json`
 - `~/.claude/statusline.py`
 - `~/.claude/notify-done.sh`
-- `~/.codex/AGENTS.md` (seed-only: created if missing, not overwritten on later switches; see `docs/management-policy.md`)
-- `~/.codex/config.toml` (seed-only)
-- `~/.codex/openai.config.toml` (seed-only)
-- `~/.codex/bedrock.config.toml` (seed-only)
-- `~/.codex/keybindings.json` (seed-only)
-- `~/.codex/rules/default.rules` (seed-only)
-- `~/.codex/notify.sh` (seed-only)
-- `~/.codex/skills/*` (seed-only, dynamic catalog)
+- `~/.codex/AGENTS.md` (out-of-store symlink to `home/ai/AGENTS.md`: edit the repo file, no switch needed)
+- `~/.codex/config.toml` (deep-merged on every switch: declared keys in `home/agents/codex/config.toml` always win, keys Codex wrote itself like `[projects.*]` are preserved; see `docs/management-policy.md`)
+- `~/.codex/openai.config.toml` (out-of-store symlink)
+- `~/.codex/bedrock.config.toml` (out-of-store symlink)
+- `~/.codex/keybindings.json` (out-of-store symlink)
+- `~/.codex/rules/default.rules` (out-of-store symlink)
+- `~/.codex/notify.sh` (out-of-store symlink)
+- `~/.codex/skills/*` (always re-synced on switch, dynamic catalog)
 - `~/.cursor/AGENTS.md`
 - `~/.cursor/skills` (dynamic catalog)
 - `~/.cursor/cli-config.json`
@@ -63,7 +63,7 @@ Managed by Nix:
 - `~/.kiro/skills/` (seed-only, dynamic catalog)
 - `~/.kiro/powers/` (seed-only)
 
-"Seed-only" means `sudo darwin-rebuild switch` only creates the file if it does not already exist; it does not overwrite files the app has since modified. Run `~/.local/bin/sync-codex-config` or `~/.local/bin/sync-kiro-config` to explicitly re-apply the dotfiles source (a timestamped backup is written first).
+"Seed-only" means `sudo darwin-rebuild switch` only creates the file if it does not already exist; it does not overwrite files the app has since modified. Run `~/.local/bin/sync-kiro-config` to explicitly re-apply the Kiro dotfiles source (a timestamped backup is written first). Codex no longer needs an equivalent script: `~/.codex/config.toml` is merged automatically on every switch, and the other `~/.codex/*` entries above are symlinks that reflect repo edits immediately.
 
 Editor settings managed by Nix on macOS:
 

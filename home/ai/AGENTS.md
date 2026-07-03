@@ -107,18 +107,18 @@ pnpm = "latest"
 
 ### Codex / Kiro 設定運用
 
-- Codex durable config の seed は `home/agents/codex/*` に置く。`sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` は存在しない `~/.codex/*` だけを初期作成し、既存ファイルは上書きしない
-- Kiro durable config の seed は `nix/agents.nix` と `home/agents/kiro/powers/` に置く。`sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` は存在しない `~/.kiro/*` だけを初期作成し、既存ファイル/ディレクトリは上書きしない
-- Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は通常運用ではアプリ側変更を保持し、自動上書きしない
-- dotfiles seed を明示的に反映したい場合だけ `sync-codex-config` または `sync-kiro-config` を実行する。これらは上書き前に `~/.codex/backups/` または `~/.kiro/backups/` へバックアップを作る
+- Codex は統一管理モデル（`docs/management-policy.md`）のクラスA/Bへ移行済み。`home/agents/codex/config.toml` は `nix/agents/codex.nix` 経由で `~/.codex/config.toml` へ **switch のたびに deep-merge** される（宣言キーは常に上書き、`[projects.*]` 等アプリが書いた宣言外キーは保持）。`~/.codex/AGENTS.md`・`keybindings.json`・`openai.config.toml`・`bedrock.config.toml`・`rules/default.rules`・`notify.sh` は `home/agents/codex/*` への out-of-store symlink（repo を編集すれば switch 不要で即反映）
+- Kiro はまだ seed-only（`nix/agents/kiro.nix` と `home/agents/kiro/powers/`）。`sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` は存在しない `~/.kiro/*` だけを初期作成し、既存ファイル/ディレクトリは上書きしない（Kiro の merge 移行は未着手、`docs/management-policy.md` の移行状況表を参照）
+- Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は switch のたびに常に再同期される動的カタログ（seed-only ではない）
+- Kiro の dotfiles 宣言を明示的に反映したい場合だけ `sync-kiro-config` を実行する。上書き前に `~/.kiro/backups/` へバックアップを作る（Codex にはこのスクリプトはない。switch のたびに自動で merge されるため不要）
 - Kiro CLI 本体のバージョン・取得元は `nix/packages.nix` で管理する
 - Kiro shell integration / alias は `nix/home.nix` で管理する
-- Kiro v3 permissions の seed は `home/agents/codex/default.rules` を source of truth とし、`nix/agents.nix` の生成処理で作る
+- Kiro v3 permissions の seed は `home/agents/codex/default.rules` を source of truth とし、`nix/agents/mcp.nix` の生成処理で作る
 - `home/agents/codex/default.rules` を変更し、既存の `~/.kiro/settings/permissions.yaml` に反映したい場合は `sync-kiro-config` を実行してから内容を確認する
 - Kiro powers の seed は `home/agents/kiro/powers/` で管理し、共通 skills とは別責務として維持する。`~/.kiro/powers/` 自体は Kiro runtime が `registries/` などを作成できる通常ディレクトリにする
 - `~/.kiro/sessions/`, `~/.kiro/logs/`, `~/.kiro/.cli_bash_history`, `~/.kiro/settings/feed_state.json`, `~/.kiro/settings/survey_state.json`, `~/.codex/sessions/`, `~/.codex/cache/`, `~/.codex/*.sqlite*` は runtime state として Nix/Git 管理しない
 - `kiro-cli settings`, `kiro-cli mcp add`, `kiro-cli theme` で試した変更は永続化せず、必要な内容を Nix source に移してから switch する
-- `home/agents/codex/config.toml` は「最小 seed」を維持する。次のものは **コミットしない**（アプリが実行時に生成するランタイム状態であり、seed に混ぜると個人のプロジェクト構成やローカルパスが漏れる）:
+- `home/agents/codex/config.toml` は「switch のたびに live ファイルへ merge される管理キーの宣言」を最小に維持する。次のものは **コミットしない**（アプリが実行時に生成するランタイム状態であり、宣言に混ぜると個人のプロジェクト構成やローカルパスが漏れる。混ぜても実害はない——宣言外キーとしてそのまま live 側に残るだけだが、public repo に個人情報を置くこと自体が問題）:
   - `[projects.*]`（trust_level の記録。プロジェクトディレクトリ名を通じて業務内容や第三者名が漏れる可能性がある）
   - `[marketplaces.*]`（`last_updated` タイムスタンプと `.tmp/`/`.cache/` 配下のローカル絶対パス）
   - `[mcp_servers.node_repl]` とその `env`（Codex.app のビルド固有パス・バージョン文字列）

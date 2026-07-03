@@ -1,0 +1,94 @@
+# Entry point for AI agent config. Each tool has its own file; shared
+# infrastructure lives in lib.nix (class A merge helper) and mcp.nix
+# (shared MCP/power definitions). See docs/management-policy.md for the
+# class A/B/C model this is built around and AGENTS.md for the source map.
+{...}: {
+  imports = [
+    ./codex.nix
+    ./claude.nix
+    ./cursor.nix
+    ./kiro.nix
+  ];
+
+  programs.agent-skills = {
+    enable = true;
+    sources.personal = {
+      input = "agent-skills";
+      filter.maxDepth = 1;
+    };
+    skills.enableAll = ["personal"];
+    targets.agents.enable = true;
+    targets.claude.enable = true;
+    targets.codex.enable = false;
+    targets.cursor.enable = true;
+    targets.kiro = {
+      dest = "$HOME/.kiro/skills";
+      enable = false;
+      systems = [];
+    };
+  };
+
+  home.file = {
+    ".agents/AGENTS.md".source = ../../home/ai/AGENTS.md;
+
+    ".local/bin/skills-push" = {
+      executable = true;
+      text = ''
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        skills_dir="$HOME/agent-skills"
+        dotfiles_dir="$HOME/.config/nix-darwin"
+
+        if [ ! -d "$skills_dir/.git" ]; then
+          echo "skills-push: $skills_dir is not a git checkout" >&2
+          exit 1
+        fi
+
+        echo "==> git status in $skills_dir"
+        git -C "$skills_dir" status --short --branch
+
+        if [ -n "$(git -C "$skills_dir" status --porcelain)" ]; then
+          git -C "$skills_dir" add -A
+          if [ $# -gt 0 ]; then
+            git -C "$skills_dir" commit -m "$*"
+          else
+            git -C "$skills_dir" commit
+          fi
+        else
+          echo "skills-push: no local changes to commit"
+        fi
+
+        echo "==> pushing $skills_dir"
+        git -C "$skills_dir" push origin HEAD
+
+        echo "==> updating agent-skills flake input"
+        nix flake update agent-skills --flake "$dotfiles_dir"
+
+        echo "==> sudo darwin-rebuild switch"
+        sudo darwin-rebuild switch --flake "$dotfiles_dir#macbook"
+
+        echo "==> verifying activated skill paths"
+        for target in "$HOME/.claude/skills" "$HOME/.cursor/skills" "$HOME/.agents/skills"; do
+          if [ -e "$target" ]; then
+            echo "$target -> $(readlink -f "$target" 2>/dev/null || echo "(not a symlink)")"
+          fi
+        done
+        for target in "$HOME/.codex/skills" "$HOME/.kiro/skills"; do
+          if [ -d "$target" ]; then
+            echo "$target: $(find "$target" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ') skill dirs present"
+          fi
+        done
+
+        echo "==> committing updated flake.lock in $dotfiles_dir"
+        if ! git -C "$dotfiles_dir" diff --quiet -- flake.lock; then
+          git -C "$dotfiles_dir" add flake.lock
+          git -C "$dotfiles_dir" commit -m "chore: update agent-skills flake input"
+          git -C "$dotfiles_dir" push origin HEAD
+        else
+          echo "skills-push: flake.lock unchanged"
+        fi
+      '';
+    };
+  };
+}

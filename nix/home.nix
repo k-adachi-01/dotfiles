@@ -9,7 +9,7 @@
   imports = [
     inputs.agent-skills-nix.homeManagerModules.default
     inputs.nixvim.homeModules.nixvim
-    ./agents.nix
+    ./agents
     ./editors.nix
     ./nixvim.nix
   ];
