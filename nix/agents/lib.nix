@@ -35,7 +35,7 @@
 
       import tomli_w
       import yaml
-      import json5
+      import pyjson5
 
 
       def load_toml(path):
@@ -55,7 +55,7 @@
 
       def load_jsonc(path):
           with open(path, encoding="utf-8") as f:
-              return json5.load(f)
+              return pyjson5.load(f)
 
 
       def dump_json(data, path):
