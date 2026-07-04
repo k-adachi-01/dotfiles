@@ -100,6 +100,7 @@ Last updated: 2026-07-04
 
 ## 次の実装 PR
 
-1. `nix-mig/2.2-zed-settings` — Zed `settings.json` class A merge（JSONC 読み取り対応）+ `keymap.json` class B link
-2. `nix-mig/3.1-keyboard-defaults` — 入力ソース等（`KeyRepeat`/`InitialKeyRepeat` は既に `darwin.nix` と live 一致済み）
-3. `nix-mig/5.2-screenshot-copy` — launchd + config を dotfiles へ取り込み（別 repo パス要確認）
+1. ~~`nix-mig/2.2-zed-settings`~~ — 完了（PR #3）
+2. ~~`nix-mig/3.1-keyboard-defaults`~~ — KeyRepeat 既存。入力ソースは IME リスクで未宣言
+3. `nix-mig/3.2-trackpad-defaults` — trackpad defaults（進行中）
+4. `nix-mig/5.2-screenshot-copy` — launchd + config を dotfiles へ取り込み

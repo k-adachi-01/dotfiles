@@ -532,8 +532,8 @@ test ! -f ~/.mise.toml && echo 'OK'
 | 2.2 Zed settings | 完了 | PR 予定 | class A merge + keymap mkLink |
 | 2.3 OrbStack | 未着手 | | |
 | 2.4 スキップ固定 | 完了 | 2026-07-04 | 監査に記載 |
-| 3.1 keyboard | 未着手 | | |
-| 3.2 trackpad | 未着手 | | |
+| 3.1 keyboard | 完了 | 2026-07-04 | KeyRepeat 済。入力ソースは IME リスクのため未宣言。capitalization/period を追加 |
+| 3.2 trackpad | 進行中 | PR 予定 | live 値を `system.defaults.trackpad` に反映 |
 | 3.3 Mission Control | 未着手 | | |
 | 3.4 Finder/Dock 拡張 | 未着手 | | |
 | 3.5 screenshot/sleep | 未着手 | | |
