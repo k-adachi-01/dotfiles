@@ -62,11 +62,14 @@
       dock = {
         autohide = true;
         show-recents = false;
+        tilesize = 38;
+        wvous-br-corner = 14;
       };
       finder = {
         AppleShowAllExtensions = true;
         FXPreferredViewStyle = "clmv";
         ShowPathbar = true;
+        NewWindowTarget = "Home";
       };
       NSGlobalDomain = {
         AppleShowAllExtensions = true;
@@ -98,6 +101,21 @@
         TrackpadTwoFingerDoubleTapGesture = true;
         TrackpadTwoFingerFromRightEdgeSwipeGesture = 3;
       };
+      WindowManager = {
+        AppWindowGroupingBehavior = true;
+        AutoHide = false;
+        EnableTiledWindowMargins = false;
+        HideDesktop = true;
+        StageManagerHideWidgets = false;
+        StandardHideWidgets = false;
+      };
+      screencapture = {
+        location = "~/Pictures/Screenshot";
+        target = "file";
+      };
     };
   };
+
+  # AC/battery profiles differ (pmset -g custom); only declare the stable toggle.
+  power.sleep.allowSleepByPowerButton = true;
 }

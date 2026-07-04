@@ -103,5 +103,6 @@ Last updated: 2026-07-04
 1. ~~`nix-mig/2.2-zed-settings`~~ — 完了（PR #3）
 2. ~~`nix-mig/3.1-keyboard-defaults`~~ — KeyRepeat 既存。入力ソースは IME リスクで未宣言
 3. ~~`nix-mig/3.2-trackpad-defaults`~~ — 完了（PR #4）
-4. `nix-mig/5.2-screenshot-copy` — launchd + script（進行中）
-5. `nix-mig/3.3-dock-mission-control` — Dock / Mission Control defaults
+4. ~~`nix-mig/5.2-screenshot-copy`~~ — 完了（PR #5）
+5. ~~`nix-mig/3.3-3.6-macos-defaults`~~ — フェーズ 3 完了（進行中 PR）
+6. `nix-mig/4.2-gui-skip-doc` — GUI スキップ一覧の文書化
