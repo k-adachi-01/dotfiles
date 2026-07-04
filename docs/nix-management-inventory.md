@@ -74,6 +74,27 @@ This section is the actual backlog for “manage the whole Mac with Nix.”
 
 The list is grouped by layer so it is easier to decide whether the next change belongs in `nix/darwin.nix`, `nix/home.nix`, `nix/apps.nix`, `nix/editors.nix`, or a new module.
 
+### Evaluation Criteria
+
+Use these criteria to decide whether a candidate should actually be moved into Nix:
+
+- Effect: how much reproducibility or day-to-day reliability improves after managing it.
+- Blast radius: how much can break if the declared value is wrong.
+- App-write risk: whether the application writes the same file at runtime.
+- Secret risk: whether credentials, machine identifiers, history, or local project names can leak into the public repo.
+- Maintenance cost: whether the setting is stable enough to keep declarative without frequent churn.
+
+Priority summary:
+
+| Area | Effect | Main risk | Recommended priority |
+|---|---|---|---|
+| Shell / dotfile boundaries | High | accidentally managing generated state | High |
+| Developer tool config split | High | secrets and runtime state mixed with config | High |
+| macOS system settings | Medium to high | incorrect defaults can affect daily input/window behavior | Medium-high |
+| GUI app settings | Low to medium | app overwrites or stores private state | Selective only |
+| Launch agents | Low to medium | fighting vendor-managed helper jobs | Low |
+| Project-local manifests under `~/src` | Variable | effort spread across low-use test repos | Low unless the repo is active |
+
 ### 1. macOS System Settings
 
 `nix/darwin.nix` currently covers only:
@@ -83,6 +104,24 @@ The list is grouped by layer so it is easier to decide whether the next change b
 - `NSGlobalDomain` extension display plus keyboard repeat
 
 Everything else in macOS defaults is still open.
+
+Effect:
+
+- Medium to high. These settings affect a new-machine restore more than most app preferences.
+- Highest effect is in input behavior, keyboard repeat, trackpad, Mission Control, lock/sleep behavior, and Finder/Dock defaults.
+- Low effect settings are cosmetic or frequently changed through System Settings UI.
+
+Risks:
+
+- Medium blast radius. A bad input source, modifier key, trackpad, or Mission Control setting can make the machine unpleasant to use immediately after switch.
+- Some defaults are undocumented or change across macOS releases.
+- Some values are better represented by nix-darwin options, while others require `defaults` writes. Prefer typed nix-darwin options where available.
+
+Recommended handling:
+
+- Add only settings that are stable personal preferences or required for daily work.
+- Start with keyboard, trackpad, Mission Control, lock/sleep, Finder/Dock, and screenshot defaults.
+- Avoid declaring large Apple plist files wholesale. Declare individual defaults.
 
 #### High-value macOS settings that are not yet declared
 
@@ -141,9 +180,44 @@ Observed launch agent files:
 
 These are not good candidates for direct hand editing, but they are valid Nix targets if you decide to standardize startup jobs and helper daemons.
 
+Effect:
+
+- Low to medium. Most observed jobs are vendor-managed updaters or helpers and do not improve reproducibility much when copied into Nix.
+- Higher effect only applies to user-authored jobs, custom background scripts, or jobs that must be guaranteed on every machine.
+
+Risks:
+
+- Medium. Vendor launch agents may be updated by the app installer. Re-declaring them can fight the application or pin stale helper paths.
+- Some jobs contain app-version-specific paths.
+
+Recommended handling:
+
+- Do not Nix-manage observed vendor jobs by default.
+- Use home-manager `launchd.agents` only for user-owned jobs that are intentionally part of the environment.
+
 ### 3. GUI App Configuration Surfaces
 
 The repo installs GUI apps with Homebrew casks, but most app-specific settings are still outside Nix.
+
+Effect:
+
+- Low to medium. App settings can improve a new-machine restore, but many GUI apps already sync through their own account or write state continuously.
+- Highest effect candidates are plain JSON/TOML/YAML config files with stable schemas, such as editor-like tools.
+
+Risks:
+
+- High app-write risk. Many apps rewrite preferences on quit, version upgrade, login, or UI changes.
+- High secret risk for apps that include account state, workspace paths, telemetry IDs, tokens, or local project names.
+- Symlinking app-writable settings can break saves or cause the app to write runtime state directly into the repo.
+
+Recommended handling:
+
+- Treat this as selective work, not a bulk migration.
+- Use the existing class A merge model for app-writable JSON/TOML/YAML only when the schema is stable and secrets can be excluded.
+- Use class B symlinks only for files the app reads but does not write.
+- Leave account-backed, binary, SQLite, cache-heavy, or plist-heavy app state unmanaged.
+- Good first candidates: `~/.config/zed/settings.json`, maybe selected Raycast config if it is plain non-secret JSON.
+- Poor first candidates: Chrome, Slack, Bitwarden, Obsidian vault internals, Docker auth-bearing files, and Codex computer-use runtime config.
 
 #### Apps that already have visible local config but are not Nix-managed yet
 
@@ -199,6 +273,24 @@ Most shell basics are already in `nix/home.nix`, but these surfaces are still on
 
 Some of these are inherently runtime state and should stay out of Git, but the distinction between “configured by Nix” and “generated by the tool” should be kept explicit.
 
+Effect:
+
+- High. Shell and dotfile boundaries affect every terminal session and are easy to verify after switch.
+- Cleaning this area reduces hidden dependency on ad hoc PATH entries and tool installer side effects.
+
+Risks:
+
+- Low to medium if changes are scoped to declarations.
+- High if generated history, caches, or tool-managed directories are accidentally made declarative.
+
+Recommended handling:
+
+- Keep history and generated completion caches unmanaged: `~/.zsh_history`, `~/.zsh_sessions`, `~/.bash_history`, `~/.zcompdump*`.
+- Keep Nix profile implementation paths unmanaged: `~/.nix-profile`, `~/.nix-defexpr`.
+- Split `~/.local/bin` into repo-owned scripts versus tool-installed binaries. Repo-owned scripts should be generated by home-manager; tool-installed binaries should stay tool-managed or move to `nix/packages.nix`.
+- Remove or gate ad hoc shell integration from `.zprofile` when an app can provide a stable Nix/home-manager equivalent.
+- Keep `~/.cargo`, `~/.rustup`, `~/.npm`, and `~/.cache` unmanaged as runtime state unless a specific config file inside them is proven safe.
+
 ### 5. Developer Tool State That Could Be Split Further
 
 These directories were observed and are at least partially configurable, even though they are not declared as Nix-managed targets today:
@@ -221,9 +313,55 @@ Some of these are mostly cache or runtime data. Some may have a separable config
 - A generated config in `nix/`
 - Or a runtime directory that stays outside Nix
 
+Effect:
+
+- High when the tool is part of daily development or agent workflows.
+- Medium when the directory only stores cache, logs, generated indexes, or one-off experiment state.
+- Low for tools that are only used inside throwaway validation projects.
+
+Risks:
+
+- High secret risk for Docker, cloud tooling, agent tools, browser automation profiles, and any directory containing tokens or account identifiers.
+- High churn risk for tools that store logs, browser profiles, embeddings, model caches, SQLite databases, or generated indexes beside config files.
+- Medium app-write risk for tools that rewrite config files on every launch.
+
+Recommended handling by path:
+
+| Path | Effect | Risk | Recommendation |
+|---|---|---|---|
+| `~/.config/zed/settings.json` | Medium | Medium app-write risk | Candidate for class A merge after inspecting keys |
+| `~/.browser-use-config` | Medium | High profile/cache risk | Split config from browser profiles; do not manage profiles |
+| `~/.agent-browser` | Medium | High cache/profile risk | Inspect first; likely manage only stable config, if any |
+| `~/.orbstack/config` | Medium-high | Medium, affects containers | Candidate if plain config; keep VM state unmanaged |
+| `~/.docker` | Medium | High secret risk | Do not manage whole directory; avoid `config.json` unless auth is excluded |
+| `~/.cdk` | Low-medium | Cache/account context risk | Usually leave unmanaged; project CDK config belongs in projects |
+| `~/.blocks` | Unknown | Unknown | Inspect before deciding; likely project/runtime state |
+| `~/.iam-policy-autopilot` | Unknown | Possible account/local state | Inspect before deciding |
+| `~/.semantic_search` | Low | Generated model/index state | Leave unmanaged unless a stable config file exists |
+| `~/.vscode` / `~/.vscode-shared` | Low | Extension/runtime churn | Settings already handled elsewhere; leave extension cache unmanaged |
+| `~/.local/share/nvim/mason` | Low-medium | Generated tool install state | Prefer Nix-managed tools over Mason-managed state |
+
 ### 6. Project-Local Environment Manifests Still Outside This Repo
 
 These are not dotfiles in the narrow sense, but they are still part of the “everything on the machine should be reproducible” goal.
+
+Effect:
+
+- Variable. High for repos used daily, published artifacts, deployment workflows, and anything with CI parity requirements.
+- Low for validation, throwaway experiments, copied samples, and old prototypes under `~/src`.
+
+Risks:
+
+- Low blast radius if each project gets its own flake and no global dotfiles change is required.
+- Medium maintenance cost if many low-use repos get flakes that are never exercised.
+- Higher risk for AWS/CDK and mixed Python/Node repos because devShells often need extra native dependencies and cloud-tool assumptions.
+
+Recommended handling:
+
+- Do not treat all of `~/src` as equal.
+- Migrate active repos first: writing/publishing repos, talks, active app repos, CDK repos, and anything repeatedly opened by agents.
+- Leave validation-heavy or low-use repos as-is until they become active.
+- Keep project flakes in the project repos, not in this dotfiles repo.
 
 #### `mise` manifests still present
 
@@ -325,15 +463,15 @@ These are preserved for fallback, but they are not part of the macOS Nix target:
 
 If the goal is “everything that can be managed should be managed,” the remaining work should be tackled in this order:
 
-1. Finish the macOS defaults inventory in `nix/darwin.nix`.
-2. Add launchd jobs if any helper needs to survive login sessions.
-3. Decide whether each app config directory is worth declarative control or should remain runtime state.
-4. Migrate the biggest remaining local tool configs into `home/`.
-5. Push project-local `flake.nix` files into the active repos listed above.
+1. Classify shell and dotfile gaps into managed config versus runtime state.
+2. Split developer tool directories into stable config, secrets, cache, and generated state.
+3. Add high-effect macOS defaults to `nix/darwin.nix`, starting with input and window-management behavior.
+4. Selectively evaluate app settings that have stable plain-text config files.
+5. Add launchd jobs only for user-owned background tasks.
+6. Add project-local flakes only to active repos where reproducibility materially improves daily work.
 
 The main constraint is not technical ability. It is classification discipline:
 
 - declarative and stable -> Nix
 - app-managed but structurally safe -> merge or generated config
 - secret or ephemeral -> leave out
-
