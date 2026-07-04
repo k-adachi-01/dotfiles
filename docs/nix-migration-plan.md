@@ -88,6 +88,16 @@ git status --short --branch
 - macOS defaults は **ドメイン単位**（keyboard / trackpad / Mission Control など）で分割
 - GUI アプリ設定は **1 アプリ 1 PR** が上限
 
+### 2.5 `darwin-rebuild switch` 運用（2026-07-04 更新）
+
+| 項目 | 方針 |
+|---|---|
+| 実行場所 | 初回・権限まわりで詰まるときは **Terminal.app** から実行（Cursor 統合ターミナルは App Management ダイアログが届かないことがある） |
+| sudo | この Mac では必須: `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` |
+| App Management 再プロンプト | `90943e8` で `/Applications/Nix Apps` の `.app` を activation 前後に削除。GUI アプリは **Homebrew cask のみ**（Zed 含む）。`.app` バンドル付き Nix パッケージは入れない |
+| merge 失敗 | `merge-agent-config` は全 class A で共通。`pyjson5` の import 名ミス（`json5` ではない）で全 merge が止まる → `0c4701b` 参照 |
+| 検証 | switch 成功後に `agents-diff` と、当該ステップの専用チェック |
+
 ---
 
 ## 3. フェーズ概要
@@ -529,19 +539,19 @@ test ! -f ~/.mise.toml && echo 'OK'
 | 1.3 ランタイム除外 doc | 完了 | 2026-07-04 | `nix/` に history 等なし |
 | 1.4 mise 位置づけ | 完了 | 2026-07-04 | フェーズ6まで維持 |
 | 2.1 開発ツール監査 | 完了 | 2026-07-04 | 監査表あり |
-| 2.2 Zed settings | 完了 | PR 予定 | class A merge + keymap mkLink |
+| 2.2 Zed settings | 完了 | PR #3, `90943e8` | settings class A merge + keymap mkLink。GUI は Homebrew `zed` cask |
 | 2.3 OrbStack | 未着手 | | |
 | 2.4 スキップ固定 | 完了 | 2026-07-04 | 監査に記載 |
 | 3.1 keyboard | 完了 | 2026-07-04 | KeyRepeat 済。入力ソースは IME リスクのため未宣言。capitalization/period を追加 |
-| 3.2 trackpad | 進行中 | PR 予定 | live 値を `system.defaults.trackpad` に反映 |
+| 3.2 trackpad | 完了 | PR #4, switch 済 | live 値を `system.defaults.trackpad` に反映 |
 | 3.3 Mission Control | 未着手 | | |
 | 3.4 Finder/Dock 拡張 | 未着手 | | |
 | 3.5 screenshot/sleep | 未着手 | | |
 | 3.6 低優先 defaults | 未着手 | | |
 | 4.1 Raycast | 未着手 | | |
 | 4.2 GUI スキップ固定 | 未着手 | | |
-| 5.1 LaunchAgents 分類 | 未着手 | | |
-| 5.2 ユーザー job | 未着手 | | |
+| 5.1 LaunchAgents 分類 | 完了 | 2026-07-04 | 監査済み。vendor は触らない |
+| 5.2 ユーザー job | 進行中 | PR 予定 | `screenshot-copy` を home-manager `launchd.agents` へ |
 | 6.x project flakes | 未着手 | | |
 | 6.3 mise 削除 | 未着手 | | |
 
@@ -563,10 +573,13 @@ test ! -f ~/.mise.toml && echo 'OK'
 
 ## 13. 次のアクション（推奨着手順）
 
-inventory の Practical Next Step Map と同じ順序で、**最初の 3 ステップ**は次。
+**完了済み（2026-07-04）**: フェーズ 0–2、3.1–3.2、`darwin-rebuild switch` 運用安定化（`90943e8`）。
 
-1. **0.1 + 0.2** — ベースラインと回帰（変更なし、半日）
-2. **1.1** — `~/.local/bin` 棚卸し（read-only → 必要なら小 PR）
-3. **2.1** — 開発ツール監査メモ（read-only、Zed 実装の Go/No-Go 決定）
+**これから**:
 
-macOS defaults（フェーズ 3）は **キーボード / trackpad から**。入力が壊れるリスクが最も高いため、1 ドメイン適用 → 即体感確認 → 問題なければ次、を徹底する。
+1. **5.2** — `screenshot-copy` launchd を dotfiles へ取り込み（進行中）
+2. **3.3 + 3.4** — Mission Control ジェスチャー + Dock `tilesize` 等
+3. **3.5** — スクリーンショット保存先 / スリープ（必要になったら）
+4. **6.x** — 活発な project の flake 化（dotfiles 外）
+
+macOS defaults は引き続き **1 ドメイン = 1 PR**、switch 後すぐ体感確認。

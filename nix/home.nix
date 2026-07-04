@@ -11,6 +11,7 @@
     ./agents
     ./editors.nix
     ./editors-zed.nix
+    ./launchd.nix
     ./nixvim.nix
   ];
 

@@ -102,5 +102,6 @@ Last updated: 2026-07-04
 
 1. ~~`nix-mig/2.2-zed-settings`~~ — 完了（PR #3）
 2. ~~`nix-mig/3.1-keyboard-defaults`~~ — KeyRepeat 既存。入力ソースは IME リスクで未宣言
-3. `nix-mig/3.2-trackpad-defaults` — trackpad defaults（進行中）
-4. `nix-mig/5.2-screenshot-copy` — launchd + config を dotfiles へ取り込み
+3. ~~`nix-mig/3.2-trackpad-defaults`~~ — 完了（PR #4）
+4. `nix-mig/5.2-screenshot-copy` — launchd + script（進行中）
+5. `nix-mig/3.3-dock-mission-control` — Dock / Mission Control defaults
