@@ -18,7 +18,11 @@
   # surviving a merge.
   mergeConfigScript =
     pkgs.writers.writePython3 "merge-agent-config" {
-      libraries = [pkgs.python3Packages.tomli-w pkgs.python3Packages.pyyaml];
+      libraries = [
+        pkgs.python3Packages.tomli-w
+        pkgs.python3Packages.pyyaml
+        pkgs.python3Packages.pyjson5
+      ];
       flakeIgnore = ["E501"];
     } ''
       import argparse
@@ -31,6 +35,7 @@
 
       import tomli_w
       import yaml
+      import json5
 
 
       def load_toml(path):
@@ -46,6 +51,11 @@
       def load_json(path):
           with open(path, encoding="utf-8") as f:
               return json.load(f)
+
+
+      def load_jsonc(path):
+          with open(path, encoding="utf-8") as f:
+              return json5.load(f)
 
 
       def dump_json(data, path):
@@ -64,8 +74,18 @@
               yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)
 
 
-      LOADERS = {"toml": load_toml, "json": load_json, "yaml": load_yaml}
-      DUMPERS = {"toml": dump_toml, "json": dump_json, "yaml": dump_yaml}
+      LOADERS = {
+          "toml": load_toml,
+          "json": load_json,
+          "jsonc": load_jsonc,
+          "yaml": load_yaml,
+      }
+      DUMPERS = {
+          "toml": dump_toml,
+          "json": dump_json,
+          "jsonc": dump_json,
+          "yaml": dump_yaml,
+      }
 
 
       def deep_merge(base, overlay):
@@ -197,11 +217,11 @@
   formatsFor = format:
     if format == "toml"
     then pkgs.formats.toml {}
-    else if format == "json"
+    else if format == "json" || format == "jsonc"
     then pkgs.formats.json {}
     else if format == "yaml"
     then pkgs.formats.yaml {}
-    else throw "nix/agents/lib.nix: unsupported format '${format}' (expected toml, json, or yaml)";
+    else throw "nix/agents/lib.nix: unsupported format '${format}' (expected toml, json, jsonc, or yaml)";
 
   # Shared by mkMergeActivation and mkDiffCommand so both always agree on
   # what "the declared side" means for a given class A entry.
@@ -230,7 +250,7 @@ in {
   # mkMergeActivation renders a self-contained bash snippet for use inside a
   # `home.activation.<name> = lib.hm.dag.entryAfter [...] (...)` entry.
   #
-  # - format: "toml" | "json" | "yaml"
+  # - format: "toml" | "json" | "jsonc" | "yaml"
   # - value / declaredFile: see resolveDeclaredFile above.
   # - dest: absolute live path, e.g. "$HOME/.codex/config.toml"
   # - backupDir: absolute directory to copy the pre-merge file into

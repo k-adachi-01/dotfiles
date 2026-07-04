@@ -10,6 +10,7 @@
     inputs.nixvim.homeModules.nixvim
     ./agents
     ./editors.nix
+    ./editors-zed.nix
     ./nixvim.nix
   ];
 

@@ -67,6 +67,8 @@ From the current repository state, this includes:
 - `~/Library/Application Support/Cursor/User/settings.json`
 - `~/Library/Application Support/Antigravity/User/settings.json`
 - `~/Library/Application Support/Antigravity IDE/User/settings.json`
+- `~/.config/zed/settings.json` (class A merge, `nix/editors-zed.nix`)
+- `~/.config/zed/keymap.json` (class B out-of-store link)
 
 These paths are not candidates for further Nix work unless the management model itself changes.
 
