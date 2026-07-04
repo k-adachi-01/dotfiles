@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   username,
   system,
@@ -37,6 +38,23 @@
       vim
     ])
     ++ import ./packages.nix {inherit pkgs;};
+
+  # GUI apps are Homebrew casks. Strip legacy /Applications/Nix Apps bundles
+  # before ensureAppManagement runs so darwin-rebuild switch does not reset
+  # App Management TCC on every activation (nix-darwin issue #1294).
+  system.checks.text = lib.mkBefore ''
+    if [ -d "/Applications/Nix Apps" ]; then
+      find "/Applications/Nix Apps" -mindepth 1 -maxdepth 1 -name '*.app' -exec rm -rf {} + 2>/dev/null || true
+    fi
+  '';
+
+  system.activationScripts.applications.text = lib.mkForce ''
+    targetFolder='/Applications/Nix Apps'
+    if [ -d "$targetFolder" ]; then
+      find "$targetFolder" -mindepth 1 -maxdepth 1 -name '*.app' -exec rm -rf {} + 2>/dev/null || true
+      rmdir "$targetFolder" 2>/dev/null || true
+    fi
+  '';
 
   system = {
     stateVersion = 6;

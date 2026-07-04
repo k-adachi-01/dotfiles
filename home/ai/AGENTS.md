@@ -101,6 +101,7 @@ pnpm = "latest"
 - 設定編集: `nix/` または `home/` を直接編集する
 - 適用: `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook`
 - 管理対象: shell, git, WezTerm, Neovim, Claude/Codex/Cursor/Agents 設定
+- GUI アプリ（Zed, WezTerm, Cursor 等）は Homebrew cask（`nix/apps.nix`）。`darwin-rebuild switch` は可能なら **Terminal.app** から実行する（App Management TCC の再プロンプト回避）
 - 除外（秘密情報）: `.aws/`, `.azure/`, `.config/gcloud/`, `.config/gh/hosts.yml`, `.ssh/`, `.gnupg/`, `.env.keys`
 - コミット前に `gitleaks protect --staged --config .gitleaks.toml` を実行する（`gitleaks` は `nix/packages.nix` で管理）。push 後は GitHub Actions（`.github/workflows/ci.yml`）が同じ設定で `gitleaks detect` を実行する
 

@@ -19,7 +19,11 @@
       "orbstack"
       "raycast"
       "slack"
-      "wezterm"
+      "zed"
+      {
+        name = "wezterm";
+        greedy = true;
+      }
     ];
   };
 }

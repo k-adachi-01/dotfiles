@@ -16,6 +16,8 @@
 sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook
 ```
 
+`darwin-rebuild switch` で macOS の **App Management** プロンプトが毎回出る場合は、まず **Terminal.app** から実行する（WezTerm / Cursor 統合ターミナルは TCC の身元不一致で許可が永続化しにくい）。GUI アプリ（Zed / WezTerm 等）は Homebrew cask で管理し、`/Applications/Nix Apps` に Nix 由来の `.app` を置かない（`nix/darwin.nix` 参照）。
+
 プレーンな `darwin-rebuild switch` は `system activation must now be run as root` で失敗する。変更を加えたら必ず上記コマンドで適用し、`git status`/`git diff` を確認してからコミットする。
 
 ビルドのみ行い適用しない検証（sudo 不要、破壊的変更前に使う）:
@@ -29,8 +31,8 @@ nix build '.#darwinConfigurations.macbook.system' --no-link
 | ソース | 生成先 | 方式 |
 |---|---|---|
 | `nix/darwin.nix` | macOS system defaults, fonts, system packages | nix-darwin モジュール |
-| `nix/apps.nix` | Homebrew casks/brews | nix-homebrew |
-| `nix/packages.nix` | CLI 一式 | system packages |
+| `nix/apps.nix` | Homebrew casks/brews（GUI アプリはここ。Zed / WezTerm 含む） | nix-homebrew |
+| `nix/packages.nix` | CLI 一式（`.app` bundle を持つパッケージは除外） | system packages |
 | `nix/home.nix` | shell/git/direnv/fzf/tmux | home-manager ネイティブ |
 | `nix/nixvim.nix` | Neovim 全設定 | nixvim（Neovim の唯一のソース。`home/config/nvim/` のような別ツリーを作らない） |
 | `nix/editors.nix` | VS Code/Cursor/Antigravity/Antigravity IDE の `settings.json`（クラスA merge、`nix/agents/lib.nix` を共用） / `keybindings.json`（home.file symlink、配列トップレベルのため merge 非対応） | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |

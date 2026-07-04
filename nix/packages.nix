@@ -29,20 +29,26 @@ with pkgs; let
       url = "https://prod.download.cli.kiro.dev/stable/2.8.1/Kiro%20CLI.dmg";
       hash = "sha256-nN3GHnAdjgIplKgbPgtis4M1lRhyH5s8ilHMjKAuRJU=";
     };
+    # Install CLI binaries only. The DMG ships Kiro CLI.app, which would land
+    # in /Applications/Nix Apps and trigger macOS App Management on every
+    # darwin-rebuild switch.
     postInstall =
       (oldAttrs.postInstall or "")
       + ''
-                for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
-                  target="$out/Applications/Kiro CLI.app/Contents/MacOS/$bin"
-                  if [ -x "$target" ]; then
-                    rm -f "$out/bin/$bin"
-                    cat > "$out/bin/$bin" <<EOF
-        #!${runtimeShell}
-        exec "$target" "\$@"
-        EOF
-                    chmod +x "$out/bin/$bin"
-                  fi
-                done
+        for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
+          appBin="$out/Applications/Kiro CLI.app/Contents/MacOS/$bin"
+          if [ -x "$appBin" ]; then
+            install -m755 "$appBin" "$out/bin/$bin"
+          fi
+        done
+        rm -rf "$out/Applications"
+      '';
+  });
+  macismCliOnly = macism.overrideAttrs (oldAttrs: {
+    postInstall =
+      (oldAttrs.postInstall or "")
+      + ''
+        rm -rf "$out/Applications"
       '';
   });
 in [
@@ -72,7 +78,7 @@ in [
   just
   kiroCliFixed
   kubectl
-  macism
+  macismCliOnly
   mise
   nix-output-monitor
   nixd
@@ -93,7 +99,6 @@ in [
   uv
   wget
   yq-go
-  zed-editor
   zoxide
   zstd
 ]
