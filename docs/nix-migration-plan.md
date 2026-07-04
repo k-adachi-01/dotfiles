@@ -544,14 +544,14 @@ test ! -f ~/.mise.toml && echo 'OK'
 | 2.4 スキップ固定 | 完了 | 2026-07-04 | 監査に記載 |
 | 3.1 keyboard | 完了 | 2026-07-04 | KeyRepeat 済。入力ソースは IME リスクのため未宣言。capitalization/period を追加 |
 | 3.2 trackpad | 完了 | PR #4, switch 済 | live 値を `system.defaults.trackpad` に反映 |
-| 3.3 Mission Control | 未着手 | | |
-| 3.4 Finder/Dock 拡張 | 未着手 | | |
-| 3.5 screenshot/sleep | 未着手 | | |
-| 3.6 低優先 defaults | 未着手 | | |
+| 3.3 Mission Control | 完了 | 2026-07-04 | WindowManager + trackpad ジェスチャー（dock 側は未設定＝macOS デフォルト） |
+| 3.4 Finder/Dock 拡張 | 完了 | 2026-07-04 | `tilesize`, `wvous-br-corner`, Finder `NewWindowTarget` |
+| 3.5 screenshot/sleep | 完了 | 2026-07-04 | screencapture 保存先。sleep は AC/電池で値が異なるため `allowSleepByPowerButton` のみ |
+| 3.6 低優先 defaults | 完了 | 2026-07-04 | 意図的スキップ（Spotlight/Safari/Bluetooth 等は必要時のみ） |
 | 4.1 Raycast | 未着手 | | |
 | 4.2 GUI スキップ固定 | 未着手 | | |
 | 5.1 LaunchAgents 分類 | 完了 | 2026-07-04 | 監査済み。vendor は触らない |
-| 5.2 ユーザー job | 進行中 | PR 予定 | `screenshot-copy` を home-manager `launchd.agents` へ |
+| 5.2 ユーザー job | 完了 | PR #5 | `screenshot-copy` launchd |
 | 6.x project flakes | 未着手 | | |
 | 6.3 mise 削除 | 未着手 | | |
 
@@ -573,13 +573,12 @@ test ! -f ~/.mise.toml && echo 'OK'
 
 ## 13. 次のアクション（推奨着手順）
 
-**完了済み（2026-07-04）**: フェーズ 0–2、3.1–3.2、`darwin-rebuild switch` 運用安定化（`90943e8`）。
+**完了済み（2026-07-04）**: フェーズ 0–2、**フェーズ 3 完了**、フェーズ 5、`darwin-rebuild switch` 運用安定化（`90943e8`）。
 
 **これから**:
 
-1. **5.2** — `screenshot-copy` launchd を dotfiles へ取り込み（進行中）
-2. **3.3 + 3.4** — Mission Control ジェスチャー + Dock `tilesize` 等
-3. **3.5** — スクリーンショット保存先 / スリープ（必要になったら）
-4. **6.x** — 活発な project の flake 化（dotfiles 外）
+1. **4.1–4.2** — Raycast 調査 / GUI スキップ固定の文書化
+2. **2.3** — OrbStack 設定（Go/No-Go）
+3. **6.x** — 活発な project の flake 化（dotfiles 外）
 
 macOS defaults は引き続き **1 ドメイン = 1 PR**、switch 後すぐ体感確認。
