@@ -12,6 +12,8 @@ It is intentionally split into three groups:
 
 The goal is not to treat every file on the machine as a Nix target. The goal is to identify the remaining configuration surfaces that are still being edited by hand, by the app itself, or by project-specific tooling.
 
+For a step-by-step execution plan with per-step verification commands, see [`nix-migration-plan.md`](nix-migration-plan.md).
+
 ## Scope And Caveat
 
 This inventory is based on:
