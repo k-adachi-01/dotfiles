@@ -1,0 +1,52 @@
+// Zed keymap
+//
+// For information on binding keys, see the Zed
+// documentation: https://zed.dev/docs/key-bindings
+//
+// To see the default key bindings run `zed: open default keymap`
+// from the command palette.
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      // Cursor 風：Agent Panel にフォーカスする
+      "cmd-l": "agent::ToggleFocus",
+
+      // Agent Panel を表示 / 非表示する
+      "cmd-alt-l": "agent::Toggle",
+
+      // AI の変更差分を確認する
+      "cmd-shift-d": "agent::OpenAgentDiff",
+
+      // 新しい Agent Thread を開始する
+      "cmd-alt-shift-l": "agent::NewThread",
+
+      // 必要なら有効化：Shift 2回で file finder
+      // "shift shift": "file_finder::Toggle"
+    },
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      // macOS デフォルトの editor::SelectLine より優先して Agent Panel にフォーカスする
+      "cmd-l": "agent::ToggleFocus",
+
+      // 選択範囲、または現在行を Inline Assistant に投げる
+      "cmd-shift-l": "assistant::InlineAssist",
+    },
+  },
+  {
+    "context": "Editor && edit_prediction",
+    "bindings": {
+      // Edit Prediction を Tab で採用する
+      "tab": "editor::AcceptEditPrediction",
+    },
+  },
+  {
+    "context": "Editor && vim_mode == insert",
+    "bindings": {
+      // 必要なら有効化：insert mode で jk を押すと normal mode に戻る
+      // "j k": "vim::NormalBefore"
+    },
+  },
+]

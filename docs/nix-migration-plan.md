@@ -522,16 +522,16 @@ test ! -f ~/.mise.toml && echo 'OK'
 
 | ステップ | 状態 | PR / 日付 | メモ |
 |---|---|---|---|
-| 0.1 ベースライン | 未着手 | | |
-| 0.2 回帰テスト | 未着手 | | |
-| 1.1 local/bin 棚卸し | 未着手 | | |
-| 1.2 zprofile 整理 | 未着手 | | |
-| 1.3 ランタイム除外 doc | 未着手 | | |
-| 1.4 mise 位置づけ | 未着手 | | |
-| 2.1 開発ツール監査 | 未着手 | | |
-| 2.2 Zed settings | 未着手 | | |
+| 0.1 ベースライン | 完了 | 2026-07-04 | `nix build` OK、`agents-diff` 保存 |
+| 0.2 回帰テスト | 完了 | 2026-07-04 | class A/B 回帰 OK |
+| 1.1 local/bin 棚卸し | 完了 | 2026-07-04 | 監査: [`nix-migration-audit.md`](nix-migration-audit.md) |
+| 1.2 zprofile 整理 | 完了 | 2026-07-04 | `home.nix` 宣言で妥当、変更なし |
+| 1.3 ランタイム除外 doc | 完了 | 2026-07-04 | `nix/` に history 等なし |
+| 1.4 mise 位置づけ | 完了 | 2026-07-04 | フェーズ6まで維持 |
+| 2.1 開発ツール監査 | 完了 | 2026-07-04 | 監査表あり |
+| 2.2 Zed settings | 完了 | PR 予定 | class A merge + keymap mkLink |
 | 2.3 OrbStack | 未着手 | | |
-| 2.4 スキップ固定 | 未着手 | | |
+| 2.4 スキップ固定 | 完了 | 2026-07-04 | 監査に記載 |
 | 3.1 keyboard | 未着手 | | |
 | 3.2 trackpad | 未着手 | | |
 | 3.3 Mission Control | 未着手 | | |
