@@ -29,19 +29,28 @@ with pkgs; let
       url = "https://prod.download.cli.kiro.dev/stable/2.8.1/Kiro%20CLI.dmg";
       hash = "sha256-nN3GHnAdjgIplKgbPgtis4M1lRhyH5s8ilHMjKAuRJU=";
     };
-    # Install CLI binaries only. The DMG ships Kiro CLI.app, which would land
-    # in /Applications/Nix Apps and trigger macOS App Management on every
-    # darwin-rebuild switch.
+    # Keep the app bundle in the Nix store so kiro-cli can resolve its bundled
+    # resources, but move it out of /Applications so nix-darwin does not expose
+    # it under /Applications/Nix Apps and trigger App Management prompts.
     postInstall =
       (oldAttrs.postInstall or "")
       + ''
+        bundleDir="$out/libexec/Kiro CLI.app"
+        mkdir -p "$out/libexec"
+        mv "$out/Applications/Kiro CLI.app" "$bundleDir"
+        rm -rf "$out/Applications"
+
         for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
-          appBin="$out/Applications/Kiro CLI.app/Contents/MacOS/$bin"
+          appBin="$bundleDir/Contents/MacOS/$bin"
           if [ -x "$appBin" ]; then
-            install -m755 "$appBin" "$out/bin/$bin"
+            rm -f "$out/bin/$bin"
+            cat > "$out/bin/$bin" <<EOF
+#!${runtimeShell}
+exec "$appBin" "\$@"
+EOF
+            chmod +x "$out/bin/$bin"
           fi
         done
-        rm -rf "$out/Applications"
       '';
   });
   macismCliOnly = macism.overrideAttrs (oldAttrs: {
