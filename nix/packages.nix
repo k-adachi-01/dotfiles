@@ -74,6 +74,7 @@ in [
   gnumake
   gnupg
   google-cloud-sdk
+  husky
   jq
   just
   kiroCliFixed
