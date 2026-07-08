@@ -9,6 +9,7 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     nixvim.url = "github:nix-community/nixvim";
+    llm-agents-nix.url = "github:numtide/llm-agents.nix";
     agent-skills-nix.url = "github:Kyure-A/agent-skills-nix";
     # Local checkout of k-adachi-01/agent-skills (private). Flake path input
     # copies ~/agent-skills into the store at eval time (module-level `path`

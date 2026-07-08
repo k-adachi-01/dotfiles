@@ -1,5 +1,10 @@
-{pkgs}:
+{
+  pkgs,
+  inputs,
+  system,
+}:
 with pkgs; let
+  llmAgentsPkgs = inputs.llm-agents-nix.packages.${system};
   playwrightCli = buildNpmPackage rec {
     pname = "playwright-cli";
     version = "0.1.14";
@@ -84,6 +89,7 @@ in [
   gnupg
   google-cloud-sdk
   husky
+  llmAgentsPkgs.herdr
   jq
   just
   kiroCliFixed

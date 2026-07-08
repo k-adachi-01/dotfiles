@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  inputs,
   username,
   system,
   ...
@@ -37,7 +38,9 @@
     (with pkgs; [
       vim
     ])
-    ++ import ./packages.nix {inherit pkgs;};
+    ++ import ./packages.nix {
+      inherit pkgs inputs system;
+    };
 
   # GUI apps are Homebrew casks. Strip legacy /Applications/Nix Apps bundles
   # before ensureAppManagement runs so darwin-rebuild switch does not reset
