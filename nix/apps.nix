@@ -10,6 +10,7 @@
       "container"
     ];
     casks = [
+      "amazon-workspaces"
       "aqua-voice"
       "bitwarden"
       "codex-app"
