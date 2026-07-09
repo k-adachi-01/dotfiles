@@ -30,6 +30,7 @@
     ];
     file =
       {
+        ".config/herdr/config.toml".source = ../home/herdr/config.toml;
         ".config/ghostty/config.ghostty".source = ../home/ghostty/config.ghostty;
         ".inputrc".source = ../home/inputrc;
         ".mise.toml".source = ../home/mise.toml;
