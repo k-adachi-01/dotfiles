@@ -15,6 +15,7 @@
       "bitwarden"
       "codex-app"
       "cursor"
+      "ghostty"
       "google-chrome"
       "obsidian"
       "orbstack"

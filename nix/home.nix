@@ -30,6 +30,7 @@
     ];
     file =
       {
+        ".config/ghostty/config.ghostty".source = ../home/ghostty/config.ghostty;
         ".inputrc".source = ../home/inputrc;
         ".mise.toml".source = ../home/mise.toml;
         ".zprofile".text = ''
