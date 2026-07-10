@@ -139,3 +139,4 @@ prefix_rule(pattern=["aws", "lambda", "get-function-configuration"], decision="a
 prefix_rule(pattern=["aws", "lambda", "list-tags"], decision="allow")
 prefix_rule(pattern=["aws", "lambda", "list-event-source-mappings"], decision="allow")
 prefix_rule(pattern=["pnpm", "exec", "tsx"], decision="allow")
+prefix_rule(pattern=["pnpm", "run", "test:e2e"], decision="allow")
