@@ -16,7 +16,7 @@
 - Focus right: `Ctrl+A` then `l`
 - Split vertical: `Ctrl+A` then `v`
 - Split horizontal: `Ctrl+A` then `s`
-- Copy mode: `Ctrl+A` then `y`
+- Copy mode: `Ctrl+A` then `[`
 - Close pane: `Ctrl+A` then `x`
 - Zoom pane: `Ctrl+A` then `z`
 - Resize mode: `Ctrl+A` then `r`
@@ -35,8 +35,8 @@
 - Open workspace picker: `Ctrl+A` then `w`
 - Jump to workspace/tab picker: `Ctrl+A` then `g`
 - Switch workspace 1-9: `Ctrl+A` then `Shift+1..9`
-- Previous workspace: `Ctrl+A` then `[`
-- Next workspace: `Ctrl+A` then `]`
+- Previous workspace: `Ctrl+A` then `,`
+- Next workspace: `Ctrl+A` then `.`
 - New workspace: `Ctrl+A` then `Shift+n`
 - New worktree workspace: `Ctrl+A` then `Shift+g`
 - Rename workspace: `Ctrl+A` then `Shift+w`
