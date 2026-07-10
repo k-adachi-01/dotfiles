@@ -3,43 +3,43 @@
 ## Launch
 
 - `herdr`
-- Help: `Ctrl+B` then `?`
-- Settings: `Ctrl+B` then `S`
-- Reload config: `Ctrl+B` then `Shift+R`
-- Detach: `Ctrl+B` then `Q`
+- Help: `Ctrl+A` then `?`
+- Settings: `Ctrl+A` then `S`
+- Reload config: `Ctrl+A` then `Shift+R`
+- Detach: `Ctrl+A` then `Q`
 
 ## Pane
 
-- Focus left: `Ctrl+B` then `H`
-- Focus down: `Ctrl+B` then `J`
-- Focus up: `Ctrl+B` then `K`
-- Focus right: `Ctrl+B` then `L`
-- Split vertical: `Ctrl+B` then `V`
-- Split horizontal: `Ctrl+B` then `-`
-- Close pane: `Ctrl+B` then `X`
-- Zoom pane: `Ctrl+B` then `Z`
-- Resize mode: `Ctrl+B` then `R`
-- Toggle sidebar: `Ctrl+B` then `B`
+- Focus left: `Ctrl+A` then `H`
+- Focus down: `Ctrl+A` then `J`
+- Focus up: `Ctrl+A` then `K`
+- Focus right: `Ctrl+A` then `L`
+- Split vertical: `Ctrl+A` then `V`
+- Split horizontal: `Ctrl+A` then `-`
+- Close pane: `Ctrl+A` then `X`
+- Zoom pane: `Ctrl+A` then `Z`
+- Resize mode: `Ctrl+A` then `R`
+- Toggle sidebar: `Ctrl+A` then `B`
 
 ## Tab
 
-- New tab: `Ctrl+B` then `C`
-- Rename tab: `Ctrl+B` then `Shift+T`
-- Previous tab: `Ctrl+B` then `P`
-- Next tab: `Ctrl+B` then `N`
-- Close tab: `Ctrl+B` then `Shift+X`
+- New tab: `Ctrl+A` then `C`
+- Rename tab: `Ctrl+A` then `Shift+T`
+- Previous tab: `Ctrl+A` then `P`
+- Next tab: `Ctrl+A` then `N`
+- Close tab: `Ctrl+A` then `Shift+X`
 
 ## Workspace
 
-- Open workspace picker: `Ctrl+B` then `W`
-- Jump to workspace/tab picker: `Ctrl+B` then `G`
-- New workspace: `Ctrl+B` then `Shift+N`
-- New worktree workspace: `Ctrl+B` then `Shift+G`
-- Rename workspace: `Ctrl+B` then `Shift+W`
-- Close workspace: `Ctrl+B` then `Shift+D`
+- Open workspace picker: `Ctrl+A` then `W`
+- Jump to workspace/tab picker: `Ctrl+A` then `G`
+- New workspace: `Ctrl+A` then `Shift+N`
+- New worktree workspace: `Ctrl+A` then `Shift+G`
+- Rename workspace: `Ctrl+A` then `Shift+W`
+- Close workspace: `Ctrl+A` then `Shift+D`
 
 ## Notes
 
-- Prefix key: `Ctrl+B`
+- Prefix key: `Ctrl+A`
 - Ghostty is the outer terminal; pane/tab/workspace operations live in Herdr.
 - Prefix handling is adjusted for macOS IME usage.
