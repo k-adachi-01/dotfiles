@@ -34,6 +34,8 @@
 - Open workspace picker: `Ctrl+A` then `W`
 - Jump to workspace/tab picker: `Ctrl+A` then `G`
 - Switch workspace 1-9: `Ctrl+A` then `Shift+1..9`
+- Previous workspace: `Ctrl+A` then `[`
+- Next workspace: `Ctrl+A` then `]`
 - New workspace: `Ctrl+A` then `Shift+N`
 - New worktree workspace: `Ctrl+A` then `Shift+G`
 - Rename workspace: `Ctrl+A` then `Shift+W`
