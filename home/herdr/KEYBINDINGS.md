@@ -4,7 +4,7 @@
 
 - `herdr`
 - Help: `Ctrl+A` then `?`
-- Settings: `Ctrl+A` then `S`
+- Settings: `Ctrl+A` then `Shift+S`
 - Reload config: `Ctrl+A` then `Shift+R`
 - Detach: `Ctrl+A` then `Q`
 
@@ -15,7 +15,7 @@
 - Focus up: `Ctrl+A` then `K`
 - Focus right: `Ctrl+A` then `L`
 - Split vertical: `Ctrl+A` then `V`
-- Split horizontal: `Ctrl+A` then `-`
+- Split horizontal: `Ctrl+A` then `S`
 - Close pane: `Ctrl+A` then `X`
 - Zoom pane: `Ctrl+A` then `Z`
 - Resize mode: `Ctrl+A` then `R`
@@ -23,7 +23,7 @@
 
 ## Tab
 
-- New tab: `Ctrl+A` then `C`
+- New tab: `Ctrl+A` then `T`
 - Rename tab: `Ctrl+A` then `Shift+T`
 - Previous tab: `Ctrl+A` then `P`
 - Next tab: `Ctrl+A` then `N`

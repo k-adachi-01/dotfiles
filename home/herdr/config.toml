@@ -1,5 +1,8 @@
 [keys]
 prefix = "ctrl+a"
+settings = "prefix+shift+s"
+new_tab = "prefix+t"
+split_horizontal = "prefix+s"
 
 [theme]
 name = "catppuccin"
