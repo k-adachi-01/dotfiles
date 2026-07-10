@@ -13,6 +13,8 @@ background-opacity = 0.85
 background-opacity-cells = true
 background-blur = true
 
+initial-command = /run/current-system/sw/bin/herdr
+
 cursor-style = block
 cursor-style-blink = false
 
