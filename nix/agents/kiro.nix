@@ -4,6 +4,8 @@
   config,
   lib,
   pkgs,
+  dotfilesRepo ? "${config.home.homeDirectory}/.config/nix-darwin",
+  enableAgentSkills ? true,
   ...
 }: let
   agentsLib = import ./lib.nix {inherit pkgs;};
@@ -17,8 +19,6 @@
     kiroCliThemeJson
     kiroPermissions
     ;
-  agentSkillsBundle = config.programs.agent-skills.bundlePath;
-  dotfilesRepo = "${config.home.homeDirectory}/.config/nix-darwin";
   mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
 
   mkEntry = {
@@ -117,10 +117,10 @@ in {
     # Skills are a dynamic catalog, not a class A/B file: always mirror the
     # built bundle on every switch (delete+resync), independent of the
     # merge model above.
-    activation.syncKiroSkills = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    activation.syncKiroSkills = lib.mkIf enableAgentSkills (lib.hm.dag.entryAfter ["writeBoundary"] ''
       mkdir -p "$HOME/.kiro/skills"
-      ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' ${agentSkillsBundle}/ "$HOME/.kiro/skills/"
+      ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' ${config.programs.agent-skills.bundlePath}/ "$HOME/.kiro/skills/"
       chmod -R u+rwX "$HOME/.kiro/skills"
-    '';
+    '');
   };
 }

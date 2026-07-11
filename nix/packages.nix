@@ -4,6 +4,7 @@
   system,
 }:
 with pkgs; let
+  inherit (stdenv) isDarwin;
   llmAgentsPkgs = inputs.llm-agents-nix.packages.${system};
   playwrightCli = buildNpmPackage rec {
     pname = "playwright-cli";
@@ -45,17 +46,14 @@ with pkgs; let
                 mv "$out/Applications/Kiro CLI.app" "$bundleDir"
                 rm -rf "$out/Applications"
 
-                for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
-                  appBin="$bundleDir/Contents/MacOS/$bin"
-                  if [ -x "$appBin" ]; then
-                    rm -f "$out/bin/$bin"
-                    cat > "$out/bin/$bin" <<EOF
-        #!${runtimeShell}
-        exec "$appBin" "\$@"
-        EOF
-                    chmod +x "$out/bin/$bin"
-                  fi
-                done
+        for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
+          appBin="$bundleDir/Contents/MacOS/$bin"
+          if [ -x "$appBin" ]; then
+            rm -f "$out/bin/$bin"
+            printf '#!%s\nexec "%s" "$@"\n' "${runtimeShell}" "$appBin" > "$out/bin/$bin"
+            chmod +x "$out/bin/$bin"
+          fi
+        done
       '';
   });
   macismCliOnly = macism.overrideAttrs (oldAttrs: {
@@ -65,61 +63,75 @@ with pkgs; let
         rm -rf "$out/Applications"
       '';
   });
-in [
-  awscli2
-  azure-cli
-  alejandra
-  llmAgentsPkgs.agent-browser
-  bat
-  bun
-  cargo
-  llmAgentsPkgs.claude-code
-  cmake
-  llmAgentsPkgs.codex
-  curl
-  llmAgentsPkgs.cursor-agent
-  deadnix
-  delta
-  direnv
-  eza
-  fd
-  fzf
-  gh
-  git
-  gitleaks
-  gnumake
-  gnupg
-  google-cloud-sdk
-  llmAgentsPkgs.grok
-  llmAgentsPkgs.hunk
-  husky
-  llmAgentsPkgs.herdr
-  jq
-  just
-  kiroCliFixed
-  kubectl
-  macismCliOnly
-  mise
-  nix-output-monitor
-  nixd
-  nodejs_24
-  pkg-config
-  playwrightCli
-  pnpm
-  python313
-  ripgrep
-  llmAgentsPkgs.rtk
-  sops
-  shellcheck
-  shfmt
-  statix
-  rustup
-  tmux
-  tree
-  unzip
-  uv
-  wget
-  yq-go
-  zoxide
-  zstd
-]
+in
+  [
+    awscli2
+    azure-cli
+    alejandra
+    llmAgentsPkgs.agent-browser
+    bat
+    bun
+    cargo
+    llmAgentsPkgs.claude-code
+    cmake
+    llmAgentsPkgs.codex
+    curl
+    llmAgentsPkgs.cursor-agent
+    deadnix
+    delta
+    direnv
+    bottom
+    duf
+    dust
+    eza
+    fd
+    fzf
+    gh
+    git
+    gitleaks
+    gnumake
+    gnupg
+    google-cloud-sdk
+    llmAgentsPkgs.grok
+    llmAgentsPkgs.hunk
+    husky
+    httpie
+    hyperfine
+    llmAgentsPkgs.herdr
+    jq
+    just
+    kubectl
+    mise
+    nix-output-monitor
+    nixd
+    nodejs_24
+    pkg-config
+    playwrightCli
+    pnpm
+    python313
+    procs
+    ripgrep
+    llmAgentsPkgs.rtk
+    sd
+    sops
+    shellcheck
+    shfmt
+    starship
+    statix
+    tealdeer
+    tokei
+    rustup
+    tmux
+    tree
+    unzip
+    uv
+    wget
+    yq-go
+    zoxide
+    zstd
+  ]
+  ++ lib.optionals isDarwin [
+    cursor-cli
+    kiroCliFixed
+    macismCliOnly
+  ]

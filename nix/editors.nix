@@ -156,26 +156,27 @@
     lib.hm.dag.entryAfter ["writeBoundary"] (
       agentsLib.mkMergeActivation (entry // {backupDir = backupDirFor entry;})
     );
-in {
-  dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand settingsEntries;
+in
+  lib.mkIf pkgs.stdenv.isDarwin {
+    dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand settingsEntries;
 
-  home = {
-    activation = {
-      mergeVscodeSettings = mkActivation vscodeSettingsEntry;
-      mergeCursorEditorSettings = mkActivation cursorSettingsEntry;
-      mergeAntigravitySettings = mkActivation antigravitySettingsEntry;
-      mergeAntigravityIdeSettings = mkActivation antigravityIdeSettingsEntry;
+    home = {
+      activation = {
+        mergeVscodeSettings = mkActivation vscodeSettingsEntry;
+        mergeCursorEditorSettings = mkActivation cursorSettingsEntry;
+        mergeAntigravitySettings = mkActivation antigravitySettingsEntry;
+        mergeAntigravityIdeSettings = mkActivation antigravityIdeSettingsEntry;
+      };
+
+      file = {
+        "Library/Application Support/Cursor/User/keybindings.json".source =
+          json.generate "cursor-keybindings.json" cursorKeybindings;
+
+        "Library/Application Support/Antigravity/User/keybindings.json".source =
+          json.generate "antigravity-keybindings.json" cursorKeybindings;
+
+        "Library/Application Support/Antigravity IDE/User/keybindings.json".source =
+          json.generate "antigravity-ide-keybindings.json" cursorKeybindings;
+      };
     };
-
-    file = {
-      "Library/Application Support/Cursor/User/keybindings.json".source =
-        json.generate "cursor-keybindings.json" cursorKeybindings;
-
-      "Library/Application Support/Antigravity/User/keybindings.json".source =
-        json.generate "antigravity-keybindings.json" cursorKeybindings;
-
-      "Library/Application Support/Antigravity IDE/User/keybindings.json".source =
-        json.generate "antigravity-ide-keybindings.json" cursorKeybindings;
-    };
-  };
-}
+  }

@@ -4,10 +4,10 @@
   config,
   lib,
   pkgs,
+  dotfilesRepo ? "${config.home.homeDirectory}/.config/nix-darwin",
   ...
 }: let
   agentsLib = import ./lib.nix {inherit pkgs;};
-  dotfilesRepo = "${config.home.homeDirectory}/.config/nix-darwin";
   mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
 
   mcpValue = {

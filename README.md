@@ -1,11 +1,12 @@
 # dotfiles
 
-Personal macOS/WSL development environment managed with Nix.
+Personal macOS/NixOS/WSL development environment managed with Nix.
 
 This repository used to be a chezmoi source tree. The target state is now:
 
 - `nix-darwin` manages macOS system settings.
 - `nix-darwin` installs shared CLI tools from `nix/packages.nix`.
+- `home-manager` can also build the shared Linux user profile as `.#homeConfigurations.adachi@nixos`.
 - `home-manager` manages user dotfiles, shell, git, editor, and AI-agent config.
 - Homebrew is limited to GUI casks.
 - `mise` is temporary and will be removed after active projects move to project-local `flake.nix`.
@@ -165,6 +166,36 @@ Run it from Terminal.app so the required `sudo` authentication is available:
 
 ```bash
 "$HOME/.config/nix-darwin/scripts/apply-llm-agents-overnight"
+```
+
+## NixOS Home Profile
+
+The Linux PC uses a two-layer model to avoid double management:
+
+- `/etc/nixos` owns machine-specific OS settings: boot, hardware, networking, desktop services, system daemons, firewall, and the local user account.
+- This repository owns the user environment through Home Manager: CLI tools, shell, git, tmux, direnv, fzf, editors, and AI-agent config.
+- Do not add normal development CLI packages to `/etc/nixos`; add them to `nix/packages.nix` here so macOS and NixOS share one user-level package list.
+
+Validate the user profile:
+
+```bash
+cd "$HOME/dotfiles"
+nix build '.#homeConfigurations."adachi@nixos".activationPackage' --no-link
+```
+
+When applying it manually:
+
+```bash
+nix run home-manager/master -- switch --flake "$HOME/dotfiles#adachi@nixos"
+```
+
+Linux intentionally disables the private `agent-skills` mirror and macOS-only launchd / Homebrew / `~/Library` editor settings. Shared shell, git, tmux, direnv, fzf, Nixvim, WezTerm Linux config, Zed config, and AI-agent config are still managed.
+
+Apply the NixOS system layer separately:
+
+```bash
+sudo nix flake update /etc/nixos
+sudo nixos-rebuild switch --flake /etc/nixos#nixos
 ```
 
 ## Continuous Integration
