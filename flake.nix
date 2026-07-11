@@ -10,13 +10,6 @@
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     nixvim.url = "github:nix-community/nixvim";
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
-    hunk = {
-      url = "github:modem-dev/hunk";
-      # hunk's flake still evaluates x86_64-darwin outputs; nixpkgs 26.11
-      # dropped that platform, so pin its private nixpkgs input to the
-      # last darwin-supporting branch instead of following our global input.
-      inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
-    };
     agent-skills-nix.url = "github:Kyure-A/agent-skills-nix";
     # Local checkout of k-adachi-01/agent-skills (private). Flake path input
     # copies ~/agent-skills into the store at eval time (module-level `path`
