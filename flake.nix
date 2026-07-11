@@ -90,6 +90,7 @@
         system = linuxSystem;
         dotfilesRepo = "/home/${username}/dotfiles";
         enableAgentSkills = false;
+        enableLlmAgents = true;
       };
       modules = [
         ./nix/home.nix

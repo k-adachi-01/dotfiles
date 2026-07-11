@@ -5,11 +5,12 @@
   username,
   system,
   enableAgentSkills ? true,
+  enableLlmAgents ? pkgs.stdenv.isDarwin,
   ...
 }: let
   isDarwin = pkgs.stdenv.isDarwin;
   sharedPackages = import ./packages.nix {
-    inherit pkgs inputs system;
+    inherit pkgs inputs system enableLlmAgents;
   };
 in {
   imports =
