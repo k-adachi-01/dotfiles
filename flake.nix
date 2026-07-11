@@ -3,8 +3,7 @@
 
   # Bootstrap Numtide's cache before the first switch persists the same
   # settings through nix/nix.custom.conf in nix/darwin.nix. Only effective
-  # for trusted users (root); use scripts/apply-llm-agents-overnight which
-  # runs via sudo with --option accept-flake-config true.
+  # for trusted users (root); after activation, nix.custom.conf covers all users.
   nixConfig = {
     extra-substituters = ["https://cache.numtide.com"];
     extra-trusted-substituters = ["https://cache.numtide.com"];

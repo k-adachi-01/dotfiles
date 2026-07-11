@@ -158,21 +158,6 @@ git commit -m "update environment"
 git push
 ```
 
-### Overnight LLM Agent Build
-
-The following command keeps the Mac awake, builds any missing
-`llm-agents.nix` source packages with logs, and activates the configuration.
-Run it from **Terminal.app** (not WezTerm/Cursor) so `sudo` can authenticate
-via Touch ID / password before you leave it overnight:
-
-```bash
-"$HOME/.config/nix-darwin/scripts/apply-llm-agents-overnight"
-```
-
-`darwin-rebuild` does not accept `--accept-flake-config`; the script passes
-`--option accept-flake-config true` under `sudo` so Numtide's cache is usable
-for the build phase before `/etc/nix/nix.custom.conf` is written on activation.
-
 ## NixOS Home Profile
 
 The Linux PC uses a two-layer model to avoid double management:
