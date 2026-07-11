@@ -17,6 +17,19 @@
 
   nix.enable = false;
 
+  # Determinate Nix owns /etc/nix/nix.conf and includes this supported
+  # extension point. Keep llm-agents.nix on its pinned nixpkgs for cache hits.
+  environment.etc."nix/nix.custom.conf" = {
+    text = ''
+      # llm-agents.nix binary cache
+      extra-substituters = https://cache.numtide.com
+      extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
+    '';
+    knownSha256Hashes = [
+      "3bd68ef979a42070a44f8d82c205cfd8e8cca425d91253ec2c10a88179bb34aa"
+    ];
+  };
+
   users.users.${username}.home = "/Users/${username}";
   system.primaryUser = username;
 

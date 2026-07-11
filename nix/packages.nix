@@ -41,10 +41,10 @@ with pkgs; let
     postInstall =
       (oldAttrs.postInstall or "")
       + ''
-        bundleDir="$out/libexec/Kiro CLI.app"
-        mkdir -p "$out/libexec"
-        mv "$out/Applications/Kiro CLI.app" "$bundleDir"
-        rm -rf "$out/Applications"
+                bundleDir="$out/libexec/Kiro CLI.app"
+                mkdir -p "$out/libexec"
+                mv "$out/Applications/Kiro CLI.app" "$bundleDir"
+                rm -rf "$out/Applications"
 
         for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
           appBin="$bundleDir/Contents/MacOS/$bin"
@@ -68,16 +68,19 @@ in
     awscli2
     azure-cli
     alejandra
-    agent-browser
+    llmAgentsPkgs.agent-browser
     bat
-    bottom
-    claude-code
+    bun
+    cargo
+    llmAgentsPkgs.claude-code
     cmake
-    codex
+    llmAgentsPkgs.codex
     curl
+    llmAgentsPkgs.cursor-agent
     deadnix
     delta
     direnv
+    bottom
     duf
     dust
     eza
@@ -89,6 +92,8 @@ in
     gnumake
     gnupg
     google-cloud-sdk
+    llmAgentsPkgs.grok
+    llmAgentsPkgs.hunk
     husky
     httpie
     hyperfine
@@ -103,9 +108,10 @@ in
     pkg-config
     playwrightCli
     pnpm
-    procs
     python313
+    procs
     ripgrep
+    llmAgentsPkgs.rtk
     sd
     sops
     shellcheck

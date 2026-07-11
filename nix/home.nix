@@ -106,6 +106,7 @@ in {
         cc = "claude --permission-mode acceptEdits";
         cdx = "codex --sandbox workspace-write --ask-for-approval on-request";
         cdx-bedrock = "codex --profile bedrock --sandbox workspace-write --ask-for-approval on-request";
+        csr = "cursor-agent";
         la = "ls -A";
         ll = "ls -alF";
       }
@@ -147,7 +148,7 @@ in {
 
   programs.fzf = {
     enable = true;
-    enableZshIntegration = false;
+    enableZshIntegration = true;
   };
 
   programs.tmux = {
