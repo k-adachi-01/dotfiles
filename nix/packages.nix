@@ -5,49 +5,6 @@
 }:
 with pkgs; let
   llmAgentsPkgs = inputs.llm-agents-nix.packages.${system};
-  codexBin = stdenvNoCC.mkDerivation rec {
-    pname = "codex";
-    version = "0.144.1";
-
-    src = fetchurl {
-      url = "https://github.com/openai/codex/releases/download/rust-v${version}/codex-package-aarch64-apple-darwin.tar.gz";
-      hash = "sha256-MmGYgp37S2jaWXI89gVHii6b7In/R/62RYFKTF6vX2w=";
-    };
-
-    dontBuild = true;
-    unpackPhase = ''
-      runHook preUnpack
-
-      mkdir source
-      tar -xzf "$src" -C source
-      cd source
-
-      runHook postUnpack
-    '';
-
-    installPhase = ''
-      runHook preInstall
-
-      mkdir -p "$out/bin" "$out/libexec/codex"
-      cp -R . "$out/libexec/codex/"
-      chmod +x "$out/libexec/codex/bin/codex" "$out/libexec/codex/bin/codex-code-mode-host"
-
-      makeWrapper "$out/libexec/codex/bin/codex" "$out/bin/codex"
-      makeWrapper "$out/libexec/codex/bin/codex-code-mode-host" "$out/bin/codex-code-mode-host"
-
-      runHook postInstall
-    '';
-
-    nativeBuildInputs = [makeWrapper];
-
-    meta = {
-      description = "OpenAI Codex CLI binary package";
-      homepage = "https://github.com/openai/codex";
-      license = lib.licenses.asl20;
-      mainProgram = "codex";
-      platforms = ["aarch64-darwin"];
-    };
-  };
   playwrightCli = buildNpmPackage rec {
     pname = "playwright-cli";
     version = "0.1.14";
@@ -112,13 +69,15 @@ in [
   awscli2
   azure-cli
   alejandra
-  agent-browser
+  llmAgentsPkgs.agent-browser
   bat
-  claude-code
+  bun
+  cargo
+  llmAgentsPkgs.claude-code
   cmake
-  codexBin
+  llmAgentsPkgs.codex
   curl
-  cursor-cli
+  llmAgentsPkgs.cursor-agent
   deadnix
   delta
   direnv
@@ -131,6 +90,7 @@ in [
   gnumake
   gnupg
   google-cloud-sdk
+  llmAgentsPkgs.grok
   llmAgentsPkgs.hunk
   husky
   llmAgentsPkgs.herdr
@@ -148,6 +108,7 @@ in [
   pnpm
   python313
   ripgrep
+  llmAgentsPkgs.rtk
   sops
   shellcheck
   shfmt
