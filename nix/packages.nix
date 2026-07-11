@@ -131,7 +131,6 @@ in
     zstd
   ]
   ++ lib.optionals isDarwin [
-    cursor-cli
     kiroCliFixed
     macismCliOnly
   ]
