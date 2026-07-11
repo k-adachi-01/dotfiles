@@ -40,22 +40,22 @@ with pkgs; let
     postInstall =
       (oldAttrs.postInstall or "")
       + ''
-        bundleDir="$out/libexec/Kiro CLI.app"
-        mkdir -p "$out/libexec"
-        mv "$out/Applications/Kiro CLI.app" "$bundleDir"
-        rm -rf "$out/Applications"
+                bundleDir="$out/libexec/Kiro CLI.app"
+                mkdir -p "$out/libexec"
+                mv "$out/Applications/Kiro CLI.app" "$bundleDir"
+                rm -rf "$out/Applications"
 
-        for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
-          appBin="$bundleDir/Contents/MacOS/$bin"
-          if [ -x "$appBin" ]; then
-            rm -f "$out/bin/$bin"
-            cat > "$out/bin/$bin" <<EOF
-#!${runtimeShell}
-exec "$appBin" "\$@"
-EOF
-            chmod +x "$out/bin/$bin"
-          fi
-        done
+                for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
+                  appBin="$bundleDir/Contents/MacOS/$bin"
+                  if [ -x "$appBin" ]; then
+                    rm -f "$out/bin/$bin"
+                    cat > "$out/bin/$bin" <<EOF
+        #!${runtimeShell}
+        exec "$appBin" "\$@"
+        EOF
+                    chmod +x "$out/bin/$bin"
+                  fi
+                done
       '';
   });
   macismCliOnly = macism.overrideAttrs (oldAttrs: {
@@ -88,6 +88,7 @@ in [
   gnumake
   gnupg
   google-cloud-sdk
+  inputs.hunk.packages.${system}.hunk
   husky
   llmAgentsPkgs.herdr
   jq
