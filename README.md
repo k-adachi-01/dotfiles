@@ -157,6 +157,16 @@ git commit -m "update environment"
 git push
 ```
 
+### Overnight LLM Agent Build
+
+The following command keeps the Mac awake, builds any missing
+`llm-agents.nix` source packages with logs, and activates the configuration.
+Run it from Terminal.app so the required `sudo` authentication is available:
+
+```bash
+"$HOME/.config/nix-darwin/scripts/apply-llm-agents-overnight"
+```
+
 ## Continuous Integration
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and every pull request: `alejandra --check`, `statix check`, `deadnix --fail`, and `gitleaks detect --config .gitleaks.toml`. It does not run `nix build`/`darwin-rebuild build`; run that locally before pushing (see [`AGENTS.md`](AGENTS.md)).
