@@ -1,6 +1,15 @@
 {
   description = "k-adachi-01 macOS development environment";
 
+  # Bootstrap Numtide's cache before the first switch persists the same
+  # settings through nix/nix.custom.conf in nix/darwin.nix.
+  nixConfig = {
+    extra-substituters = ["https://cache.numtide.com"];
+    extra-trusted-public-keys = [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
