@@ -1,11 +1,12 @@
 # dotfiles
 
-Personal macOS/WSL development environment managed with Nix.
+Personal macOS/NixOS/WSL development environment managed with Nix.
 
 This repository used to be a chezmoi source tree. The target state is now:
 
 - `nix-darwin` manages macOS system settings.
 - `nix-darwin` installs shared CLI tools from `nix/packages.nix`.
+- `home-manager` can also build the shared Linux user profile as `.#homeConfigurations.adachi@nixos`.
 - `home-manager` manages user dotfiles, shell, git, editor, and AI-agent config.
 - Homebrew is limited to GUI casks.
 - `mise` is temporary and will be removed after active projects move to project-local `flake.nix`.
@@ -156,6 +157,23 @@ git add -A
 git commit -m "update environment"
 git push
 ```
+
+## NixOS Home Profile
+
+The Linux PC keeps machine-specific OS settings in `/etc/nixos` and imports only the shared user-level environment from this repository.
+
+```bash
+cd "$HOME/dotfiles"
+nix build '.#homeConfigurations."adachi@nixos".activationPackage' --no-link
+```
+
+When applying it manually:
+
+```bash
+nix run home-manager/master -- switch --flake "$HOME/dotfiles#adachi@nixos"
+```
+
+Linux intentionally disables the private `agent-skills` mirror and macOS-only launchd / Homebrew / `~/Library` editor settings. Shared shell, git, tmux, direnv, fzf, Nixvim, WezTerm Linux config, Zed config, and AI-agent config are still managed.
 
 ## Continuous Integration
 

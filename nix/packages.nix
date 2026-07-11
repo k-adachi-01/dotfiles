@@ -4,6 +4,7 @@
   system,
 }:
 with pkgs; let
+  inherit (stdenv) isDarwin;
   llmAgentsPkgs = inputs.llm-agents-nix.packages.${system};
   playwrightCli = buildNpmPackage rec {
     pname = "playwright-cli";
@@ -49,10 +50,7 @@ with pkgs; let
           appBin="$bundleDir/Contents/MacOS/$bin"
           if [ -x "$appBin" ]; then
             rm -f "$out/bin/$bin"
-            cat > "$out/bin/$bin" <<EOF
-#!${runtimeShell}
-exec "$appBin" "\$@"
-EOF
+            printf '#!%s\nexec "%s" "$@"\n' "${runtimeShell}" "$appBin" > "$out/bin/$bin"
             chmod +x "$out/bin/$bin"
           fi
         done
@@ -65,56 +63,59 @@ EOF
         rm -rf "$out/Applications"
       '';
   });
-in [
-  awscli2
-  azure-cli
-  alejandra
-  agent-browser
-  bat
-  claude-code
-  cmake
-  codex
-  curl
-  cursor-cli
-  deadnix
-  delta
-  direnv
-  eza
-  fd
-  fzf
-  gh
-  git
-  gitleaks
-  gnumake
-  gnupg
-  google-cloud-sdk
-  husky
-  llmAgentsPkgs.herdr
-  jq
-  just
-  kiroCliFixed
-  kubectl
-  macismCliOnly
-  mise
-  nix-output-monitor
-  nixd
-  nodejs_24
-  pkg-config
-  playwrightCli
-  pnpm
-  python313
-  ripgrep
-  sops
-  shellcheck
-  shfmt
-  statix
-  rustup
-  tmux
-  tree
-  unzip
-  uv
-  wget
-  yq-go
-  zoxide
-  zstd
-]
+in
+  [
+    awscli2
+    azure-cli
+    alejandra
+    agent-browser
+    bat
+    claude-code
+    cmake
+    codex
+    curl
+    deadnix
+    delta
+    direnv
+    eza
+    fd
+    fzf
+    gh
+    git
+    gitleaks
+    gnumake
+    gnupg
+    google-cloud-sdk
+    husky
+    llmAgentsPkgs.herdr
+    jq
+    just
+    kubectl
+    mise
+    nix-output-monitor
+    nixd
+    nodejs_24
+    pkg-config
+    playwrightCli
+    pnpm
+    python313
+    ripgrep
+    sops
+    shellcheck
+    shfmt
+    statix
+    rustup
+    tmux
+    tree
+    unzip
+    uv
+    wget
+    yq-go
+    zoxide
+    zstd
+  ]
+  ++ lib.optionals isDarwin [
+    cursor-cli
+    kiroCliFixed
+    macismCliOnly
+  ]

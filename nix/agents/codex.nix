@@ -4,16 +4,24 @@
   config,
   lib,
   pkgs,
+  dotfilesRepo ? "${config.home.homeDirectory}/.config/nix-darwin",
+  enableAgentSkills ? true,
   ...
 }: let
   agentsLib = import ./lib.nix {inherit pkgs;};
-  dotfilesRepo = "${config.home.homeDirectory}/.config/nix-darwin";
   mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
-  agentSkillsBundle = config.programs.agent-skills.bundlePath;
+  declaredConfig =
+    (builtins.fromTOML (builtins.readFile ../../home/agents/codex/config.toml))
+    // {
+      notify = [
+        "bash"
+        "${config.home.homeDirectory}/.codex/notify.sh"
+      ];
+    };
 
   configEntry = {
     format = "toml";
-    value = builtins.fromTOML (builtins.readFile ../../home/agents/codex/config.toml);
+    value = declaredConfig;
     dest = "$HOME/.codex/config.toml";
     label = "codex-config";
   };
@@ -46,10 +54,10 @@ in {
     # Skills are a dynamic catalog, not a class A/B file: always mirror the
     # built bundle on every switch (delete+resync), independent of the
     # merge model above.
-    activation.syncCodexSkills = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    activation.syncCodexSkills = lib.mkIf enableAgentSkills (lib.hm.dag.entryAfter ["writeBoundary"] ''
       mkdir -p "$HOME/.codex/skills"
-      ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' ${agentSkillsBundle}/ "$HOME/.codex/skills/"
+      ${pkgs.rsync}/bin/rsync -aL --delete --exclude='.system/' ${config.programs.agent-skills.bundlePath}/ "$HOME/.codex/skills/"
       chmod -R u+rwX "$HOME/.codex/skills"
-    '';
+    '');
   };
 }

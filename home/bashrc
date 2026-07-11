@@ -123,7 +123,9 @@ if ! shopt -oq posix; then
   fi
 fi
 
-eval "$(/home/adachi/.local/bin/mise activate bash)" # added by https://mise.run/bash
+if [ -x "$HOME/.local/bin/mise" ]; then
+  eval "$("$HOME/.local/bin/mise" activate bash)"
+fi
 
 # pnpm
 export PNPM_HOME="/home/adachi/.local/share/pnpm"
@@ -144,9 +146,11 @@ if [ -x /mnt/c/Users/adachi/AppData/Local/Programs/obsidian/Obsidian.exe ]; then
   alias obsidian='/mnt/c/Users/adachi/AppData/Local/Programs/obsidian/Obsidian.exe'
 fi
 export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
-export PATH="$HOME/.cargo/bin:$PATH"
-. "$HOME/.cargo/env"
-export PATH="$HOME/.cargo/bin:$PATH"
+if [ -r "$HOME/.cargo/env" ]; then
+  . "$HOME/.cargo/env"
+elif [ -d "$HOME/.cargo/bin" ]; then
+  export PATH="$HOME/.cargo/bin:$PATH"
+fi
 
 # WezTerm OSC 7: cwd を通知
 __wezterm_osc7() { printf "\033]7;file://localhost%s\033\\" "${PWD}"; }

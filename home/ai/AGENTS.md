@@ -2,11 +2,38 @@
 
 ## 実行環境
 
-- **主環境**: macOS on Apple Silicon
+- **主環境**: macOS on Apple Silicon / NixOS Linux
 - **レガシー環境**: Ubuntu 24.04 on WSL2
 - **パッケージ管理の主軸**: Nix (`nix-darwin` + `home-manager`)
 - **Homebrew**: GUI cask のみに限定する
 - **nix-darwin 適用**: このデバイスでは system activation に root 権限が必要。`darwin-rebuild switch` ではなく `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` を使う。
+
+### NixOS PC
+
+- NixOS システム設定は `/etc/nixos` で管理する。
+- NixOS の active flake は `/etc/nixos#nixos`。
+- この dotfiles repo は NixOS ではユーザー環境のみを `.#homeConfigurations."adachi@nixos"` で管理する。
+
+通常のシステム更新:
+
+```bash
+sudo nix flake update /etc/nixos
+sudo nixos-rebuild switch --flake /etc/nixos#nixos
+```
+
+検証のみ:
+
+```bash
+sudo nixos-rebuild build --flake /etc/nixos#nixos
+```
+
+一時適用:
+
+```bash
+sudo nixos-rebuild test --flake /etc/nixos#nixos
+```
+
+`nix-channel --update` や `nixos-rebuild --upgrade` はこのマシンの通常更新には使わない。
 
 ### WSL2でaptが必要な場合
 
@@ -127,7 +154,7 @@ pnpm = "latest"
   - `[projects.*]`（trust_level の記録。プロジェクトディレクトリ名を通じて業務内容や第三者名が漏れる可能性がある）
   - `[marketplaces.*]`（`last_updated` タイムスタンプと `.tmp/`/`.cache/` 配下のローカル絶対パス）
   - `[mcp_servers.node_repl]` とその `env`（Codex.app のビルド固有パス・バージョン文字列）
-  - `notify` に computer-use 由来の `.app` バンドル絶対パスを含めない。`notify = ["bash", "/Users/adachi/.codex/notify.sh"]` の形だけを維持する
+  - `notify` に computer-use 由来の `.app` バンドル絶対パスを含めない。`nix/agents/codex.nix` で `config.home.homeDirectory` から生成される `["bash", "$HOME/.codex/notify.sh"]` 相当の形だけを維持する
   - `home/agents/codex/config.toml` を変更する PR では、上記パターンが紛れ込んでいないか diff を確認してからコミットする
 
 ## ファイルパス（Windows / WSL2）
