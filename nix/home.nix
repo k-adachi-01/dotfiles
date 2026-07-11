@@ -3,10 +3,14 @@
   pkgs,
   inputs,
   username,
+  system,
   enableAgentSkills ? true,
   ...
 }: let
   isDarwin = pkgs.stdenv.isDarwin;
+  sharedPackages = import ./packages.nix {
+    inherit pkgs inputs system;
+  };
 in {
   imports =
     [
@@ -38,6 +42,7 @@ in {
       "$HOME/.local/bin"
       "$PNPM_HOME"
     ];
+    packages = lib.optionals (!isDarwin) sharedPackages;
     file =
       {
         ".config/herdr/config.toml".source = ../home/herdr/config.toml;

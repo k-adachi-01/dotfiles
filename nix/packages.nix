@@ -2,6 +2,8 @@
   pkgs,
   inputs,
   system,
+  enableLlmAgents ? pkgs.stdenv.isDarwin,
+  enableSourceBuiltTools ? pkgs.stdenv.isDarwin,
 }:
 with pkgs; let
   inherit (stdenv) isDarwin;
@@ -68,15 +70,10 @@ in
     awscli2
     azure-cli
     alejandra
-    llmAgentsPkgs.agent-browser
     bat
     bun
-    cargo
-    llmAgentsPkgs.claude-code
     cmake
-    llmAgentsPkgs.codex
     curl
-    llmAgentsPkgs.cursor-agent
     deadnix
     delta
     direnv
@@ -92,26 +89,20 @@ in
     gnumake
     gnupg
     google-cloud-sdk
-    llmAgentsPkgs.grok
-    llmAgentsPkgs.hunk
     husky
     httpie
     hyperfine
-    llmAgentsPkgs.herdr
     jq
     just
     kubectl
-    mise
     nix-output-monitor
     nixd
     nodejs_24
     pkg-config
-    playwrightCli
     pnpm
     python313
     procs
     ripgrep
-    llmAgentsPkgs.rtk
     sd
     sops
     shellcheck
@@ -129,6 +120,20 @@ in
     yq-go
     zoxide
     zstd
+  ]
+  ++ lib.optionals enableLlmAgents [
+    llmAgentsPkgs.agent-browser
+    llmAgentsPkgs.claude-code
+    llmAgentsPkgs.codex
+    llmAgentsPkgs.cursor-agent
+    llmAgentsPkgs.grok
+    llmAgentsPkgs.hunk
+    llmAgentsPkgs.herdr
+    llmAgentsPkgs.rtk
+  ]
+  ++ lib.optionals enableSourceBuiltTools [
+    mise
+    playwrightCli
   ]
   ++ lib.optionals isDarwin [
     kiroCliFixed
