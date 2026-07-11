@@ -11,7 +11,10 @@ if [[ ! -x "${darwin_rebuild}" ]]; then
 fi
 
 # Keep the Mac awake while missing llm-agents.nix source packages build.
+# darwin-rebuild does not accept --accept-flake-config; pass it as a Nix
+# --option. sudo runs as root (trusted-users), so flake nixConfig can enable
+# cache.numtide.com for this build before nix.custom.conf is activated.
 exec /usr/bin/caffeinate -i /usr/bin/sudo "${darwin_rebuild}" switch \
   --flake "${dotfiles_dir}#macbook" \
-  --accept-flake-config \
+  --option accept-flake-config true \
   --print-build-logs

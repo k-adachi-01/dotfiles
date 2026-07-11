@@ -2,9 +2,12 @@
   description = "k-adachi-01 macOS development environment";
 
   # Bootstrap Numtide's cache before the first switch persists the same
-  # settings through nix/nix.custom.conf in nix/darwin.nix.
+  # settings through nix/nix.custom.conf in nix/darwin.nix. Only effective
+  # for trusted users (root); use scripts/apply-llm-agents-overnight which
+  # runs via sudo with --option accept-flake-config true.
   nixConfig = {
     extra-substituters = ["https://cache.numtide.com"];
+    extra-trusted-substituters = ["https://cache.numtide.com"];
     extra-trusted-public-keys = [
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
     ];

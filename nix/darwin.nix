@@ -19,10 +19,13 @@
 
   # Determinate Nix owns /etc/nix/nix.conf and includes this supported
   # extension point. Keep llm-agents.nix on its pinned nixpkgs for cache hits.
+  # extra-trusted-substituters lets non-root users also consume the cache
+  # (trusted-users = root only on this host).
   environment.etc."nix/nix.custom.conf" = {
     text = ''
       # llm-agents.nix binary cache
       extra-substituters = https://cache.numtide.com
+      extra-trusted-substituters = https://cache.numtide.com
       extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
     '';
     knownSha256Hashes = [
