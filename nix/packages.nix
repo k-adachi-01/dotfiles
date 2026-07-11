@@ -70,6 +70,7 @@ in
     alejandra
     agent-browser
     bat
+    bottom
     claude-code
     cmake
     codex
@@ -77,6 +78,8 @@ in
     deadnix
     delta
     direnv
+    duf
+    dust
     eza
     fd
     fzf
@@ -87,6 +90,8 @@ in
     gnupg
     google-cloud-sdk
     husky
+    httpie
+    hyperfine
     llmAgentsPkgs.herdr
     jq
     just
@@ -98,12 +103,17 @@ in
     pkg-config
     playwrightCli
     pnpm
+    procs
     python313
     ripgrep
+    sd
     sops
     shellcheck
     shfmt
+    starship
     statix
+    tealdeer
+    tokei
     rustup
     tmux
     tree

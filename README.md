@@ -160,7 +160,13 @@ git push
 
 ## NixOS Home Profile
 
-The Linux PC keeps machine-specific OS settings in `/etc/nixos` and imports only the shared user-level environment from this repository.
+The Linux PC uses a two-layer model to avoid double management:
+
+- `/etc/nixos` owns machine-specific OS settings: boot, hardware, networking, desktop services, system daemons, firewall, and the local user account.
+- This repository owns the user environment through Home Manager: CLI tools, shell, git, tmux, direnv, fzf, editors, and AI-agent config.
+- Do not add normal development CLI packages to `/etc/nixos`; add them to `nix/packages.nix` here so macOS and NixOS share one user-level package list.
+
+Validate the user profile:
 
 ```bash
 cd "$HOME/dotfiles"
@@ -174,6 +180,13 @@ nix run home-manager/master -- switch --flake "$HOME/dotfiles#adachi@nixos"
 ```
 
 Linux intentionally disables the private `agent-skills` mirror and macOS-only launchd / Homebrew / `~/Library` editor settings. Shared shell, git, tmux, direnv, fzf, Nixvim, WezTerm Linux config, Zed config, and AI-agent config are still managed.
+
+Apply the NixOS system layer separately:
+
+```bash
+sudo nix flake update /etc/nixos
+sudo nixos-rebuild switch --flake /etc/nixos#nixos
+```
 
 ## Continuous Integration
 

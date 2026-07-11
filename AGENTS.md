@@ -6,6 +6,7 @@
 
 - パス: `~/.config/nix-darwin`（GitHub: `k-adachi-01/dotfiles`, **Public リポジトリ**）
 - `nix-darwin` + `home-manager` による macOS 単一ホスト構成（`darwinConfigurations.macbook`, `aarch64-darwin`, ユーザー `adachi` 固定）
+- NixOS では user-level Home Manager profile（`homeConfigurations."adachi@nixos"`）だけを提供する。NixOS の boot/hardware/service/firewall/user account は `/etc/nixos` の責務とし、この public repo へ入れない
 - **Public リポジトリであることを常に意識する**: 個人パス・第三者名・APIキー・タイムスタンプ付きランタイム状態を絶対にコミットしない
 
 ## 適用コマンド（必ず sudo 付き）
@@ -32,7 +33,7 @@ nix build '.#darwinConfigurations.macbook.system' --no-link
 |---|---|---|
 | `nix/darwin.nix` | macOS system defaults, fonts, system packages | nix-darwin モジュール |
 | `nix/apps.nix` | Homebrew casks/brews（GUI アプリはここ。Zed / WezTerm 含む） | nix-homebrew |
-| `nix/packages.nix` | CLI 一式（`.app` bundle を持つパッケージは除外） | system packages |
+| `nix/packages.nix` | macOS/NixOS 共有の user-level CLI 一式（`.app` bundle を持つパッケージは除外） | macOS system packages / NixOS home-manager packages |
 | `nix/home.nix` | shell/git/direnv/fzf/tmux | home-manager ネイティブ |
 | `nix/nixvim.nix` | Neovim 全設定 | nixvim（Neovim の唯一のソース。`home/config/nvim/` のような別ツリーを作らない） |
 | `nix/editors.nix` | VS Code/Cursor/Antigravity/Antigravity IDE の `settings.json`（クラスA merge、`nix/agents/lib.nix` を共用） / `keybindings.json`（home.file symlink、配列トップレベルのため merge 非対応） | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
@@ -76,6 +77,7 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 ```bash
 git status --short --branch
 nix build '.#darwinConfigurations.macbook.system' --no-link   # sudo 不要のビルド検証
+nix build '.#homeConfigurations."adachi@nixos".activationPackage' --no-link  # NixOS user profile 検証
 alejandra --check . && statix check . && deadnix --fail .      # CI（.github/workflows/ci.yml）と同じ lint
 gitleaks protect --staged --config .gitleaks.toml              # commit 前の秘密情報チェック
 sudo darwin-rebuild build --flake ~/.config/nix-darwin#macbook  # 適用前のフル検証
@@ -84,6 +86,8 @@ agents-diff                                                     # 次の switch 
 ```
 
 CI（GitHub Actions, `.github/workflows/ci.yml`）は push/PR ごとに lint（alejandra/statix/deadnix）と gitleaks を実行する。フルの `nix build`/`darwin-rebuild build` は CI に含めていない。これは必ずローカルで実行すること。
+
+NixOS で通常の開発 CLI を増やす場合は `/etc/nixos` ではなく `nix/packages.nix` に追加する。`/etc/nixos` に置くのは boot/hardware/networking/desktop services/system daemons/firewall と、ログインに必要な最小限の user account 設定だけに限定する。
 
 ## 変更後の運用
 

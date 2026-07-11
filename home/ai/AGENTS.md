@@ -13,6 +13,7 @@
 - NixOS システム設定は `/etc/nixos` で管理する。
 - NixOS の active flake は `/etc/nixos#nixos`。
 - この dotfiles repo は NixOS ではユーザー環境のみを `.#homeConfigurations."adachi@nixos"` で管理する。
+- NixOS の `/etc/nixos` は boot/hardware/networking/desktop services/system daemons/firewall/user account だけに限定する。通常の開発 CLI・shell・git・editor・AI agent 設定は dotfiles の Home Manager 側へ追加し、二重管理しない。
 
 通常のシステム更新:
 
