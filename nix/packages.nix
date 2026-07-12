@@ -129,6 +129,7 @@ in
     llmAgentsPkgs.grok
     llmAgentsPkgs.hunk
     llmAgentsPkgs.herdr
+    llmAgentsPkgs.hermes-agent
     llmAgentsPkgs.rtk
   ]
   ++ lib.optionals enableSourceBuiltTools [
