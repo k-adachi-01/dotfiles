@@ -121,6 +121,9 @@ in
     zoxide
     zstd
   ]
+  ++ lib.optionals (!isDarwin) [
+    obsidian
+  ]
   ++ lib.optionals enableLlmAgents [
     llmAgentsPkgs.agent-browser
     llmAgentsPkgs.claude-code
