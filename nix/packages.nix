@@ -123,6 +123,7 @@ in
   ]
   ++ lib.optionals (!isDarwin) [
     obsidian
+    slack
   ]
   ++ lib.optionals enableLlmAgents [
     llmAgentsPkgs.agent-browser
