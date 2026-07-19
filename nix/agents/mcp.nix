@@ -240,6 +240,7 @@ in rec {
       src = ../../home/agents/codex/default.rules;
     } ''
       ruby <<'RUBY' > "$out"
+      Encoding.default_external = Encoding::UTF_8
       commands = []
 
       File.foreach(ENV.fetch("src")) do |line|

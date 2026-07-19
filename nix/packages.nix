@@ -31,6 +31,41 @@ with pkgs; let
       mainProgram = "playwright-cli";
     };
   };
+  slackCli = stdenvNoCC.mkDerivation rec {
+    pname = "slack-cli";
+    version = "4.4.0";
+
+    src = fetchurl (
+      if system == "aarch64-darwin"
+      then {
+        url = "https://downloads.slack-edge.com/slack-cli/slack_cli_${version}_macOS_arm64.tar.gz";
+        hash = "sha256-3ds0NC9ABZg0is5/XIb4Wv5dmWZghHIPliZp0SvEnU8=";
+      }
+      else if system == "x86_64-linux"
+      then {
+        url = "https://downloads.slack-edge.com/slack-cli/slack_cli_${version}_linux_64-bit.tar.gz";
+        hash = "sha256-MV9tBy6D/mgWM3Ycrh5rGMSyb6oW0b9NibIedro9P6o=";
+      }
+      else throw "slack-cli is unsupported on ${system}"
+    );
+
+    sourceRoot = ".";
+    dontStrip = true;
+
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 bin/slack "$out/bin/slack"
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "Official command-line interface for creating and managing Slack apps";
+      homepage = "https://docs.slack.dev/tools/slack-cli/";
+      license = lib.licenses.asl20;
+      mainProgram = "slack";
+      platforms = ["aarch64-darwin" "x86_64-linux"];
+    };
+  };
   kiroCliFixed = kiro-cli.overrideAttrs (oldAttrs: {
     version = "2.8.1";
     src = fetchurl {
@@ -107,6 +142,7 @@ in
     sops
     shellcheck
     shfmt
+    slackCli
     starship
     statix
     tealdeer
