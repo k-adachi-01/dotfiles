@@ -25,6 +25,7 @@ prefix_rule(pattern=["curl", "--head"], decision="allow")
 prefix_rule(pattern=["curl", "--max-time"], decision="allow")
 
 prefix_rule(pattern=["agent-browser"], decision="allow")
+prefix_rule(pattern=["rg"], decision="allow")
 prefix_rule(pattern=["playwright-cli"], decision="allow")
 
 prefix_rule(pattern=["nix", "eval"], decision="allow")
