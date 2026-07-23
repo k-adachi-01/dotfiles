@@ -67,7 +67,7 @@ Managed by Nix:
 - `~/.cursor/statusline.sh` (out-of-store symlink to `home/agents/cursor/statusline.sh`)
 - `~/.kiro/powers.json` (deep-merged on every switch)
 - `~/.kiro/powers.mcp.json` (deep-merged on every switch)
-- `~/.kiro/settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml` (deep-merged on every switch; `permissions.yaml` is generated from `home/agents/codex/default.rules`)
+- `~/.kiro/settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml` (deep-merged on every switch; `permissions.yaml` allows all capabilities except explicitly denied destructive shell operations)
 - `~/.kiro/skills/` (always re-synced on switch, dynamic catalog)
 - `~/.kiro/powers/**` (individual files are out-of-store symlinks to `home/agents/kiro/powers/`; the `powers/` and `powers/<name>/` directories themselves stay real directories so Kiro can create its own `registries/` etc. alongside them)
 

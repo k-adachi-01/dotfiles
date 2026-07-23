@@ -147,7 +147,7 @@ pnpm = "latest"
 - Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は switch のたびに常に再同期される動的カタログ（merge/link のどちらでもない、専用の rsync ミラー）
 - Kiro CLI 本体のバージョン・取得元は `nix/packages.nix` で管理する
 - Kiro shell integration / alias は `nix/home.nix` で管理する
-- Kiro v3 permissions の宣言は `home/agents/codex/default.rules` を source of truth とし、`nix/agents/mcp.nix` の `kiroPermissions` 生成処理で YAML へ変換してから merge する
+- Kiro v3 permissions は `nix/agents/mcp.nix` の `kiroPermissions` を独立した source of truth とする。全 capability を許可し、回復困難な shell 操作だけを明示的に deny する。`sudo` は原則 deny だが、`sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook` だけを例外として許可する
 - Kiro powers の seed は `home/agents/kiro/powers/` で管理し、共通 skills とは別責務として維持する
 - `~/.kiro/sessions/`, `~/.kiro/logs/`, `~/.kiro/.cli_bash_history`, `~/.kiro/settings/feed_state.json`, `~/.kiro/settings/survey_state.json`, `~/.codex/sessions/`, `~/.codex/cache/`, `~/.codex/*.sqlite*` は runtime state として Nix/Git 管理しない
 - `kiro-cli settings`, `kiro-cli mcp add`, `kiro-cli theme` で試した変更は永続化せず、必要な内容を Nix source に移してから switch する

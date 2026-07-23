@@ -3,7 +3,7 @@
     "agent-skills": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-xlmpVAjxDhP+zhx52bph5eClRaPCND7VLRWGPnOarr0=",
+        "narHash": "sha256-iEaNuVXFx1ExMzwz21N77MU4AI6blbemCVbgsR9MtIE=",
         "path": "/Users/adachi/agent-skills",
         "type": "path"
       },
