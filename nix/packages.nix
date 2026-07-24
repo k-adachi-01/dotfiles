@@ -202,6 +202,7 @@ in
     unzip
     uv
     wget
+    (wrangler.override {nodejs = nodejs_22;})
     yq-go
     zoxide
     zstd
