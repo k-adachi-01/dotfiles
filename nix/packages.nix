@@ -31,6 +31,54 @@ with pkgs; let
       mainProgram = "playwright-cli";
     };
   };
+  devinCli = stdenvNoCC.mkDerivation rec {
+    pname = "devin-cli";
+    version = "3000.2.17";
+
+    src = fetchurl (
+      if system == "aarch64-darwin"
+      then {
+        url = "https://static.devin.ai/cli/${version}/devin-${version}-aarch64-apple-darwin.tar.gz";
+        hash = "sha256-YOLt0yH1zV4c/fPW1eEgZPJTJsqONqitcfQ9AAdF3/g=";
+      }
+      else if system == "x86_64-darwin"
+      then {
+        url = "https://static.devin.ai/cli/${version}/devin-${version}-x86_64-apple-darwin.tar.gz";
+        hash = "sha256-jU2dYnuTRImEQuFP/4cAOzdt2aGr9SQ3IgbxcnshzSg=";
+      }
+      else if system == "aarch64-linux"
+      then {
+        url = "https://static.devin.ai/cli/${version}/devin-${version}-aarch64-unknown-linux.tar.gz";
+        hash = "sha256-EW3HHvCFqSK8P/DqA3fUsmxSmkMdWCRuNlcpE+LSViQ=";
+      }
+      else if system == "x86_64-linux"
+      then {
+        url = "https://static.devin.ai/cli/${version}/devin-${version}-x86_64-unknown-linux.tar.gz";
+        hash = "sha256-8OHpNjr8buaMTvh7q0rrf/XMCKX6g4NQ7zzu/bsqK+I=";
+      }
+      else throw "devin-cli is unsupported on ${system}"
+    );
+
+    sourceRoot = ".";
+    dontStrip = true;
+
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 bin/devin "$out/bin/devin"
+      if [ -d share ]; then
+        cp -R share "$out/share"
+      fi
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "Devin CLI";
+      homepage = "https://docs.devin.ai/work-with-devin/devin-cli";
+      license = lib.licenses.unfree;
+      mainProgram = "devin";
+      platforms = ["aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux"];
+    };
+  };
   slackCli = stdenvNoCC.mkDerivation rec {
     pname = "slack-cli";
     version = "4.4.0";
@@ -111,6 +159,7 @@ in
     curl
     deadnix
     delta
+    devinCli
     direnv
     bottom
     duf
