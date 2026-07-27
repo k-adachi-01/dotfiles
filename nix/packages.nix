@@ -31,6 +31,68 @@ with pkgs; let
       mainProgram = "playwright-cli";
     };
   };
+  opencodexSrc = fetchFromGitHub {
+    owner = "lidge-jun";
+    repo = "opencodex";
+    tag = "v2.7.41";
+    hash = "sha256-caQaXF7GRAjEU4cbTI8N8EyIxzZfaA5JklNIl7OzUWs=";
+  };
+  opencodexDeps = stdenvNoCC.mkDerivation {
+    pname = "opencodex-deps";
+    version = "2.7.41";
+    src = opencodexSrc;
+
+    nativeBuildInputs = [
+      bun
+      cacert
+    ];
+
+    dontConfigure = true;
+    dontBuild = true;
+
+    installPhase = ''
+      runHook preInstall
+      export HOME="$TMPDIR"
+      bun install --frozen-lockfile --ignore-scripts
+      mkdir -p "$out"
+      cp -R node_modules "$out/"
+      runHook postInstall
+    '';
+
+    outputHashMode = "recursive";
+    outputHashAlgo = "sha256";
+    outputHash = "sha256-ib0LJ6RdQ+Z/Q26ssyazcGcFPg2IXM6RlxjUJc/d5zA=";
+  };
+  opencodex = stdenvNoCC.mkDerivation {
+    pname = "opencodex";
+    version = "2.7.41";
+    src = opencodexSrc;
+
+    nativeBuildInputs = [makeWrapper];
+
+    dontConfigure = true;
+    dontBuild = true;
+
+    installPhase = ''
+      runHook preInstall
+      installDir="$out/libexec/opencodex"
+      mkdir -p "$installDir" "$out/bin"
+      cp -R . "$installDir/"
+      cp -R ${opencodexDeps}/node_modules "$installDir/"
+      makeWrapper ${bun}/bin/bun "$out/bin/ocx" \
+        --add-flags "$installDir/src/cli/index.ts"
+      ln -s ocx "$out/bin/opencodex"
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "Universal provider proxy for OpenAI Codex and Claude Code";
+      homepage = "https://opencodex.me/";
+      license = lib.licenses.mit;
+      mainProgram = "ocx";
+      platforms = lib.platforms.darwin;
+    };
+  };
   devinCli = stdenvNoCC.mkDerivation rec {
     pname = "devin-cli";
     version = "3000.2.17";
@@ -229,4 +291,5 @@ in
   ++ lib.optionals isDarwin [
     kiroCliFixed
     macismCliOnly
+    opencodex
   ]
