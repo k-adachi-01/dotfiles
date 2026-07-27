@@ -24,7 +24,23 @@ prefix_rule(pattern=["curl", "-I"], decision="allow")
 prefix_rule(pattern=["curl", "--head"], decision="allow")
 prefix_rule(pattern=["curl", "--max-time"], decision="allow")
 
-prefix_rule(pattern=["agent-browser"], decision="allow")
+# Allow every agent-browser invocation. Codex splits `&&` / `||` / `;` / `|`
+# chains into segments and evaluates each independently, so chained calls
+# such as `agent-browser open URL && agent-browser snapshot` are covered as
+# long as every segment starts with agent-browser.
+prefix_rule(
+    pattern=[["agent-browser", "/run/current-system/sw/bin/agent-browser"]],
+    decision="allow",
+    justification="Allow all agent-browser commands; &&-chained segments are evaluated independently",
+    match=[
+        "agent-browser open https://example.com",
+        "agent-browser snapshot",
+        "agent-browser --session demo open https://example.com",
+        "agent-browser click @e1",
+        "agent-browser close",
+        "/run/current-system/sw/bin/agent-browser snapshot",
+    ],
+)
 prefix_rule(pattern=["rg"], decision="allow")
 prefix_rule(pattern=["playwright-cli"], decision="allow")
 
