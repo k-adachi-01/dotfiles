@@ -1,4 +1,4 @@
-model = "gpt-5.4-mini"
+model = "xai/grok-4.5"
 model_reasoning_effort = "medium"
 personality = "pragmatic"
 approvals_reviewer = "user"

@@ -7,7 +7,10 @@
       upgrade = false;
     };
     brews = [
-      "container"
+      {
+        name = "container";
+        start_service = true;
+      }
     ];
     casks = [
       "amazon-workspaces"

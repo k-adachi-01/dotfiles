@@ -38,11 +38,15 @@ in {
         then "$HOME/Library/pnpm"
         else "$HOME/.local/share/pnpm";
     };
-    sessionPath = [
-      "$HOME/bin"
-      "$HOME/.local/bin"
-      "$PNPM_HOME"
-    ];
+    sessionPath =
+      [
+        "$HOME/bin"
+        "$HOME/.local/bin"
+        "$PNPM_HOME"
+      ]
+      ++ lib.optionals isDarwin [
+        "/opt/homebrew/bin"
+      ];
     packages = lib.optionals (!isDarwin) sharedPackages;
     file =
       {
@@ -61,6 +65,11 @@ in {
             . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
           elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
             . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
+          fi
+
+          # Login shells skip hm-session-vars in .zshenv; expose Homebrew CLI (container).
+          if [ -d /opt/homebrew/bin ]; then
+            export PATH="/opt/homebrew/bin:$PATH"
           fi
 
           if command -v kiro-cli >/dev/null 2>&1; then

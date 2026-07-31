@@ -41,6 +41,7 @@ prefix_rule(
         "/run/current-system/sw/bin/agent-browser snapshot",
     ],
 )
+prefix_rule(pattern=["container"], decision="allow")
 prefix_rule(pattern=["rg"], decision="allow")
 prefix_rule(pattern=["playwright-cli"], decision="allow")
 
@@ -158,3 +159,19 @@ prefix_rule(pattern=["aws", "lambda", "list-event-source-mappings"], decision="a
 prefix_rule(pattern=["pnpm", "exec", "tsx"], decision="allow")
 prefix_rule(pattern=["pnpm", "run", "test:e2e"], decision="allow")
 prefix_rule(pattern=["qlmanage", "-t"], decision="allow")
+prefix_rule(pattern=["pnpm", "dlx", "defuddle"], decision="allow")
+prefix_rule(pattern=["/bin/zsh", "-lc", "for u in 'https://speakerdeck.com/gotok365/how-aws-cdk-works' 'https://speakerdeck.com/konokenj/cdk-snapshot-diff-drift' 'https://zenn.dev/loglass/articles/632082bcef604f'; do echo ===$u; pnpm --silent dlx defuddle parse \"$u\" -p title 2>&1 | tail -n 3; done"], decision="allow")
+prefix_rule(pattern=["/bin/zsh", "-lc", "for u in 'https://speakerdeck.com/gotok365/how-aws-cdk-works' 'https://speakerdeck.com/konokenj/cdk-snapshot-diff-drift' 'https://zenn.dev/loglass/articles/632082bcef604f'; do printf '%s\\n' \"=== $u\"; pnpm --silent dlx defuddle parse \"$u\" -p title 2>&1 | tail -n 5; done"], decision="allow")
+prefix_rule(pattern=["python3", "build_aws_cdk_wiki.py"], decision="allow")
+prefix_rule(pattern=["find", "/Users/adachi/obsidian/04_stock/llm-wiki/wiki/aws-cdk", "-maxdepth", "1", "-type", "f"], decision="allow")
+prefix_rule(pattern=["sed", "-n", "1,80p", "/Users/adachi/obsidian/04_stock/llm-wiki/wiki/aws-cdk/index.md"], decision="allow")
+prefix_rule(pattern=["python3", "rebuild_aws_cdk_wiki.py"], decision="allow")
+prefix_rule(pattern=["mv", "/Users/adachi/obsidian/04_stock/llm-wiki/wiki/aws-cdk/Cloud Assemblyの契約.md", "/Users/adachi/obsidian/04_stock/llm-wiki/wiki/aws-cdk/Cloud_Assemblyの契約.md"], decision="allow")
+prefix_rule(pattern=["uv", "run", "--with", "pyyaml", "python", "/Users/adachi/.codex/skills/skill-creator/scripts/quick_validate.py", "/Users/adachi/agent-skills/japanese-ai-writing-editor"], decision="allow")
+prefix_rule(pattern=["/bin/zsh", "-lc", "UV_CACHE_DIR=/tmp/codex-uv-cache uv run --with numpy --with pillow --with lxml --with pdf2image python /Users/adachi/.codex/plugins/cache/openai-primary-runtime/presentations/26.715.12143/skills/presentations/container_tools/slides_test.py /Users/adachi/obsidian/03_active/jawsug-sonic-2026/260720_JAWS_SONIC_2026_登壇者向けルールブック.pptx"], decision="allow")
+prefix_rule(pattern=["/bin/zsh", "-lc", "UV_CACHE_DIR=/tmp/codex-uv-cache uv run --with numpy --with pillow --with lxml --with pdf2image --with python-pptx python /Users/adachi/.codex/plugins/cache/openai-primary-runtime/presentations/26.715.12143/skills/presentations/container_tools/slides_test.py /Users/adachi/obsidian/03_active/jawsug-sonic-2026/260720_JAWS_SONIC_2026_登壇者向けルールブック.pptx"], decision="allow")
+prefix_rule(pattern=["rg", "-n", "-A45", "Covered parent types"], decision="allow")
+prefix_rule(pattern=["/bin/zsh", "-lc", "ps aux | rg 'run-phase-e|run-measure|aws-agent-lease|cdkd destroy|cdk destroy' | rg -v 'rg ' || true; tail -n 30 benchmark/results/summaries/20260720-measure-phase-e-resume.log 2>/dev/null || true"], decision="allow")
+prefix_rule(pattern=["/bin/zsh", "-lc", "ps -axo pid,ppid,etime,command | rg '(23797|run-phase-e-resume4|run-measure.ts --scenario s6|CdkdBenchS6)' | rg -v 'rg ' || true; tail -n 30 benchmark/results/summaries/20260720-measure-phase-e-resume4.log 2>/dev/null || true"], decision="allow")
+prefix_rule(pattern=["/Users/adachi/agent-skills/aws-sandbox-run/scripts/aws-agent-lease"], decision="allow")
+prefix_rule(pattern=["ps", "-axo", "pid,ppid,state,etime,command"], decision="allow")
