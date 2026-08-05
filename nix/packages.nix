@@ -177,10 +177,10 @@ with pkgs; let
     };
   };
   kiroCliFixed = kiro-cli.overrideAttrs (oldAttrs: {
-    version = "2.8.1";
+    version = "2.16.1";
     src = fetchurl {
-      url = "https://prod.download.cli.kiro.dev/stable/2.8.1/Kiro%20CLI.dmg";
-      hash = "sha256-nN3GHnAdjgIplKgbPgtis4M1lRhyH5s8ilHMjKAuRJU=";
+      url = "https://prod.download.cli.kiro.dev/stable/2.16.1/Kiro%20CLI.dmg";
+      hash = "sha256-X86c+dymp08MUpFRdqZCH1lI5pA4E6+QSAxrciyyDTI=";
     };
     # Keep the app bundle in the Nix store so kiro-cli can resolve its bundled
     # resources, but move it out of /Applications so nix-darwin does not expose
