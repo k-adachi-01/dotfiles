@@ -1,14 +1,17 @@
 {
+  config,
   lib,
   pkgs,
   inputs,
   username,
   system,
+  dotfilesRepo ? "${config.home.homeDirectory}/.config/nix-darwin",
   enableAgentSkills ? true,
   enableLlmAgents ? pkgs.stdenv.isDarwin,
   ...
 }: let
   isDarwin = pkgs.stdenv.isDarwin;
+  mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
   sharedPackages = import ./packages.nix {
     inherit pkgs inputs system enableLlmAgents;
   };
@@ -60,26 +63,9 @@ in {
           else ../home/wezterm/linux.lua;
       }
       // lib.optionalAttrs isDarwin {
-        ".zprofile".text = ''
-          if [ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-            . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-          elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
-            . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
-          fi
-
-          # Login shells skip hm-session-vars in .zshenv; expose Homebrew CLI (container).
-          if [ -d /opt/homebrew/bin ]; then
-            export PATH="/opt/homebrew/bin:$PATH"
-          fi
-
-          if command -v kiro-cli >/dev/null 2>&1; then
-            source <(SHELL=/bin/zsh kiro-cli init zsh pre)
-          fi
-
-          # Added by OrbStack: command-line tools and integration
-          # This won't be added again if you remove it.
-          source ~/.orbstack/shell/init.zsh 2>/dev/null || :
-        '';
+        # Out-of-store: login shells must still work when /nix is unmounted.
+        ".zprofile".source = mkLink "home/zprofile";
+        "bin/nix-store-repair".source = mkLink "home/bin/nix-store-repair.sh";
       }
       // lib.optionalAttrs (!isDarwin) {
         ".bashrc".source = ../home/bashrc;

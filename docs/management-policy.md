@@ -64,7 +64,7 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 
 Kiro の宣言データ（`kiroPowersJson`/`kiroPowersMcpJson`/`kiroCliJson`/`kiroSettingsMcpJson`/`kiroCliThemeJson`/`kiroPermissions`）は、`nix/agents/mcp.nix` の `pkgs.formats.json{}.generate` または `pkgs.formats.yaml{}.generate` が生成する**既存の store ファイル**である。これを再度 Nix 値化して `mkMergeActivation` の `value` に渡すのは冗長なため、`mkMergeActivation` を拡張し、`value`（Nix値をformatsで生成）と `declaredFile`（すでに存在するファイルをそのまま使う）のどちらか一方を渡せるようにした。Kiro は全項目で `declaredFile` を使う。
 
-Kiro v3 permissions は Codex の `default.rules` とは独立している。`kiroPermissions` は `capability: all` / `effect: allow` を基準にし、回復困難な shell 操作だけを `effect: deny` で列挙する。deny は allow より常に優先される。`sudo` は原則 deny だが、この端末で必要な `sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook` だけを `exclude` で許可する。Kiro 自身が持つ設定ファイル保護などのハードコードされた制約はこの宣言では上書きしない。
+Kiro v3 permissions は Codex の `default.rules` とは独立している。`kiroPermissions` は `capability: all` / `effect: allow` を基準にし、回復困難な shell 操作だけを `effect: deny` で列挙する。deny は allow より常に優先される。`sudo` は原則 deny だが、この端末で必要な `sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook` と、再起動後に `/nix` が未マウントのときの `nix-store-repair` / `determinate-nixd init` だけを `exclude` で許可する。Kiro 自身が持つ設定ファイル保護などのハードコードされた制約はこの宣言では上書きしない。
 
 `kiro_cli_theme.json` は元の再設計案の分類表に載っていなかったが、`settings/cli.json` と同種の単純な設定ファイル（Kiro が実行時に他のキーを追記する形跡がない）と判断し、クラスA merge に含めた。
 
