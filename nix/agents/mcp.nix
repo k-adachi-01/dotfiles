@@ -234,8 +234,8 @@ in rec {
 
   # Kiro is permissive by default: explicit deny rules protect only
   # destructive shell operations. Deny takes precedence over the catch-all
-  # allow rule. The one sudo command required to activate this dotfiles flake
-  # is exempted from the sudo deny rule.
+  # allow rule. sudo is denied except for darwin-rebuild switch and the
+  # Nix store remount repair (needed when /nix is unmounted after reboot).
   kiroPermissions = yaml.generate "kiro-permissions.yaml" {
     rules = [
       {
@@ -265,6 +265,11 @@ in rec {
         match = ["sudo *"];
         exclude = [
           "sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook"
+          "sudo /Users/adachi/.config/nix-darwin/home/bin/nix-store-repair.sh"
+          "sudo /Users/adachi/bin/nix-store-repair"
+          "sudo /bin/bash /Users/adachi/.config/nix-darwin/home/bin/nix-store-repair.sh"
+          "sudo /bin/bash /Users/adachi/bin/nix-store-repair"
+          "sudo /usr/local/bin/determinate-nixd init"
         ];
       }
     ];

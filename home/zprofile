@@ -1,0 +1,29 @@
+# Login-shell PATH bootstrap. Kept as an out-of-store symlink so it still
+# runs when the Nix store volume is not mounted after reboot.
+if [ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
+  . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
+fi
+
+# Login shells skip hm-session-vars in .zshenv; expose Homebrew CLI (container)
+# and ~/bin (nix-store-repair lives here as an out-of-store symlink).
+if [ -d /opt/homebrew/bin ]; then
+  export PATH="/opt/homebrew/bin:$PATH"
+fi
+if [ -d "$HOME/bin" ]; then
+  export PATH="$HOME/bin:$PATH"
+fi
+
+if [ ! -r /nix/store ]; then
+  echo "Nix store is not readable. Repair with:" >&2
+  echo "  /bin/bash ~/.config/nix-darwin/home/bin/nix-store-repair.sh" >&2
+fi
+
+if command -v kiro-cli >/dev/null 2>&1; then
+  source <(SHELL=/bin/zsh kiro-cli init zsh pre)
+fi
+
+# Added by OrbStack: command-line tools and integration
+# This won't be added again if you remove it.
+source ~/.orbstack/shell/init.zsh 2>/dev/null || :
