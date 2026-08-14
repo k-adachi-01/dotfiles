@@ -98,6 +98,7 @@ in
     nix-output-monitor
     nixd
     nodejs_24
+    openssl
     pkg-config
     pnpm
     python313
