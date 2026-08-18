@@ -141,6 +141,56 @@ with pkgs; let
       platforms = ["aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux"];
     };
   };
+  # Cursor Origin CLI (https://cursor.com/docs/origin/cli). Pin the public
+  # stable artifact; `origin update` writes ~/.local/bin/origin and would
+  # shadow this derivation. Bump version + hashes from the URLs baked into
+  # https://downloads.cursor.com/origin/install.sh. Auth/config under
+  # ~/.config/origin-cli/ stays unmanaged.
+  originCli = stdenvNoCC.mkDerivation rec {
+    pname = "origin-cli";
+    version = "2026.08.15-22-58-04-922a05a";
+
+    src = fetchurl (
+      if system == "aarch64-darwin"
+      then {
+        url = "https://downloads.cursor.com/co/${version}/darwin-arm64/co.tar.gz";
+        hash = "sha256-oiiss2K54STALTEyq3Tr1HBOvVvltHBj22OOkHg2xpw=";
+      }
+      else if system == "x86_64-darwin"
+      then {
+        url = "https://downloads.cursor.com/co/${version}/darwin-x64/co.tar.gz";
+        hash = "sha256-hWRPsOMbglBOc03agtXCEv/tIwFtRDQv4pk3OdFblWs=";
+      }
+      else if system == "aarch64-linux"
+      then {
+        url = "https://downloads.cursor.com/co/${version}/linux-arm64/co.tar.gz";
+        hash = "sha256-MVJkVbACszjff/vxothcqLUIMRhyhajRiM4qC24+I4o=";
+      }
+      else if system == "x86_64-linux"
+      then {
+        url = "https://downloads.cursor.com/co/${version}/linux-x64/co.tar.gz";
+        hash = "sha256-bjsMF5MJmBVYYRZW9PCpl4OFgh/sLHP59k8l6Tj1roc=";
+      }
+      else throw "origin-cli is unsupported on ${system}"
+    );
+
+    sourceRoot = ".";
+    dontStrip = true;
+
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 origin "$out/bin/origin"
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "Cursor Origin CLI";
+      homepage = "https://cursor.com/docs/origin/cli";
+      license = lib.licenses.unfree;
+      mainProgram = "origin";
+      platforms = ["aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux"];
+    };
+  };
   slackCli = stdenvNoCC.mkDerivation rec {
     pname = "slack-cli";
     version = "4.4.0";
@@ -244,6 +294,7 @@ in
     nix-output-monitor
     nixd
     nodejs_24
+    originCli
     openssl
     pkg-config
     pnpm
