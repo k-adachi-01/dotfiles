@@ -175,3 +175,5 @@ prefix_rule(pattern=["/bin/zsh", "-lc", "ps aux | rg 'run-phase-e|run-measure|aw
 prefix_rule(pattern=["/bin/zsh", "-lc", "ps -axo pid,ppid,etime,command | rg '(23797|run-phase-e-resume4|run-measure.ts --scenario s6|CdkdBenchS6)' | rg -v 'rg ' || true; tail -n 30 benchmark/results/summaries/20260720-measure-phase-e-resume4.log 2>/dev/null || true"], decision="allow")
 prefix_rule(pattern=["/Users/adachi/agent-skills/aws-sandbox-run/scripts/aws-agent-lease"], decision="allow")
 prefix_rule(pattern=["ps", "-axo", "pid,ppid,state,etime,command"], decision="allow")
+prefix_rule(pattern=["agent-browser"], decision="allow")
+prefix_rule(pattern=["curl"], decision="allow")
