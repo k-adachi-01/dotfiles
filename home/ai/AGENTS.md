@@ -146,7 +146,7 @@ pnpm = "latest"
 - merge は辞書（テーブル/オブジェクト）のみを再帰マージする。配列は宣言側で丸ごと置き換わる（例: `permissions.yaml` の `rules` リストに Kiro が独自に追記しても、次の switch で宣言値に戻る）。配列への追記を保持したいフィールドが見つかったら、そのフィールドは merge の対象から外しクラスCとして扱うことを検討する
 - `agents-diff`（`~/.local/bin/agents-diff`）を実行すると、4ツールすべての class A ファイルについて「次の switch で何が変わるか」と「宣言されていないアプリ所有キー」を読み取り専用で確認できる。ローカルで試した設定を恒久化したい時は、これで確認してから該当する `nix/agents/<tool>.nix` の attrset へ手動で移す
 - Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は switch のたびに常に再同期される動的カタログ（merge/link のどちらでもない、専用の rsync ミラー）
-- Kiro CLI 本体のバージョン・取得元は `nix/packages.nix` で管理する
+- Kiro CLI 本体は `.dmg` の手動インストール（`/Applications/Kiro CLI.app` + `/usr/local/bin/kiro-cli*`）で管理する。Nix では配布しない
 - Kiro shell integration / alias は `nix/home.nix` で管理する
 - Kiro v3 permissions は `nix/agents/mcp.nix` の `kiroPermissions` を独立した source of truth とする。全 capability を許可し、回復困難な shell 操作だけを明示的に deny する。`sudo` は原則 deny だが、`sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook` と Nix store 復旧（`nix-store-repair` / `determinate-nixd init`）だけを例外として許可する
 - Kiro powers の seed は `home/agents/kiro/powers/` で管理し、共通 skills とは別責務として維持する

@@ -226,33 +226,6 @@ with pkgs; let
       platforms = ["aarch64-darwin" "x86_64-linux"];
     };
   };
-  kiroCliFixed = kiro-cli.overrideAttrs (oldAttrs: {
-    version = "2.16.1";
-    src = fetchurl {
-      url = "https://prod.download.cli.kiro.dev/stable/2.16.1/Kiro%20CLI.dmg";
-      hash = "sha256-X86c+dymp08MUpFRdqZCH1lI5pA4E6+QSAxrciyyDTI=";
-    };
-    # Keep the app bundle in the Nix store so kiro-cli can resolve its bundled
-    # resources, but move it out of /Applications so nix-darwin does not expose
-    # it under /Applications/Nix Apps and trigger App Management prompts.
-    postInstall =
-      (oldAttrs.postInstall or "")
-      + ''
-                bundleDir="$out/libexec/Kiro CLI.app"
-                mkdir -p "$out/libexec"
-                mv "$out/Applications/Kiro CLI.app" "$bundleDir"
-                rm -rf "$out/Applications"
-
-        for bin in kiro-cli kiro-cli-chat kiro-cli-term; do
-          appBin="$bundleDir/Contents/MacOS/$bin"
-          if [ -x "$appBin" ]; then
-            rm -f "$out/bin/$bin"
-            printf '#!%s\nexec "%s" "$@"\n' "${runtimeShell}" "$appBin" > "$out/bin/$bin"
-            chmod +x "$out/bin/$bin"
-          fi
-        done
-      '';
-  });
   macismCliOnly = macism.overrideAttrs (oldAttrs: {
     postInstall =
       (oldAttrs.postInstall or "")
@@ -341,7 +314,6 @@ in
     playwrightCli
   ]
   ++ lib.optionals isDarwin [
-    kiroCliFixed
     macismCliOnly
     opencodex
   ]
