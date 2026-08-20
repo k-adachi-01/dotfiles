@@ -64,3 +64,5 @@ sudo sfltool dumpbtm | grep -B2 -A10 -iE 'nixos|determinate|darwin-store|nix-dae
 ## なぜ `.zprofile` を store の外に置くか
 
 home-manager の `.text` は Nix store への symlink になる。`/nix` が未マウントだと login shell が `.zprofile` を読めず、Homebrew の PATH も消える。`home/zprofile` を `mkOutOfStoreSymlink` で `~/.zprofile` に張ると、repo（データボリューム）だけあれば login shell が動き、未マウント時に修復コマンドを案内できる。`~/bin/nix-store-repair` も同様。
+
+`programs.zsh.enable` は別キー `home.file."./.zprofile"` にも session vars 用ファイルを書く。`.zprofile` と `./.zprofile` は assertion 上は別物なので、両方有効だと files builder が `Error installing file './.zprofile' outside $HOME` で落ちる。Darwin では生成側を `enable = false` にし、session vars は `home/zprofile` から profile パス経由で読む。

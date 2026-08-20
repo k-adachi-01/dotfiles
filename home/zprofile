@@ -6,6 +6,19 @@ elif [ -r /nix/var/nix/profiles/default/etc/profile.d/nix.sh ]; then
   . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
 fi
 
+# Home Manager session vars. Login shells skip them in .zshenv, and we
+# disable programs.zsh's generated ~/.zprofile (it collides with this file).
+# Profile paths fail closed when /nix is unmounted.
+if [ -z "${__HM_ZSH_SESS_VARS_SOURCED-}" ]; then
+  if [ -r /etc/profiles/per-user/"$USER"/etc/profile.d/hm-session-vars.sh ]; then
+    . /etc/profiles/per-user/"$USER"/etc/profile.d/hm-session-vars.sh
+    export __HM_ZSH_SESS_VARS_SOURCED=1
+  elif [ -r "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
+    . "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
+    export __HM_ZSH_SESS_VARS_SOURCED=1
+  fi
+fi
+
 # Login shells skip hm-session-vars in .zshenv; expose Homebrew CLI (container)
 # and ~/bin (nix-store-repair lives here as an out-of-store symlink).
 if [ -d /opt/homebrew/bin ]; then

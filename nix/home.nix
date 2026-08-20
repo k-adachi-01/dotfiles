@@ -65,6 +65,13 @@ in {
       // lib.optionalAttrs isDarwin {
         # Out-of-store: login shells must still work when /nix is unmounted.
         ".zprofile".source = mkLink "home/zprofile";
+        # programs.zsh always writes home.file."./.zprofile" (dotDirRel == ".")
+        # with hm-session-vars. That is a different attr than ".zprofile", so
+        # HM's conflict assertion misses it. The files builder then realpath's
+        # $out/./.zprofile through the out-of-store symlink and dies with
+        # "Error installing file './.zprofile' outside $HOME". Disable the
+        # generated copy; home/zprofile sources session vars via profile paths.
+        "./.zprofile".enable = lib.mkForce false;
         "bin/nix-store-repair".source = mkLink "home/bin/nix-store-repair.sh";
       }
       // lib.optionalAttrs (!isDarwin) {
