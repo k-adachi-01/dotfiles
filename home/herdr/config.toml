@@ -5,7 +5,7 @@ new_tab = "prefix+t"
 split_horizontal = "prefix+s"
 switch_workspace = "prefix+shift+1..9"
 previous_workspace = "prefix+comma"
-next_workspace = "prefix+period"
+next_workspace = "prefix+semicolon"
 
 [theme]
 name = "catppuccin"
