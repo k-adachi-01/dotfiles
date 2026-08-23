@@ -19,6 +19,7 @@
       "cursor"
       "ghostty"
       "google-chrome"
+      "grok-bot"
       "obsidian"
       "orbstack"
       "raycast"
