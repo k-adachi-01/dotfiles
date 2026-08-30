@@ -34,7 +34,7 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 | Codex | `config.toml`（`model`/`personality`/`notice`/`tui`/`plugins`/`features`/`desktop` 等の管理キーのみ宣言） | `AGENTS.md`, `openai.config.toml`, `bedrock.config.toml`, `rules/default.rules`, `notify.sh`, `keybindings.json` | `auth.json`, `history.jsonl`, `sessions/`, `*.sqlite*`, `cache/`, `.tmp/`, `[projects.*]`, `[marketplaces.*]` |
 | Claude Code | `settings.json`, `.mcp.json`, `keybindings.json` | `AGENTS.md`, `CLAUDE.md`, `statusline.py`, `notify-done.sh` | `.credentials.json`, `projects/`, `statsig/` |
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
-| Kiro | `settings/cli.json`, `settings/mcp.json`, `powers.json`, `powers.mcp.json`, `settings/permissions.yaml`（`default.rules` から生成） | `powers/*` のソース | `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
+| Kiro | `settings/cli.json`, `settings/mcp.json`, `powers.json`, `powers.mcp.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | `powers/*` のソース | `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
 | Agent Skills | — (`programs.agent-skills` モジュール経由の rsync) | — | — |
 
 ## 3. 移行状況（この表は各PRの完了時に更新する）
@@ -62,7 +62,9 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 
 ### Kiro merge 実装メモ（PR7で確定）
 
-Kiro の宣言データ（`kiroPowersJson`/`kiroPowersMcpJson`/`kiroCliJson`/`kiroSettingsMcpJson`/`kiroCliThemeJson`/`kiroPermissions`）は Nix 属性セットではなく、`nix/agents/mcp.nix` の `pkgs.formats.json{}.generate`（または `kiroPermissions` の場合は ruby 製ビルド）が生成する**既存の store ファイル**である。これを再度 Nix 値化して `mkMergeActivation` の `value` に渡すのは冗長なため、`mkMergeActivation` を拡張し、`value`（Nix値をformatsで生成）と `declaredFile`（すでに存在するファイルをそのまま使う）のどちらか一方を渡せるようにした。Kiro は全項目で `declaredFile` を使う。
+Kiro の宣言データ（`kiroPowersJson`/`kiroPowersMcpJson`/`kiroCliJson`/`kiroSettingsMcpJson`/`kiroCliThemeJson`/`kiroPermissions`）は、`nix/agents/mcp.nix` の `pkgs.formats.json{}.generate` または `pkgs.formats.yaml{}.generate` が生成する**既存の store ファイル**である。これを再度 Nix 値化して `mkMergeActivation` の `value` に渡すのは冗長なため、`mkMergeActivation` を拡張し、`value`（Nix値をformatsで生成）と `declaredFile`（すでに存在するファイルをそのまま使う）のどちらか一方を渡せるようにした。Kiro は全項目で `declaredFile` を使う。
+
+Kiro v3 permissions は Codex の `default.rules` とは独立している。`kiroPermissions` は `capability: all` / `effect: allow` を基準にし、回復困難な shell 操作だけを `effect: deny` で列挙する。deny は allow より常に優先される。`sudo` は原則 deny だが、この端末で必要な `sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook` と、再起動後に `/nix` が未マウントのときの `nix-store-repair` / `determinate-nixd init` だけを `exclude` で許可する。Kiro 自身が持つ設定ファイル保護などのハードコードされた制約はこの宣言では上書きしない。
 
 `kiro_cli_theme.json` は元の再設計案の分類表に載っていなかったが、`settings/cli.json` と同種の単純な設定ファイル（Kiro が実行時に他のキーを追記する形跡がない）と判断し、クラスA merge に含めた。
 

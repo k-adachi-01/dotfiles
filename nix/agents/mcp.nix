@@ -10,6 +10,7 @@
   homeDir = config.home.homeDirectory;
 in rec {
   json = pkgs.formats.json {};
+  yaml = pkgs.formats.yaml {};
 
   pnpmHome =
     if pkgs.stdenv.isDarwin
@@ -231,39 +232,46 @@ in rec {
     baseTheme = "dark";
   };
 
-  # Generates ~/.kiro/settings/permissions.yaml allow-rules from Codex's
-  # rules/default.rules. Cross-tool dependency is intentional: Codex's rule
-  # syntax already encodes the shell-command allowlist we want Kiro to share.
-  kiroPermissions =
-    pkgs.runCommand "kiro-permissions.yaml" {
-      nativeBuildInputs = [pkgs.ruby];
-      src = ../../home/agents/codex/default.rules;
-    } ''
-      ruby <<'RUBY' > "$out"
-      commands = []
-
-      File.foreach(ENV.fetch("src")) do |line|
-        next unless line =~ /prefix_rule\(pattern=\[(.*?)\], decision="allow"\)/
-
-        command = Regexp.last_match(1)
-          .scan(/"((?:\\.|[^"])*)"/)
-          .flatten
-          .map { |part| part.gsub(/\\"/, '"') }
-          .join(" ")
-
-        commands << command
-      end
-
-      puts "rules:"
-      puts "  - capability: shell"
-      puts "    effect: allow"
-      puts "    match:"
-
-      commands.each do |command|
-        [command, "#{command} *"].uniq.each do |pattern|
-          puts "      - #{pattern.inspect}"
-        end
-      end
-      RUBY
-    '';
+  # Kiro is permissive by default: explicit deny rules protect only
+  # destructive shell operations. Deny takes precedence over the catch-all
+  # allow rule. sudo is denied except for darwin-rebuild switch and the
+  # Nix store remount repair (needed when /nix is unmounted after reboot).
+  kiroPermissions = yaml.generate "kiro-permissions.yaml" {
+    rules = [
+      {
+        capability = "all";
+        effect = "allow";
+      }
+      {
+        capability = "shell";
+        effect = "deny";
+        match = [
+          "rm -rf *"
+          "rm -fr *"
+          "/bin/rm -rf *"
+          "/bin/rm -fr *"
+          "git reset --hard*"
+          "git clean -*f*"
+          "git checkout -- *"
+          "git restore *"
+          "git branch -D *"
+          "git push *--force*"
+          "git push -f*"
+        ];
+      }
+      {
+        capability = "shell";
+        effect = "deny";
+        match = ["sudo *"];
+        exclude = [
+          "sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook"
+          "sudo /Users/adachi/.config/nix-darwin/home/bin/nix-store-repair.sh"
+          "sudo /Users/adachi/bin/nix-store-repair"
+          "sudo /bin/bash /Users/adachi/.config/nix-darwin/home/bin/nix-store-repair.sh"
+          "sudo /bin/bash /Users/adachi/bin/nix-store-repair"
+          "sudo /usr/local/bin/determinate-nixd init"
+        ];
+      }
+    ];
+  };
 }

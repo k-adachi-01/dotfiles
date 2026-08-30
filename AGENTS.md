@@ -21,6 +21,14 @@ sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook
 
 プレーンな `darwin-rebuild switch` は `system activation must now be run as root` で失敗する。変更を加えたら必ず上記コマンドで適用し、`git status`/`git diff` を確認してからコミットする。
 
+再起動後に `nix` や Nix 由来 CLI が消えたら、store が消えたのではなく **APFS ボリューム `Nix Store` が `/nix` に乗っていない**。Nix 自体は使えないので次を実行する（再インストールや `deleteVolume` はしない）:
+
+```bash
+/bin/bash ~/.config/nix-darwin/home/bin/nix-store-repair.sh
+```
+
+手順の全体は [`docs/nix-store-recovery.md`](docs/nix-store-recovery.md)。bootstrap が再起動で戻る場合は、システム設定 → 一般 → ログイン項目と拡張機能 → バックグラウンドで許可 で `sh` / Nix / Determinate をオンにする。
+
 ビルドのみ行い適用しない検証（sudo 不要、破壊的変更前に使う）:
 
 ```bash
@@ -39,6 +47,8 @@ nix build '.#darwinConfigurations.macbook.system' --no-link
 | `nix/editors.nix` | VS Code/Cursor/Antigravity/Antigravity IDE の `settings.json`（クラスA merge、`nix/agents/lib.nix` を共用） / `keybindings.json`（home.file symlink、配列トップレベルのため merge 非対応） | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
 | `nix/agents/*` | Claude/Codex/Cursor/Kiro の user-level 設定、MCP 定義 | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
 | `home/*` | 上記から参照される実ファイル本体 | — |
+| `home/zprofile` | `~/.zprofile` | out-of-store symlink（`/nix` 未マウントでも login shell が動く） |
+| `home/bin/nix-store-repair.sh` | `~/bin/nix-store-repair` | out-of-store symlink（再起動後の `/nix` 未マウント復旧。OS ツールのみ） |
 | `.gitleaks.toml` | 秘密情報スキャン設定（デフォルトルール拡張、Nix SRIハッシュを許可リスト化） | commit 前 `gitleaks protect --staged` と CI `gitleaks detect` の両方が参照 |
 | `statix.toml` | statix lint 設定（`repeated_keys` を無効化） | — |
 | `.github/workflows/ci.yml` | push/PR ごとの lint + secret scan | 詳細は本ファイルの「検証コマンド」節 |

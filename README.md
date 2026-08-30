@@ -26,6 +26,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 | `windows/` | Windows-only fallback settings kept for handoff |
 | `docs/management-policy.md` | classification policy for Nix-managed / app-managed / local / secret files |
 | `docs/macos-nix-migration.md` | migration runbook |
+| `docs/nix-store-recovery.md` | recover an unmounted `/nix` volume after reboot |
 | `docs/nix-management-inventory.md` | detailed inventory of remaining Nix candidates and intentional exclusions |
 | `docs/nix-migration-plan.md` | phased migration plan with per-step verification (companion to the inventory) |
 | `docs/nix-migration-audit.md` | migration audit log (phase 0–2 findings) |
@@ -67,7 +68,7 @@ Managed by Nix:
 - `~/.cursor/statusline.sh` (out-of-store symlink to `home/agents/cursor/statusline.sh`)
 - `~/.kiro/powers.json` (deep-merged on every switch)
 - `~/.kiro/powers.mcp.json` (deep-merged on every switch)
-- `~/.kiro/settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml` (deep-merged on every switch; `permissions.yaml` is generated from `home/agents/codex/default.rules`)
+- `~/.kiro/settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml` (deep-merged on every switch; `permissions.yaml` allows all capabilities except explicitly denied destructive shell operations)
 - `~/.kiro/skills/` (always re-synced on switch, dynamic catalog)
 - `~/.kiro/powers/**` (individual files are out-of-store symlinks to `home/agents/kiro/powers/`; the `powers/` and `powers/<name>/` directories themselves stay real directories so Kiro can create its own `registries/` etc. alongside them)
 
@@ -139,6 +140,16 @@ Then use:
 ```bash
 darwin-rebuild switch --flake "$HOME/.config/nix-darwin#macbook"
 ```
+
+## Nix store missing after reboot
+
+On macOS `/nix` is an APFS volume. After a reboot it can fail to mount, which makes every Nix CLI disappear even though the volume is intact. Do not delete the volume or reinstall Nix. Run:
+
+```bash
+/bin/bash ~/.config/nix-darwin/home/bin/nix-store-repair.sh
+```
+
+If that does not survive the next reboot, allow the Nix/Determinate/`sh` background items in System Settings → General → Login Items & Extensions. Full steps: [`docs/nix-store-recovery.md`](docs/nix-store-recovery.md).
 
 ## Daily Workflow
 

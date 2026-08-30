@@ -6,9 +6,11 @@
       cleanup = "uninstall";
       upgrade = false;
     };
-    brews = [
-      "container"
-    ];
+    # `brew services start container` cannot bootstrap the per-user launchd
+    # service while nix-darwin activation is running under sudo. Keep the
+    # formula declarative, and start its system service with
+    # `container system start` outside activation when needed.
+    brews = ["container"];
     casks = [
       "amazon-workspaces"
       "aqua-voice"
@@ -17,6 +19,7 @@
       "cursor"
       "ghostty"
       "google-chrome"
+      "grok-bot"
       "obsidian"
       "orbstack"
       "raycast"
