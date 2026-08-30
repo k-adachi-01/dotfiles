@@ -278,7 +278,7 @@ in
     sops
     shellcheck
     shfmt
-    slackCli
+    (lib.hiPrio slackCli)
     starship
     statix
     tealdeer
@@ -295,6 +295,7 @@ in
     zstd
   ]
   ++ lib.optionals (!isDarwin) [
+    kiro-cli
     obsidian
     slack
   ]
