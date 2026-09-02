@@ -10,7 +10,7 @@
 }: let
   agentsLib = import ./lib.nix {inherit pkgs;};
   shared = import ./mcp.nix {inherit config pkgs;};
-  inherit (shared) presentationMcpDir pnpmHome;
+  inherit (shared) linearMcpUrl presentationMcpDir pnpmHome;
   mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
 
   settingsValue = {
@@ -153,6 +153,10 @@
   };
 
   mcpValue = {
+    mcpServers.linear = {
+      type = "http";
+      url = linearMcpUrl;
+    };
     mcpServers.spec-driven-presentation-maker = {
       command = "uv";
       args = [

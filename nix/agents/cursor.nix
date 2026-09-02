@@ -8,10 +8,22 @@
   ...
 }: let
   agentsLib = import ./lib.nix {inherit pkgs;};
+  shared = import ./mcp.nix {inherit config pkgs;};
+  inherit (shared) linearMcpUrl;
   mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
 
   mcpValue = {
     mcpServers = {
+      # Linear's official Cursor integration uses mcp-remote so OAuth is
+      # handled by the local MCP bridge without an API key in this config.
+      linear = {
+        command = "pnpm";
+        args = [
+          "dlx"
+          "mcp-remote"
+          linearMcpUrl
+        ];
+      };
       playwright = {
         command = "pnpm";
         args = [

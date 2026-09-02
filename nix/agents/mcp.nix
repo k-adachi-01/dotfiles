@@ -19,6 +19,11 @@ in rec {
 
   presentationMcpDir = "${homeDir}/talks/sample-spec-driven-presentation-maker/mcp-local";
 
+  # Linear's hosted MCP server uses OAuth 2.1 with dynamic client
+  # registration. Keep the endpoint centralized; credentials stay in each
+  # client's runtime auth store and never enter this public repository.
+  linearMcpUrl = "https://mcp.linear.app/mcp";
+
   # Kiro "powers" MCP catalog. `_power` tags which power(s) each server
   # belongs to; it is intentionally passed straight through into
   # ~/.kiro/powers.mcp.json today (pre-existing behavior, unrelated to this
@@ -158,7 +163,10 @@ in rec {
   };
 
   kiroSettingsMcpJson = json.generate "kiro-settings-mcp.json" {
-    mcpServers = {};
+    mcpServers.linear = {
+      type = "http";
+      url = linearMcpUrl;
+    };
     powers.mcpServers = {
       "power-aws-sam-awslabs.aws-serverless-mcp-server" = {
         command = "uvx";

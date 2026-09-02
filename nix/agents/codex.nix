@@ -9,14 +9,18 @@
   ...
 }: let
   agentsLib = import ./lib.nix {inherit pkgs;};
+  shared = import ./mcp.nix {inherit config pkgs;};
+  inherit (shared) linearMcpUrl;
   mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";
   declaredConfig =
+    lib.recursiveUpdate
     (builtins.fromTOML (builtins.readFile ../../home/agents/codex/config.toml))
-    // {
+    {
       notify = [
         "bash"
         "${config.home.homeDirectory}/.codex/notify.sh"
       ];
+      mcp_servers.linear.url = linearMcpUrl;
     };
 
   configEntry = {

@@ -3,8 +3,6 @@ model_reasoning_effort = "medium"
 personality = "pragmatic"
 approvals_reviewer = "user"
 
-notify = ["bash", "/Users/adachi/.codex/notify.sh"]
-
 [notice]
 hide_rate_limit_model_nudge = true
 fast_default_opt_out = true
@@ -56,6 +54,7 @@ enabled = true
 
 [features]
 js_repl = false
+experimental_use_rmcp_client = true
 
 [desktop]
 followUpQueueMode = "queue"

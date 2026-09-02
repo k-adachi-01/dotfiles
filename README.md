@@ -74,6 +74,17 @@ Managed by Nix:
 
 None of the four tools need a manual re-sync script anymore (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
 
+### Linear MCP
+
+All four coding agents receive Linear's official MCP server at `https://mcp.linear.app/mcp`. The configuration contains no API key; the first connection in each client opens Linear's OAuth flow and stores credentials in the client's runtime state.
+
+- Claude Code: start `claude`, then run `/mcp` and authenticate `linear`.
+- Codex: run `codex mcp login linear` (the `rmcp` feature is enabled in the managed config).
+- Cursor: authenticate `linear` from the MCP panel after the next switch; its config uses the official `mcp-remote` bridge.
+- Kiro: connect `linear` from the MCP panel, or run `/mcp auth linear` if prompted.
+
+The shared endpoint declaration lives in `nix/agents/mcp.nix`; client-specific transport wiring remains in each tool's config file. Do not copy OAuth tokens or API keys into this repository.
+
 Editor settings managed by Nix on macOS (`nix/editors.nix`, using the same class A merge helper as the AI agent configs above, added in PR10):
 
 - `~/Library/Application Support/Code/User/settings.json` (deep-merged on every switch)

@@ -84,6 +84,17 @@ Claude Code と Cursor は、Codex/Kiro が確立した merge 機構（`nix/agen
 
 `~/.local/bin/agents-diff` は、上記すべての class A ファイルについて「次の switch で何が変わるか」と「宣言されていない（アプリ所有の）キー」を読み取り専用で表示する。実装は `nix/agents/lib.nix` の `mkDiffCommand`（`merge-agent-config --check` を呼ぶだけで、`dest` には一切書き込まない）と、各 `nix/agents/<tool>.nix` が `dotfilesAgents.classAMerges`（文字列のリスト型オプション、`nix/agents/default.nix` で定義）へ自分の diff コマンドを追加する仕組みからなる。`--check` モードは各フォーマットの正規化済みテキスト同士の unified diff に加えて、live 側にだけ存在するトップレベル（以深）キーのパス一覧を出力する。後者が「repo の attrset へ昇格する候補」であり、昇格は必ず人間/agentが手動で `nix/agents/<tool>.nix` を編集して行う（自動逆同期はしない）。
 
+### Linear MCP（OAuth、APIキーなし）
+
+4ツール共通でLinear公式MCP（`https://mcp.linear.app/mcp`）を利用する。Linearの公式サーバーはStreamable HTTPとOAuth 2.1 + Dynamic Client Registrationを提供するため、repoにはURLだけを宣言し、アクセストークンやAPIキーは各クライアントの管理するランタイム領域へ置く。
+
+- Claude CodeはネイティブHTTP MCPとして登録し、初回は`/mcp`で認証する。
+- CodexはネイティブHTTP MCPとして登録し、`experimental_use_rmcp_client = true`と`codex mcp login linear`を使う。
+- CursorはLinear公式の案内に合わせて`pnpm dlx mcp-remote`経由で接続する。
+- KiroはユーザーMCP設定へHTTPサーバーとして登録し、必要時は`/mcp auth linear`で再認証する。
+
+詳細な初回認証手順はリポジトリの[`README.md`](../README.md)を参照する。
+
 ### エディタ GUI 設定（`nix/editors.nix`、PR10で確定）
 
 VS Code / Cursor / Antigravity / Antigravity IDE の `settings.json` はクラスA/B/Cの判定基準（「アプリが書き込むか」）で見ると、AI エージェント設定と全く同じ性質を持つ。各アプリの GUI 設定エディタ（Settings UI）はテーマ選択・言語別オーバーライドの追加などをこのファイルへ直接書き込むため、これまでの `home.file.<path>.source`（Nix store symlink）方式では**GUI から設定を変更しても保存できない**問題があった。PR10 で `nix/agents/lib.nix` の merge 基盤をそのまま再利用し、4アプリの `settings.json` をクラスA merge へ移行した。
