@@ -10,7 +10,15 @@
     # service while nix-darwin activation is running under sudo. Keep the
     # formula declarative, and start its system service with
     # `container system start` outside activation when needed.
-    brews = ["container"];
+    #
+    # `vercel` is an intentional Homebrew-formula exception: nixpkgs has no
+    # Vercel CLI, and the published npm tarball ships without a lockfile, so
+    # a reproducible packages.nix derivation is not practical. Auth/config
+    # under ~/Library/Application Support/com.vercel.cli stays unmanaged.
+    brews = [
+      "container"
+      "vercel"
+    ];
     casks = [
       "amazon-workspaces"
       "bitwarden"
