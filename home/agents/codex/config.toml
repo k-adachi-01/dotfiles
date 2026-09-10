@@ -1,4 +1,5 @@
 model = "xai/grok-4.5"
+model_provider = "vercel"
 model_reasoning_effort = "medium"
 personality = "pragmatic"
 approvals_reviewer = "user"
