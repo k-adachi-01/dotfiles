@@ -57,6 +57,7 @@ Managed by Nix:
 - `~/.codex/config.toml` (deep-merged on every switch: declared keys in `home/agents/codex/config.toml` always win, keys Codex wrote itself like `[projects.*]` are preserved; see `docs/management-policy.md`)
 - `~/.codex/openai.config.toml` (out-of-store symlink)
 - `~/.codex/bedrock.config.toml` (out-of-store symlink)
+- `~/.codex/deepseek.config.toml` (out-of-store symlink)
 - `~/.codex/keybindings.json` (out-of-store symlink)
 - `~/.codex/rules/default.rules` (out-of-store symlink)
 - `~/.codex/notify.sh` (out-of-store symlink)
@@ -73,6 +74,10 @@ Managed by Nix:
 - `~/.kiro/powers/**` (individual files are out-of-store symlinks to `home/agents/kiro/powers/`; the `powers/` and `powers/<name>/` directories themselves stay real directories so Kiro can create its own `registries/` etc. alongside them)
 
 None of the four tools need a manual re-sync script anymore (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
+
+### Codex profiles
+
+The `~/.codex/{openai,bedrock,deepseek}.config.toml` files are Codex configuration profiles: plain config files selected at launch with `codex --profile <name>` (for example `codex --profile deepseek`). They are class B symlinks, so editing `home/agents/codex/*.config.toml` takes effect without a switch. The `deepseek` profile routes `deepseek/deepseek-v4.1-flash` through Vercel AI Gateway (`env_key = "AI_GATEWAY_API_KEY"`), so that environment variable must be set before launching; the key itself is never committed.
 
 ### Linear MCP
 

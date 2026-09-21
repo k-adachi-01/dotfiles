@@ -42,6 +42,7 @@ From the current repository state, this includes:
 - `~/.codex/AGENTS.md`
 - `~/.codex/openai.config.toml`
 - `~/.codex/bedrock.config.toml`
+- `~/.codex/deepseek.config.toml`
 - `~/.codex/keybindings.json`
 - `~/.codex/rules/default.rules`
 - `~/.codex/notify.sh`

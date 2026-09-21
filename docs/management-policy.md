@@ -31,7 +31,7 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 
 | ツール | クラスA (merge) | クラスB (out-of-store link) | クラスC (管理外) |
 |---|---|---|---|
-| Codex | `config.toml`（`model`/`personality`/`notice`/`tui`/`plugins`/`features`/`desktop` 等の管理キーのみ宣言） | `AGENTS.md`, `openai.config.toml`, `bedrock.config.toml`, `rules/default.rules`, `notify.sh`, `keybindings.json` | `auth.json`, `history.jsonl`, `sessions/`, `*.sqlite*`, `cache/`, `.tmp/`, `[projects.*]`, `[marketplaces.*]` |
+| Codex | `config.toml`（`model`/`personality`/`notice`/`tui`/`plugins`/`features`/`desktop` 等の管理キーのみ宣言） | `AGENTS.md`, `openai.config.toml`, `bedrock.config.toml`, `deepseek.config.toml`, `rules/default.rules`, `notify.sh`, `keybindings.json` | `auth.json`, `history.jsonl`, `sessions/`, `*.sqlite*`, `cache/`, `.tmp/`, `[projects.*]`, `[marketplaces.*]` |
 | Claude Code | `settings.json`, `.mcp.json`, `keybindings.json` | `AGENTS.md`, `CLAUDE.md`, `statusline.py`, `notify-done.sh` | `.credentials.json`, `projects/`, `statsig/` |
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
 | Kiro | `settings/cli.json`, `settings/mcp.json`, `powers.json`, `powers.mcp.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | `powers/*` のソース | `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
@@ -41,7 +41,7 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 
 | ツール | 現在の管理方式 | 目標の管理方式 | 移行PR |
 |---|---|---|---|
-| Codex | クラスA merge（`config.toml`）+ クラスB link（`AGENTS.md`/`keybindings.json`/`openai.config.toml`/`bedrock.config.toml`/`default.rules`/`notify.sh`）（済） | 同左（完了） | PR6 完了 |
+| Codex | クラスA merge（`config.toml`）+ クラスB link（`AGENTS.md`/`keybindings.json`/`openai.config.toml`/`bedrock.config.toml`/`deepseek.config.toml`/`default.rules`/`notify.sh`）（済） | 同左（完了） | PR6 完了 |
 | Kiro | クラスA merge（`powers.json`/`powers.mcp.json`/`settings/cli.json`/`settings/mcp.json`/`settings/kiro_cli_theme.json`/`settings/permissions.yaml`）+ クラスB link（`powers/**` の個別ファイル）（済） | 同左（完了） | PR7 完了 |
 | Claude Code | クラスA merge（`settings.json`/`.mcp.json`/`keybindings.json`）+ クラスB link（`AGENTS.md`/`CLAUDE.md`/`statusline.py`/`notify-done.sh`）（済） | 同左（完了） | PR8 完了 |
 | Cursor | クラスA merge（`cli-config.json`/`mcp.json`）+ クラスB link（`AGENTS.md`/`statusline.sh`）（済） | 同左（完了） | PR8 完了 |
