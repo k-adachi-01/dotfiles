@@ -67,11 +67,12 @@ Managed by Nix:
 - `~/.cursor/cli-config.json` (deep-merged on every switch: Cursor's own runtime state like `hasChangedDefaultModel`/`selectedModel` is preserved)
 - `~/.cursor/mcp.json` (deep-merged on every switch)
 - `~/.cursor/statusline.sh` (out-of-store symlink to `home/agents/cursor/statusline.sh`)
-- `~/.kiro/powers.json` (deep-merged on every switch)
-- `~/.kiro/powers.mcp.json` (deep-merged on every switch)
 - `~/.kiro/settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml` (deep-merged on every switch; `permissions.yaml` allows all capabilities except explicitly denied destructive shell operations)
 - `~/.kiro/skills/` (always re-synced on switch, dynamic catalog)
-- `~/.kiro/powers/**` (individual files are out-of-store symlinks to `home/agents/kiro/powers/`; the `powers/` and `powers/<name>/` directories themselves stay real directories so Kiro can create its own `registries/` etc. alongside them)
+- `~/.kiro/powers/**` (Agent Plugins package files such as `plugin.json`, `mcp.json`, `skills/**`, and `dev.kiro/steering/**` are out-of-store symlinks to `home/agents/kiro/powers/`; the `powers/` directories stay real so Kiro can maintain its own runtime state)
+- `~/.kiro/powers.json` and `~/.kiro/powers.mcp.json` (Kiro-owned Power registration/runtime state; not managed by Nix or Git)
+
+Power package contents are managed in this repository, but installation and activation are owned by Kiro. Import a local Power from its `home/agents/kiro/powers/<name>/` folder through Kiro's Powers panel when needed.
 
 None of the four tools need a manual re-sync script anymore (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
 

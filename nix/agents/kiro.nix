@@ -1,5 +1,6 @@
-# Kiro: class A (merge) settings/powers manifests, class B (out-of-store
-# link) power source files. See docs/management-policy.md.
+# Kiro: class A (merge) user settings, class B (out-of-store link) Agent
+# Plugins package files. Power installation state is Kiro-owned. See
+# docs/management-policy.md.
 {
   config,
   lib,
