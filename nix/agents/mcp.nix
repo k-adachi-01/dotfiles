@@ -159,7 +159,7 @@ in rec {
   };
 
   kiroCliJson = json.generate "kiro-cli.json" {
-    "chat.defaultModel" = "claude-opus-4.8";
+    "chat.defaultModel" = "auto";
   };
 
   kiroSettingsMcpJson = json.generate "kiro-settings-mcp.json" {
