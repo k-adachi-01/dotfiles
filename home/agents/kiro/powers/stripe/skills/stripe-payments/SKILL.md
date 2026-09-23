@@ -1,9 +1,6 @@
 ---
-name: "stripe"
-displayName: "Stripe Payments"
-description: "Build payment integrations with Stripe - accept payments, manage subscriptions, handle billing, and process refunds"
-keywords: ["stripe","payments","checkout","subscriptions","billing","invoices","refunds","payment-intents"]
-author: "Stripe"
+name: stripe-payments
+description: Build payment integrations with Stripe, including Checkout, payments, billing, and subscriptions.
 ---
 
 # Stripe Payments Power

@@ -64,7 +64,7 @@ Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`]
 - `~/.codex/*`, `~/.claude/*`, `~/.cursor/*`, `~/.kiro/*` を直接編集して「設定した」つもりにならない。これらは生成先であり、変更は必ず `nix/agents/*` または `home/agents/*` に対して行い、`sudo darwin-rebuild switch` で反映する
   - 例外: クラスB ファイル（`~/.codex/AGENTS.md`、`~/.claude/statusline.py`、`~/.cursor/statusline.sh` 等）は repo への symlink なので、`home/agents/*` を編集すれば switch なしで即反映される
 - クラスA移行済みのツールで、宣言外キー（アプリが書いた実行時状態）を repo 側の attrset へ無条件にコピーしない。昇格は `agents-diff` で確認してから明示的に行う
-- Codex/Claude Code/Cursor/Kiro の4ツールすべてが統一モデルへ移行済み（PR6〜PR8完了）。`nix/agents/*.nix` や `home/agents/*/*` を編集したら `sudo darwin-rebuild switch` だけで自動的に merge/link される。`sync-codex-config`/`sync-kiro-config` のような手動再同期スクリプトはもう存在しない
+- Codex/Claude Code/Cursor/Kiro の4ツールすべてが統一モデルへ移行済み（PR6〜PR8完了）。`nix/agents/*.nix` や `home/agents/*/*` を編集したら `sudo darwin-rebuild switch` だけで自動的に merge/link される。Kiro Powerのパッケージは `plugin.json` を含む Agent Plugins形式で管理し、インストール登録はKiro UIに任せる。`sync-codex-config`/`sync-kiro-config` のような手動再同期スクリプトはもう存在しない
 - merge は辞書のみ再帰処理する。配列（例: Kiro `permissions.yaml` の `rules`）は宣言側で丸ごと置き換わり、要素単位のマージはしない。配列に対するアプリの追記を保持したくなったら、そのフィールドをクラスCへ動かすことを検討する
 - クラスBファイルを追加・編集するときは、必ず各 `nix/agents/<tool>.nix` 内の `mkLink` ヘルパー（`config.lib.file.mkOutOfStoreSymlink` のラッパー）経由にする。`.source = ../../home/...` のような生の Nix パス参照を書くと、eval・build は問題なく通るのに実体は Nix store コピーへ静かに退化し、「repo を編集すれば switch 不要で即反映」という前提が崩れる。過去に `.claude/AGENTS.md`・`.claude/CLAUDE.md`・`.cursor/AGENTS.md`・`.agents/AGENTS.md` の4箇所で実際にこれが起きていた（PR11で修正、詳細は `docs/management-policy.md`）。新規/既存のクラスBエントリを触ったら `.source` の右辺が `mkLink "..."` になっているか目視確認すること
 

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
     "awspricing": {
       "type": "stdio",
@@ -6,35 +7,29 @@
       "args": ["awslabs.aws-pricing-mcp-server@latest"],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
-      },
-      "timeout": 120000,
-      "disabled": false
+      }
     },
     "awsknowledge": {
       "url": "https://knowledge-mcp.global.api.aws",
-      "type": "http"
+      "type": "streamable-http"
     },
     "awsapi": {
+      "type": "stdio",
       "command": "uvx",
       "args": ["awslabs.aws-api-mcp-server@latest"],
       "env": {
         "AWS_REGION": "us-east-2"
-      },
-      "disabled": false,
-      "autoApprove": []
+      }
     },
     "context7": {
       "type": "stdio",
       "command": "pnpm",
-      "args": ["dlx", "@upstash/context7-mcp"],
-      "timeout": 120000,
-      "disabled": false
+      "args": ["dlx", "@upstash/context7-mcp"]
     },
     "fetch": {
+      "type": "stdio",
       "command": "uvx",
-      "args": ["mcp-server-fetch"],
-      "env": {},
-      "disabled": false
+      "args": ["mcp-server-fetch"]
     }
   }
 }

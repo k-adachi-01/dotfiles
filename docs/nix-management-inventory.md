@@ -57,13 +57,11 @@ From the current repository state, this includes:
 - `~/.cursor/mcp.json`
 - `~/.cursor/AGENTS.md`
 - `~/.cursor/statusline.sh`
-- `~/.kiro/powers.json`
-- `~/.kiro/powers.mcp.json`
 - `~/.kiro/settings/cli.json`
 - `~/.kiro/settings/mcp.json`
 - `~/.kiro/settings/kiro_cli_theme.json`
 - `~/.kiro/settings/permissions.yaml`
-- `~/.kiro/powers/**`
+- `~/.kiro/powers/**` (Agent Plugins package files linked from `home/agents/kiro/powers/`)
 - `~/Library/Application Support/Code/User/settings.json`
 - `~/Library/Application Support/Cursor/User/settings.json`
 - `~/Library/Application Support/Antigravity/User/settings.json`
@@ -448,6 +446,8 @@ These should remain out of Nix because they are secrets, auth state, ephemeral c
 - `~/.kiro/.cli_bash_history`
 - `~/.kiro/settings/feed_state.json`
 - `~/.kiro/settings/survey_state.json`
+- `~/.kiro/powers.json` (installed Power registry)
+- `~/.kiro/powers.mcp.json` (legacy Power MCP catalog)
 - `~/.cache`
 - `~/.npm`
 - `~/.rustup`

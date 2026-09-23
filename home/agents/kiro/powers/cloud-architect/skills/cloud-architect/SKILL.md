@@ -1,9 +1,6 @@
 ---
-name: "cloud-architect"
-displayName: "Build infrastructure on AWS"
-description: "Build AWS infrastructure with CDK in Python following AWS Well-Architected framework best practices"
-keywords: ["aws", "cdk", "python", "infrastructure", "iac", "cloudformation","lambda", "well-architected"]
-author: "Christian Bonzelet"
+name: cloud-architect
+description: Build AWS infrastructure with Python CDK using AWS Well-Architected practices.
 ---
 
 # Cloud Architect Power

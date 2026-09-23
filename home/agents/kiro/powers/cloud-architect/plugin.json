@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "cloud-architect",
+  "version": "1.0.0",
+  "description": "Build AWS infrastructure with CDK in Python following AWS Well-Architected framework best practices",
+  "author": {
+    "name": "Christian Bonzelet"
+  },
+  "keywords": [
+    "aws",
+    "cdk",
+    "python",
+    "infrastructure",
+    "iac",
+    "cloudformation",
+    "lambda",
+    "well-architected"
+  ]
+}

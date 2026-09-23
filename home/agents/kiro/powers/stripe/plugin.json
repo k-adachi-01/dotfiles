@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "stripe",
+  "version": "1.0.0",
+  "description": "Build payment integrations with Stripe - accept payments, manage subscriptions, handle billing, and process refunds",
+  "author": {
+    "name": "Stripe"
+  },
+  "keywords": [
+    "stripe",
+    "payments",
+    "checkout",
+    "subscriptions",
+    "billing",
+    "invoices",
+    "refunds",
+    "payment-intents"
+  ]
+}

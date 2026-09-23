@@ -34,7 +34,7 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 | Codex | `config.toml`（`model`/`personality`/`notice`/`tui`/`plugins`/`features`/`desktop` 等の管理キーのみ宣言） | `AGENTS.md`, `openai.config.toml`, `bedrock.config.toml`, `deepseek.config.toml`, `rules/default.rules`, `notify.sh`, `keybindings.json` | `auth.json`, `history.jsonl`, `sessions/`, `*.sqlite*`, `cache/`, `.tmp/`, `[projects.*]`, `[marketplaces.*]` |
 | Claude Code | `settings.json`, `.mcp.json`, `keybindings.json` | `AGENTS.md`, `CLAUDE.md`, `statusline.py`, `notify-done.sh` | `.credentials.json`, `projects/`, `statsig/` |
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
-| Kiro | `settings/cli.json`, `settings/mcp.json`, `powers.json`, `powers.mcp.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | `powers/*` のソース | `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
+| Kiro | `settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | Agent Plugins形式のPower一式（`plugin.json`, `mcp.json`, `skills/**`, `dev.kiro/steering/**`） | Power登録manifest (`powers.json`), 旧Power MCPカタログ (`powers.mcp.json`), `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
 | Agent Skills | — (`programs.agent-skills` モジュール経由の rsync) | — | — |
 
 ## 3. 移行状況（この表は各PRの完了時に更新する）
@@ -42,7 +42,7 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 | ツール | 現在の管理方式 | 目標の管理方式 | 移行PR |
 |---|---|---|---|
 | Codex | クラスA merge（`config.toml`）+ クラスB link（`AGENTS.md`/`keybindings.json`/`openai.config.toml`/`bedrock.config.toml`/`deepseek.config.toml`/`default.rules`/`notify.sh`）（済） | 同左（完了） | PR6 完了 |
-| Kiro | クラスA merge（`powers.json`/`powers.mcp.json`/`settings/cli.json`/`settings/mcp.json`/`settings/kiro_cli_theme.json`/`settings/permissions.yaml`）+ クラスB link（`powers/**` の個別ファイル）（済） | 同左（完了） | PR7 完了 |
+| Kiro | クラスA merge（`settings/cli.json`/`settings/mcp.json`/`settings/kiro_cli_theme.json`/`settings/permissions.yaml`）+ クラスB link（Agent Plugins形式のPowerファイル）（済） | 同左（完了） | PR7 + Agent Plugins移行 |
 | Claude Code | クラスA merge（`settings.json`/`.mcp.json`/`keybindings.json`）+ クラスB link（`AGENTS.md`/`CLAUDE.md`/`statusline.py`/`notify-done.sh`）（済） | 同左（完了） | PR8 完了 |
 | Cursor | クラスA merge（`cli-config.json`/`mcp.json`）+ クラスB link（`AGENTS.md`/`statusline.sh`）（済） | 同左（完了） | PR8 完了 |
 | Agent Skills flake input | `path:/Users/adachi/agent-skills`（ローカル checkout、GitHub 認証不要） | 同左（完了） | PR5 で一時的に GitHub pin、PR13 で path に戻した |
@@ -60,9 +60,13 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 
 検証は `nix build` によるビルド時検証に加え、`merge-agent-config` スクリプトをサンドボックス内で直接実行し、(a) 宣言キーが live 側の変更を上書きすること、(b) `[projects.*]`/`[marketplaces.*]` のような宣言外キーが保持されること、(c) 出力を再度 merge しても差分が出ないこと（冪等性）、(d) live ファイルが壊れた TOML の場合は非ゼロ終了し出力ファイルを書き換えないこと、の4点を確認済み。実機での `sudo darwin-rebuild switch` は Touch IDが必要なため人間が実行して最終確認すること。
 
-### Kiro merge 実装メモ（PR7で確定）
+### Kiro merge / Power形式
 
-Kiro の宣言データ（`kiroPowersJson`/`kiroPowersMcpJson`/`kiroCliJson`/`kiroSettingsMcpJson`/`kiroCliThemeJson`/`kiroPermissions`）は、`nix/agents/mcp.nix` の `pkgs.formats.json{}.generate` または `pkgs.formats.yaml{}.generate` が生成する**既存の store ファイル**である。これを再度 Nix 値化して `mkMergeActivation` の `value` に渡すのは冗長なため、`mkMergeActivation` を拡張し、`value`（Nix値をformatsで生成）と `declaredFile`（すでに存在するファイルをそのまま使う）のどちらか一方を渡せるようにした。Kiro は全項目で `declaredFile` を使う。
+Kiro のユーザー設定（`settings/cli.json`/`settings/mcp.json`/`settings/kiro_cli_theme.json`/`settings/permissions.yaml`）は、`nix/agents/mcp.nix` の `pkgs.formats.json{}.generate` または `pkgs.formats.yaml{}.generate` が生成するstoreファイルを `declaredFile` として class A merge する。Kiro が管理する `~/.kiro/powers.json` と `~/.kiro/powers.mcp.json` は Nix/Git の対象から外す。これらはPowerのインストール登録や旧形式のMCPカタログであり、公開リポジトリにインストール時刻や端末ローカルの登録状態を固定しない。
+
+ローカルPowerは Agent Plugins 形式で `home/agents/kiro/powers/<name>/` に保持し、ファイル単位の out-of-store symlink で `~/.kiro/powers/<name>/` へ公開する。各Powerは `plugin.json`、必要に応じて `mcp.json`・`skills/<skill-name>/SKILL.md`・`dev.kiro/steering/*.md` を含める。Power内のMCP設定は公式Agent Plugins schemaに合わせる。Powerに属さないサーバーは `~/.kiro/settings/mcp.json` の通常の `mcpServers` に宣言する。
+
+旧Powerの登録記録はアプリ所有の状態として保持される。Powerの追加・再登録・削除はKiroのPower管理UIで行い、Nixはその登録manifestを再生成しない。
 
 Kiro v3 permissions は Codex の `default.rules` とは独立している。`kiroPermissions` は `capability: all` / `effect: allow` を基準にし、回復困難な shell 操作だけを `effect: deny` で列挙する。deny は allow より常に優先される。`sudo` は原則 deny だが、この端末で必要な `sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook` と、再起動後に `/nix` が未マウントのときの `nix-store-repair` / `determinate-nixd init` だけを `exclude` で許可する。Kiro 自身が持つ設定ファイル保護などのハードコードされた制約はこの宣言では上書きしない。
 

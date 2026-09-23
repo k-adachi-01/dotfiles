@@ -12,8 +12,6 @@
   shared = import ./mcp.nix {inherit config pkgs;};
   inherit
     (shared)
-    kiroPowersJson
-    kiroPowersMcpJson
     kiroCliJson
     kiroSettingsMcpJson
     kiroCliThemeJson
@@ -32,16 +30,6 @@
   };
 
   entries = [
-    (mkEntry {
-      name = "powers-json";
-      declaredFile = kiroPowersJson;
-      dest = "$HOME/.kiro/powers.json";
-    })
-    (mkEntry {
-      name = "powers-mcp-json";
-      declaredFile = kiroPowersMcpJson;
-      dest = "$HOME/.kiro/powers.mcp.json";
-    })
     (mkEntry {
       name = "settings-cli-json";
       declaredFile = kiroCliJson;
@@ -74,44 +62,37 @@ in {
     # if Kiro is ever observed appending to a *list* inside one of these
     # (e.g. growing an array of rules in place) that field should move to
     # class C instead, see nix/agents/lib.nix.
-    activation.mergeKiroPowersJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    activation.mergeKiroCliJson = lib.hm.dag.entryAfter ["writeBoundary"] (
       agentsLib.mkMergeActivation ((builtins.elemAt entries 0) // {backupDir = "$HOME/.kiro/backups";})
     );
 
-    activation.mergeKiroPowersMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    activation.mergeKiroSettingsMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
       agentsLib.mkMergeActivation ((builtins.elemAt entries 1) // {backupDir = "$HOME/.kiro/backups";})
     );
 
-    activation.mergeKiroCliJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    activation.mergeKiroCliThemeJson = lib.hm.dag.entryAfter ["writeBoundary"] (
       agentsLib.mkMergeActivation ((builtins.elemAt entries 2) // {backupDir = "$HOME/.kiro/backups";})
     );
 
-    activation.mergeKiroSettingsMcpJson = lib.hm.dag.entryAfter ["writeBoundary"] (
+    activation.mergeKiroPermissions = lib.hm.dag.entryAfter ["writeBoundary"] (
       agentsLib.mkMergeActivation ((builtins.elemAt entries 3) // {backupDir = "$HOME/.kiro/backups";})
     );
 
-    activation.mergeKiroCliThemeJson = lib.hm.dag.entryAfter ["writeBoundary"] (
-      agentsLib.mkMergeActivation ((builtins.elemAt entries 4) // {backupDir = "$HOME/.kiro/backups";})
-    );
-
-    activation.mergeKiroPermissions = lib.hm.dag.entryAfter ["writeBoundary"] (
-      agentsLib.mkMergeActivation ((builtins.elemAt entries 5) // {backupDir = "$HOME/.kiro/backups";})
-    );
-
-    # Class B: Kiro reads these power source files but does not write to
-    # them. ~/.kiro/powers/ itself stays a real (non-symlinked) directory
-    # because Kiro creates its own registries/ etc. alongside stripe/ and
-    # cloud-architect/; only the individual files inside are linked.
+    # Class B: Kiro reads Agent Plugins from these source files but does not
+    # write to them. Keep ~/.kiro/powers/ as a real directory because Kiro
+    # maintains its own registries there; link each package file to the repo.
     file = {
-      ".kiro/powers/stripe/POWER.md".source = mkLink "home/agents/kiro/powers/stripe/POWER.md";
+      ".kiro/powers/stripe/plugin.json".source = mkLink "home/agents/kiro/powers/stripe/plugin.json";
       ".kiro/powers/stripe/mcp.json".source = mkLink "home/agents/kiro/powers/stripe/mcp.json";
-      ".kiro/powers/stripe/steering/stripe-best-practices.md".source = mkLink "home/agents/kiro/powers/stripe/steering/stripe-best-practices.md";
+      ".kiro/powers/stripe/skills/stripe-payments/SKILL.md".source = mkLink "home/agents/kiro/powers/stripe/skills/stripe-payments/SKILL.md";
+      ".kiro/powers/stripe/dev.kiro/steering/stripe-best-practices.md".source = mkLink "home/agents/kiro/powers/stripe/dev.kiro/steering/stripe-best-practices.md";
 
-      ".kiro/powers/cloud-architect/POWER.md".source = mkLink "home/agents/kiro/powers/cloud-architect/POWER.md";
+      ".kiro/powers/cloud-architect/plugin.json".source = mkLink "home/agents/kiro/powers/cloud-architect/plugin.json";
       ".kiro/powers/cloud-architect/mcp.json".source = mkLink "home/agents/kiro/powers/cloud-architect/mcp.json";
-      ".kiro/powers/cloud-architect/steering/cdk-development-guidelines.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/cdk-development-guidelines.md";
-      ".kiro/powers/cloud-architect/steering/cloud-engineer-agent.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/cloud-engineer-agent.md";
-      ".kiro/powers/cloud-architect/steering/testing-strategy.md".source = mkLink "home/agents/kiro/powers/cloud-architect/steering/testing-strategy.md";
+      ".kiro/powers/cloud-architect/skills/cloud-architect/SKILL.md".source = mkLink "home/agents/kiro/powers/cloud-architect/skills/cloud-architect/SKILL.md";
+      ".kiro/powers/cloud-architect/dev.kiro/steering/cdk-development-guidelines.md".source = mkLink "home/agents/kiro/powers/cloud-architect/dev.kiro/steering/cdk-development-guidelines.md";
+      ".kiro/powers/cloud-architect/dev.kiro/steering/cloud-engineer-agent.md".source = mkLink "home/agents/kiro/powers/cloud-architect/dev.kiro/steering/cloud-engineer-agent.md";
+      ".kiro/powers/cloud-architect/dev.kiro/steering/testing-strategy.md".source = mkLink "home/agents/kiro/powers/cloud-architect/dev.kiro/steering/testing-strategy.md";
     };
 
     # Skills are a dynamic catalog, not a class A/B file: always mirror the
