@@ -79,6 +79,52 @@ with pkgs; let
       platforms = ["aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux"];
     };
   };
+  bwsCli = stdenvNoCC.mkDerivation rec {
+    pname = "bws";
+    version = "2.1.0";
+
+    src = fetchurl (
+      if system == "aarch64-darwin"
+      then {
+        url = "https://github.com/bitwarden/sdk/releases/download/bws-v${version}/bws-aarch64-apple-darwin-${version}.zip";
+        hash = "sha256-nLHBxuYWTYOy4zmIO6ArTLs3GIzppISxzoJJRDFj4GY=";
+      }
+      else if system == "x86_64-darwin"
+      then {
+        url = "https://github.com/bitwarden/sdk/releases/download/bws-v${version}/bws-x86_64-apple-darwin-${version}.zip";
+        hash = "sha256-b2JrOXE2iQKvG5hHwCeRobRmaWnXVh4gR2gc3teZdTc=";
+      }
+      else if system == "aarch64-linux"
+      then {
+        url = "https://github.com/bitwarden/sdk/releases/download/bws-v${version}/bws-aarch64-unknown-linux-gnu-${version}.zip";
+        hash = "sha256-GCU3VyhuEZ1FATOofrRjv4wc5BjOJMg09PJQ1gy6b54=";
+      }
+      else if system == "x86_64-linux"
+      then {
+        url = "https://github.com/bitwarden/sdk/releases/download/bws-v${version}/bws-x86_64-unknown-linux-gnu-${version}.zip";
+        hash = "sha256-uoIzw6Su5dQ+PHO70E2Z6bxauhO7v9BtibBzq+cyuGA=";
+      }
+      else throw "bws is unsupported on ${system}"
+    );
+
+    nativeBuildInputs = [unzip];
+    sourceRoot = ".";
+    dontStrip = true;
+
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 bws "$out/bin/bws"
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "Bitwarden Secrets Manager CLI";
+      homepage = "https://bitwarden.com/help/secrets-manager-cli/";
+      license = lib.licenses.unfree;
+      mainProgram = "bws";
+      platforms = ["aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux"];
+    };
+  };
   # Cursor Origin CLI (https://cursor.com/docs/origin/cli). Pin the public
   # stable artifact; `origin update` writes ~/.local/bin/origin and would
   # shadow this derivation. Bump version + hashes from the URLs baked into
@@ -177,6 +223,7 @@ in
     azure-cli
     alejandra
     bat
+    bwsCli
     bun
     cmake
     curl
