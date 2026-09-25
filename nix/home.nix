@@ -155,6 +155,7 @@ in {
         cc = "claude --permission-mode acceptEdits";
         cdx = "codex --sandbox workspace-write --ask-for-approval on-request";
         cdx-bedrock = "codex --profile bedrock --sandbox workspace-write --ask-for-approval on-request";
+        # cdx-deepseek is a function (see initContent): it injects AI_GATEWAY_API_KEY from BWS.
         csr = "cursor-agent";
         la = "ls -A";
         ll = "ls -alF";
@@ -171,6 +172,29 @@ in {
 
             set -o vi
             setopt prompt_subst
+
+            # Run Codex with the DeepSeek profile, injecting AI_GATEWAY_API_KEY at
+            # call time. The token is fetched from Bitwarden Secrets Manager (BWS),
+            # whose access token lives in the macOS Keychain. Nothing is written to
+            # disk or exported into the persistent environment.
+            cdx-deepseek() {
+              local bws_secret_name="260911_AI_GATEWAY_API_KEY"
+              local bws_token key
+              bws_token="$(security find-generic-password -s bws-access-token -w 2>/dev/null)" || {
+                print -u2 "cdx-deepseek: could not read bws-access-token from Keychain"
+                return 1
+              }
+              key="$(
+                BWS_ACCESS_TOKEN="$bws_token" bws secret list -o json 2>/dev/null \
+                  | python3 -c 'import sys,json;n=sys.argv[1];print(next((s["value"] for s in json.load(sys.stdin) if s["key"]==n),""))' "$bws_secret_name"
+              )"
+              if [ -z "$key" ]; then
+                print -u2 "cdx-deepseek: secret $bws_secret_name not found in BWS"
+                return 1
+              fi
+              AI_GATEWAY_API_KEY="$key" codex --profile deepseek \
+                --sandbox workspace-write --ask-for-approval on-request "$@"
+            }
 
             autoload -Uz vcs_info
             precmd() {
