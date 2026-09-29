@@ -8,6 +8,58 @@
 with pkgs; let
   inherit (stdenv) isDarwin;
   llmAgentsPkgs = inputs.llm-agents-nix.packages.${system};
+  # The source-built package lacks the manifest/helpers required by the
+  # default daemon startup since 0.157. Keep the official macOS bundle intact.
+  codexCli =
+    if isDarwin
+    then
+      stdenvNoCC.mkDerivation rec {
+        pname = "codex";
+        version = "0.158.0";
+        src = fetchurl {
+          url = "https://github.com/openai/codex/releases/download/rust-v${version}/codex-package-${stdenv.hostPlatform.rust.rustcTarget}.tar.gz";
+          sha256 =
+            {
+              aarch64-darwin = "09f2a9fde318fbcd384f15b4850c1b90930678f4805647b6bded196ccf32f590";
+              x86_64-darwin = "46a687a4d52e2e935c23e3acaf1002a21ccfe4b6be918f407898438b5fd24b17";
+            }.${
+              system
+            };
+        };
+        unpackPhase = ''
+          runHook preUnpack
+          mkdir source
+          tar -xzf $src -C source
+          cd source
+          runHook postUnpack
+        '';
+        dontConfigure = true;
+        dontBuild = true;
+        dontFixup = true;
+        installPhase = ''
+          runHook preInstall
+          mkdir -p $out/libexec/codex $out/bin
+          cp -R . $out/libexec/codex/
+          ln -s ../libexec/codex/bin/codex $out/bin/codex
+          runHook postInstall
+        '';
+        doInstallCheck = true;
+        installCheckPhase = ''
+          runHook preInstallCheck
+          test -f $out/libexec/codex/codex-package.json
+          test -x $out/libexec/codex/bin/codex-code-mode-host
+          test -x $out/libexec/codex/codex-path/rg
+          $out/bin/codex --version | grep -F "codex-cli ${version}"
+          runHook postInstallCheck
+        '';
+        meta =
+          llmAgentsPkgs.codex.meta
+          // {
+            sourceProvenance = [lib.sourceTypes.binaryNativeCode];
+            platforms = lib.platforms.darwin;
+          };
+      }
+    else llmAgentsPkgs.codex;
   playwrightCli = buildNpmPackage rec {
     pname = "playwright-cli";
     version = "0.1.14";
@@ -287,7 +339,7 @@ in
   ++ lib.optionals enableLlmAgents [
     llmAgentsPkgs.agent-browser
     llmAgentsPkgs.claude-code
-    llmAgentsPkgs.codex
+    codexCli
     llmAgentsPkgs.cursor-agent
     llmAgentsPkgs.grok
     llmAgentsPkgs.hunk
