@@ -15,13 +15,13 @@ with pkgs; let
     then
       stdenvNoCC.mkDerivation rec {
         pname = "codex";
-        version = "0.158.0";
+        version = "0.159.2";
         src = fetchurl {
           url = "https://github.com/openai/codex/releases/download/rust-v${version}/codex-package-${stdenv.hostPlatform.rust.rustcTarget}.tar.gz";
           sha256 =
             {
-              aarch64-darwin = "09f2a9fde318fbcd384f15b4850c1b90930678f4805647b6bded196ccf32f590";
-              x86_64-darwin = "46a687a4d52e2e935c23e3acaf1002a21ccfe4b6be918f407898438b5fd24b17";
+              aarch64-darwin = "38aaf6dce63099fd10988948d03bbc6c0474253aef6961fcbe60f8d154b39101";
+              x86_64-darwin = "6b9b38bfad6ac8019aa6a243ee3ab11d3e22889eafd5458b0344cf20e797e680";
             }.${
               system
             };
