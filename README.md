@@ -55,7 +55,7 @@ Managed by Nix:
 - `~/.claude/notify-done.sh` (out-of-store symlink to `home/agents/claude/notify-done.sh`)
 - `~/.codex/AGENTS.md` (out-of-store symlink to `home/ai/AGENTS.md`: edit the repo file, no switch needed)
 - `~/.codex/config.toml` (deep-merged on every switch: declared keys in `home/agents/codex/config.toml` always win, keys Codex wrote itself like `[projects.*]` are preserved; see `docs/management-policy.md`)
-- `~/.codex/openai.config.toml` (out-of-store symlink)
+- `~/.codex/gemini.config.toml` (out-of-store symlink)
 - `~/.codex/bedrock.config.toml` (out-of-store symlink)
 - `~/.codex/deepseek.config.toml` (out-of-store symlink)
 - `~/.codex/keybindings.json` (out-of-store symlink)
@@ -78,7 +78,7 @@ None of the four tools need a manual re-sync script anymore (the old `sync-codex
 
 ### Codex profiles
 
-The `~/.codex/{openai,bedrock,deepseek}.config.toml` files are Codex configuration profiles: plain config files selected at launch with `codex --profile <name>` (for example `codex --profile deepseek`). They are class B symlinks, so editing `home/agents/codex/*.config.toml` takes effect without a switch. The `deepseek` profile routes `deepseek/deepseek-v4.1-flash` through Vercel AI Gateway (`env_key = "AI_GATEWAY_API_KEY"`), so that environment variable must be set before launching; the key itself is never committed.
+The `~/.codex/{gemini,bedrock,deepseek}.config.toml` files are Codex configuration profiles: plain config files selected at launch with `codex --profile <name>` (for example `codex --profile deepseek`). They are class B symlinks, so editing `home/agents/codex/*.config.toml` takes effect without a switch. The `gemini` and `deepseek` profiles route `google/gemini-3.8-flash` and `deepseek/deepseek-v4.1-flash`, respectively, through Vercel AI Gateway (`env_key = "AI_GATEWAY_API_KEY"`), so that environment variable must be set before launching; the key itself is never committed.
 
 ### Linear MCP
 

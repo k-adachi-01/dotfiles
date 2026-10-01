@@ -40,7 +40,7 @@ From the current repository state, this includes:
 
 - `~/.codex/config.toml`
 - `~/.codex/AGENTS.md`
-- `~/.codex/openai.config.toml`
+- `~/.codex/gemini.config.toml`
 - `~/.codex/bedrock.config.toml`
 - `~/.codex/deepseek.config.toml`
 - `~/.codex/keybindings.json`

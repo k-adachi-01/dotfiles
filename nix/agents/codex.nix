@@ -49,7 +49,7 @@ in {
     file = {
       ".codex/AGENTS.md".source = mkLink "home/ai/AGENTS.md";
       ".codex/keybindings.json".source = mkLink "home/agents/codex/keybindings.json";
-      ".codex/openai.config.toml".source = mkLink "home/agents/codex/openai.config.toml";
+      ".codex/gemini.config.toml".source = mkLink "home/agents/codex/gemini.config.toml";
       ".codex/deepseek.config.toml".source = mkLink "home/agents/codex/deepseek.config.toml";
       ".codex/bedrock.config.toml".source = mkLink "home/agents/codex/bedrock.config.toml";
       ".codex/rules/default.rules".source = mkLink "home/agents/codex/default.rules";
