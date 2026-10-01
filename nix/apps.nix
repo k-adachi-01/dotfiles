@@ -24,6 +24,7 @@
       "bitwarden"
       "codex-app"
       "cursor"
+      "devin-desktop"
       "ghostty"
       "google-chrome"
       "grok-bot"
