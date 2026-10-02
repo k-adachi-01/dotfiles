@@ -155,7 +155,7 @@ in {
         cc = "claude --permission-mode acceptEdits";
         cdx = "codex --sandbox workspace-write --ask-for-approval on-request";
         cdx-bedrock = "codex --profile bedrock --sandbox workspace-write --ask-for-approval on-request";
-        # cdx-deepseek is a function (see initContent): it injects AI_GATEWAY_API_KEY from BWS.
+        # cdx-gemini / cdx-deepseek inject AI_GATEWAY_API_KEY from BWS (see initContent).
         csr = "cursor-agent";
         la = "ls -A";
         ll = "ls -alF";
@@ -173,15 +173,17 @@ in {
             set -o vi
             setopt prompt_subst
 
-            # Run Codex with the DeepSeek profile, injecting AI_GATEWAY_API_KEY at
+            # Run Codex with a Gateway profile, injecting AI_GATEWAY_API_KEY at
             # call time. The token is fetched from Bitwarden Secrets Manager (BWS),
             # whose access token lives in the macOS Keychain. Nothing is written to
             # disk or exported into the persistent environment.
-            cdx-deepseek() {
+            _cdx-gateway() {
+              local gateway_profile="$1"
+              shift
               local bws_secret_name="260911_AI_GATEWAY_API_KEY"
               local bws_token key
               bws_token="$(security find-generic-password -s bws-access-token -w 2>/dev/null)" || {
-                print -u2 "cdx-deepseek: could not read bws-access-token from Keychain"
+                print -u2 "cdx-$gateway_profile: could not read bws-access-token from Keychain"
                 return 1
               }
               key="$(
@@ -189,12 +191,15 @@ in {
                   | python3 -c 'import sys,json;n=sys.argv[1];print(next((s["value"] for s in json.load(sys.stdin) if s["key"]==n),""))' "$bws_secret_name"
               )"
               if [ -z "$key" ]; then
-                print -u2 "cdx-deepseek: secret $bws_secret_name not found in BWS"
+                print -u2 "cdx-$gateway_profile: secret $bws_secret_name not found in BWS"
                 return 1
               fi
-              AI_GATEWAY_API_KEY="$key" codex --profile deepseek \
+              AI_GATEWAY_API_KEY="$key" codex --profile "$gateway_profile" \
                 --sandbox workspace-write --ask-for-approval on-request "$@"
             }
+
+            cdx-gemini() { _cdx-gateway gemini "$@"; }
+            cdx-deepseek() { _cdx-gateway deepseek "$@"; }
 
             autoload -Uz vcs_info
             precmd() {
