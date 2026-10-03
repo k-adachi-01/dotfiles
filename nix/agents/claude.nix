@@ -128,8 +128,12 @@
       "typescript-lsp@claude-plugins-official" = true;
       "pyright-lsp@claude-plugins-official" = true;
       # aws/agent-toolkit-for-aws's successor plugin; supersedes the
-      # awslabs deploy-on-aws and aws-serverless plugins.
+      # awslabs deploy-on-aws and aws-serverless plugins. Merge never
+      # removes undeclared keys, so the replaced plugins must be
+      # explicitly disabled to take effect.
       "aws-core@claude-plugins-official" = true;
+      "deploy-on-aws@claude-plugins-official" = false;
+      "aws-serverless@claude-plugins-official" = false;
     };
     extraKnownMarketplaces = {
       anthropic-agent-skills.source = {
