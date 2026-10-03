@@ -85,28 +85,28 @@ with pkgs; let
   };
   devinCli = stdenvNoCC.mkDerivation rec {
     pname = "devin-cli";
-    version = "3000.2.17";
+    version = "3000.11.3";
 
     src = fetchurl (
       if system == "aarch64-darwin"
       then {
         url = "https://static.devin.ai/cli/${version}/devin-${version}-aarch64-apple-darwin.tar.gz";
-        hash = "sha256-YOLt0yH1zV4c/fPW1eEgZPJTJsqONqitcfQ9AAdF3/g=";
+        hash = "sha256-wIzD81B9EDJGuMYBpYT8xxn9d/bMEPJsyQ6fQYZkDfI=";
       }
       else if system == "x86_64-darwin"
       then {
         url = "https://static.devin.ai/cli/${version}/devin-${version}-x86_64-apple-darwin.tar.gz";
-        hash = "sha256-jU2dYnuTRImEQuFP/4cAOzdt2aGr9SQ3IgbxcnshzSg=";
+        hash = "sha256-WU+JtrDQPf/sTqvHVBBORHHMQ6AUohZOL919DXUtAQA=";
       }
       else if system == "aarch64-linux"
       then {
         url = "https://static.devin.ai/cli/${version}/devin-${version}-aarch64-unknown-linux.tar.gz";
-        hash = "sha256-EW3HHvCFqSK8P/DqA3fUsmxSmkMdWCRuNlcpE+LSViQ=";
+        hash = "sha256-IaLXqN6meYcGfN5+s/5xk6SNqo+MPVDUFMYDxKK2fxU=";
       }
       else if system == "x86_64-linux"
       then {
         url = "https://static.devin.ai/cli/${version}/devin-${version}-x86_64-unknown-linux.tar.gz";
-        hash = "sha256-8OHpNjr8buaMTvh7q0rrf/XMCKX6g4NQ7zzu/bsqK+I=";
+        hash = "sha256-g7OxE8Ab8qPp4QDbCNd+awhoBqd1TwkeIIMb3+IVFX4=";
       }
       else throw "devin-cli is unsupported on ${system}"
     );
