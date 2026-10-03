@@ -163,15 +163,16 @@ Vite+ を使わない JavaScript／TypeScript プロジェクトでは、プロ�
 
 **dotfiles を更新した後は、ユーザーへ確認せず、必ず `k-adachi-01/dotfiles` リポジトリへ commit・push すること。**
 
-### Codex / Claude Code / Cursor / Kiro 設定運用
+### Codex / Claude Code / Cursor / Kiro / Devin 設定運用
 
-- Codex/Claude Code/Cursor/Kiro の4ツールすべてが統一管理モデル（`docs/management-policy.md`）のクラスA/Bへ移行済み（PR6〜PR8完了）。`sync-codex-config`/`sync-kiro-config` のようなツール固有の再同期スクリプトはもう存在しない。`sudo darwin-rebuild switch` を実行するだけで、クラスAは deep-merge、クラスBは symlink 経由で常に最新の宣言が反映される
+- Codex/Claude Code/Cursor/Kiro/Devin の5ツールすべてが統一管理モデル（`docs/management-policy.md`）のクラスA/Bへ移行済み（既存4ツールはPR6〜PR8完了、Devinも同じmerge基盤を使用）。`sync-codex-config`/`sync-kiro-config` のようなツール固有の再同期スクリプトはもう存在しない。`sudo darwin-rebuild switch` を実行するだけで、クラスAは deep-merge、クラスBは symlink 経由で常に最新の宣言が反映される
 - Codex: `home/agents/codex/config.toml` が `nix/agents/codex.nix` 経由で `~/.codex/config.toml` へ **switch のたびに deep-merge** される（宣言キーは常に上書き、`[projects.*]` 等アプリが書いた宣言外キーは保持）。`~/.codex/AGENTS.md`・`keybindings.json`・`gemini.config.toml`・`bedrock.config.toml`・`deepseek.config.toml`・`rules/default.rules`・`notify.sh` は `home/agents/codex/*` への out-of-store symlink（repo を編集すれば switch 不要で即反映）。`*.config.toml` は Codex のプロファイルで、`codex --profile deepseek` のように選ぶ（`deepseek` は Vercel AI Gateway 経由で `AI_GATEWAY_API_KEY` を要求する）
 - Claude Code: `nix/agents/claude.nix` の attrset が `~/.claude/settings.json`・`.mcp.json`・`keybindings.json` へ deep-merge される。`~/.claude/AGENTS.md`・`CLAUDE.md`・`statusline.py`・`notify-done.sh` は `home/ai/`・`home/agents/claude/*` への out-of-store symlink
 - Cursor: `nix/agents/cursor.nix` の attrset が `~/.cursor/cli-config.json`・`mcp.json` へ deep-merge される（Cursor 自身が書く `hasChangedDefaultModel`/`selectedModel` 等は宣言外キーとして保持される）。`~/.cursor/AGENTS.md`・`statusline.sh` は out-of-store symlink
 - Kiro: `nix/agents/kiro.nix`（`nix/agents/mcp.nix` の値を参照）が `settings/cli.json`・`settings/mcp.json`・`settings/kiro_cli_theme.json`・`settings/permissions.yaml` を deep-merge する。`home/agents/kiro/powers/<name>/` は `plugin.json`・`mcp.json`・`skills/**`・`dev.kiro/steering/**` を持つ Agent Plugins形式のソースで、各ファイルを out-of-store symlink する。`~/.kiro/powers/` は Kiro runtime が `registries/` とPower登録情報を管理できるよう通常ディレクトリのまま維持し、`powers.json` と `powers.mcp.json` はアプリ所有のruntime状態としてNix/Git管理しない
+- Devin: `nix/agents/devin.nix` で `~/.config/devin/config.json` の `permissions.allow` だけを宣言し、switch 時に deep-merge する。許可リストは全置換されるため、恒久化する許可は Nix 側へ追加する。組織ID・初期設定状態・モデル・テーマ・version は宣言せずローカルに保持する。共有 skills は既存の `~/.agents/skills` を読み込み、専用同期処理は設けない
 - merge は辞書（テーブル/オブジェクト）のみを再帰マージする。配列は宣言側で丸ごと置き換わる（例: `permissions.yaml` の `rules` リストに Kiro が独自に追記しても、次の switch で宣言値に戻る）。配列への追記を保持したいフィールドが見つかったら、そのフィールドは merge の対象から外しクラスCとして扱うことを検討する
-- `agents-diff`（`~/.local/bin/agents-diff`）を実行すると、4ツールすべての class A ファイルについて「次の switch で何が変わるか」と「宣言されていないアプリ所有キー」を読み取り専用で確認できる。ローカルで試した設定を恒久化したい時は、これで確認してから該当する `nix/agents/<tool>.nix` の attrset へ手動で移す
+- `agents-diff`（`~/.local/bin/agents-diff`）を実行すると、5ツールすべての class A ファイルについて「次の switch で何が変わるか」と「宣言されていないアプリ所有キー」を読み取り専用で確認できる。ローカルで試した設定を恒久化したい時は、これで確認してから該当する `nix/agents/<tool>.nix` の attrset へ手動で移す
 - Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は switch のたびに常に再同期される動的カタログ（merge/link のどちらでもない、専用の rsync ミラー）
 - Kiro CLI 本体は `.dmg` の手動インストール（`/Applications/Kiro CLI.app` + `/usr/local/bin/kiro-cli*`）で管理する。Nix では配布しない
 - Kiro shell integration / alias は `nix/home.nix` で管理する

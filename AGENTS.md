@@ -45,7 +45,7 @@ nix build '.#darwinConfigurations.macbook.system' --no-link
 | `nix/home.nix` | shell/git/direnv/fzf/tmux | home-manager ネイティブ |
 | `nix/nixvim.nix` | Neovim 全設定 | nixvim（Neovim の唯一のソース。`home/config/nvim/` のような別ツリーを作らない） |
 | `nix/editors.nix` | VS Code/Cursor/Antigravity/Antigravity IDE の `settings.json`（クラスA merge、`nix/agents/lib.nix` を共用） / `keybindings.json`（home.file symlink、配列トップレベルのため merge 非対応） | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
-| `nix/agents/*` | Claude/Codex/Cursor/Kiro の user-level 設定、MCP 定義 | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
+| `nix/agents/*` | Claude/Codex/Cursor/Kiro/Devin の user-level 設定、MCP 定義 | 詳細は [`docs/management-policy.md`](docs/management-policy.md) |
 | `home/*` | 上記から参照される実ファイル本体 | — |
 | `home/zprofile` | `~/.zprofile` | out-of-store symlink（`/nix` 未マウントでも login shell が動く） |
 | `home/bin/nix-store-repair.sh` | `~/bin/nix-store-repair` | out-of-store symlink（再起動後の `/nix` 未マウント復旧。OS ツールのみ） |
@@ -55,16 +55,17 @@ nix build '.#darwinConfigurations.macbook.system' --no-link
 
 ## AI エージェント設定の管理方式（最重要）
 
-Claude Code / Codex / Cursor / Kiro の設定は、[`docs/management-policy.md`](docs/management-policy.md) が定義する **クラスA（宣言データ・merge）/ クラスB（静的アセット・symlink）/ クラスC（ランタイム状態・管理外）** の3分類に従う。**ツールごとに管理方式を独自に決めない。** 新しい設定項目を追加するときは、まず「アプリがそのファイルに書き込むか」を確認し、書き込むならクラスA、書き込まないならクラスBとして扱う。
+Claude Code / Codex / Cursor / Kiro / Devin の設定は、[`docs/management-policy.md`](docs/management-policy.md) が定義する **クラスA（宣言データ・merge）/ クラスB（静的アセット・symlink）/ クラスC（ランタイム状態・管理外）** の3分類に従う。**ツールごとに管理方式を独自に決めない。** 新しい設定項目を追加するときは、まず「アプリがそのファイルに書き込むか」を確認し、書き込むならクラスA、書き込まないならクラスBとして扱う。
 
 同ドキュメントの「移行状況」表で各ツールが現在どちらの方式で実装されているかを確認すること。移行完了前のツールは、旧方式（seed-only または Nix store symlink）の制約がまだ有効。
 
 やってはいけないこと:
 
-- `~/.codex/*`, `~/.claude/*`, `~/.cursor/*`, `~/.kiro/*` を直接編集して「設定した」つもりにならない。これらは生成先であり、変更は必ず `nix/agents/*` または `home/agents/*` に対して行い、`sudo darwin-rebuild switch` で反映する
+- `~/.codex/*`, `~/.claude/*`, `~/.cursor/*`, `~/.kiro/*`, `~/.config/devin/*` を直接編集して「設定した」つもりにならない。これらは生成先であり、変更は必ず `nix/agents/*` または `home/agents/*` に対して行い、`sudo darwin-rebuild switch` で反映する
   - 例外: クラスB ファイル（`~/.codex/AGENTS.md`、`~/.claude/statusline.py`、`~/.cursor/statusline.sh` 等）は repo への symlink なので、`home/agents/*` を編集すれば switch なしで即反映される
 - クラスA移行済みのツールで、宣言外キー（アプリが書いた実行時状態）を repo 側の attrset へ無条件にコピーしない。昇格は `agents-diff` で確認してから明示的に行う
-- Codex/Claude Code/Cursor/Kiro の4ツールすべてが統一モデルへ移行済み（PR6〜PR8完了）。`nix/agents/*.nix` や `home/agents/*/*` を編集したら `sudo darwin-rebuild switch` だけで自動的に merge/link される。Kiro Powerのパッケージは `plugin.json` を含む Agent Plugins形式で管理し、インストール登録はKiro UIに任せる。`sync-codex-config`/`sync-kiro-config` のような手動再同期スクリプトはもう存在しない
+- Codex/Claude Code/Cursor/Kiro/Devin の5ツールすべてが統一モデルへ移行済み（既存4ツールはPR6〜PR8完了、Devinも同じmerge基盤を使用）。`nix/agents/*.nix` や `home/agents/*/*` を編集したら `sudo darwin-rebuild switch` だけで自動的に merge/link される。Kiro Powerのパッケージは `plugin.json` を含む Agent Plugins形式で管理し、インストール登録はKiro UIに任せる。`sync-codex-config`/`sync-kiro-config` のような手動再同期スクリプトはもう存在しない
+- Devin: `nix/agents/devin.nix` で `~/.config/devin/config.json` の `permissions.allow` だけを宣言し、switch 時に deep-merge する。許可リストは全置換されるため、恒久化する許可は Nix 側へ追加する。組織ID・初期設定状態・モデル・テーマ・version は宣言せずローカルに保持する。共有 skills は既存の `~/.agents/skills` を読み込み、専用同期処理は設けない
 - merge は辞書のみ再帰処理する。配列（例: Kiro `permissions.yaml` の `rules`）は宣言側で丸ごと置き換わり、要素単位のマージはしない。配列に対するアプリの追記を保持したくなったら、そのフィールドをクラスCへ動かすことを検討する
 - クラスBファイルを追加・編集するときは、必ず各 `nix/agents/<tool>.nix` 内の `mkLink` ヘルパー（`config.lib.file.mkOutOfStoreSymlink` のラッパー）経由にする。`.source = ../../home/...` のような生の Nix パス参照を書くと、eval・build は問題なく通るのに実体は Nix store コピーへ静かに退化し、「repo を編集すれば switch 不要で即反映」という前提が崩れる。過去に `.claude/AGENTS.md`・`.claude/CLAUDE.md`・`.cursor/AGENTS.md`・`.agents/AGENTS.md` の4箇所で実際にこれが起きていた（PR11で修正、詳細は `docs/management-policy.md`）。新規/既存のクラスBエントリを触ったら `.source` の右辺が `mkLink "..."` になっているか目視確認すること
 

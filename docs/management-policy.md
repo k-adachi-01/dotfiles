@@ -13,7 +13,7 @@
 
 ## 2. AI エージェント設定のクラス分け（クラスA/B/C）
 
-Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分の設定ファイルに書き込むかどうか」が異なる。この違いを無視して全ツールに同じ管理方式を強制すると、次のいずれかが起きる。
+Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が自分の設定ファイルに書き込むかどうか」が異なる。この違いを無視して全ツールに同じ管理方式を強制すると、次のいずれかが起きる。
 
 - **Nix store symlink を強制**すると、アプリが設定へ書き込めず壊れる（例: Cursor `cli-config.json` は `hasChangedDefaultModel` 等のアプリ状態を自分で書く）。
 - **何も merge せず放置**すると、repo と実ファイルが黙って乖離し SSOT でなくなる。
@@ -35,6 +35,7 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 | Claude Code | `settings.json`, `.mcp.json`, `keybindings.json` | `AGENTS.md`, `CLAUDE.md`, `statusline.py`, `notify-done.sh` | `.credentials.json`, `projects/`, `statsig/` |
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
 | Kiro | `settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | Agent Plugins形式のPower一式（`plugin.json`, `mcp.json`, `skills/**`, `dev.kiro/steering/**`） | Power登録manifest (`powers.json`), 旧Power MCPカタログ (`powers.mcp.json`), `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
+| Devin | `~/.config/devin/config.json`（`permissions.allow` のみ宣言） | —（共有 skills は既存の `~/.agents/skills` を参照） | 組織ID・初期設定状態・認証・履歴・セッション・ログ・configバックアップ |
 | Agent Skills | — (`programs.agent-skills` モジュール経由の rsync) | — | — |
 
 ## 3. 移行状況（この表は各PRの完了時に更新する）
@@ -45,9 +46,18 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 | Kiro | クラスA merge（`settings/cli.json`/`settings/mcp.json`/`settings/kiro_cli_theme.json`/`settings/permissions.yaml`）+ クラスB link（Agent Plugins形式のPowerファイル）（済） | 同左（完了） | PR7 + Agent Plugins移行 |
 | Claude Code | クラスA merge（`settings.json`/`.mcp.json`/`keybindings.json`）+ クラスB link（`AGENTS.md`/`CLAUDE.md`/`statusline.py`/`notify-done.sh`）（済） | 同左（完了） | PR8 完了 |
 | Cursor | クラスA merge（`cli-config.json`/`mcp.json`）+ クラスB link（`AGENTS.md`/`statusline.sh`）（済） | 同左（完了） | PR8 完了 |
+| Devin | クラスA merge（`config.json` の `permissions.allow`）+ 既存の共有 skills カタログを利用 | 同左（完了） | Devin管理追加 |
 | Agent Skills flake input | `path:/Users/adachi/agent-skills`（ローカル checkout、GitHub 認証不要） | 同左（完了） | PR5 で一時的に GitHub pin、PR13 で path に戻した |
 
-4ツールすべてがクラスA merge / クラスB linkの統一モデルへ移行済み（2026-07時点）。旧方式（Claude/Cursorの Nix store symlink、Codex/Kiro の seed-only）は全廃した。
+既存4ツールは2026-07時点で統一モデルへ移行済み。Devinも同じクラスA merge基盤で管理する。旧方式（Claude/Cursorの Nix store symlink、Codex/Kiro の seed-only）は全廃した。
+
+### Devin の設定と共有 skills
+
+`nix/agents/devin.nix` は `permissions.allow` の現在の許可だけを宣言し、`lib.nix` の `mkMergeActivation` と `mkDiffCommand` を共用する。switch 前のファイルは `~/.config/devin/backups/` へ保存する。`devin.org_id`、`shell.setup_complete`、`agent.model`、`theme_mode`、`version` は宣言せず、ローカルの値を保持する。
+
+`permissions.allow` は配列なので switch 時に全置換する。Devin 上で追加した許可を恒久化する場合は `nix/agents/devin.nix` へ移す。その他の未宣言の権限キーは保持する。
+
+共有 skills のソースは `agent-skills` flake input。既存の `targets.agents.enable = true` が配布する `~/.agents/skills` を Devin CLI が読み込むため、専用の同期やコピーは追加しない。確認には `devin skills paths` と `devin skills list --json` を使う。skills 更新時は flake input を更新してから switch する。
 
 ### Codex merge 実装メモ（PR6で確定）
 
@@ -162,6 +172,6 @@ cd ~/.config/nix-darwin && nix flake update agent-skills
 2. `nix/agents/<tool>.nix` を作成: クラスAは attrset + `nix/agents/lib.nix` の merge ヘルパー、クラスBは `config.lib.file.mkOutOfStoreSymlink`（既存ファイルの `mkLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesRepo}/${path}";` をコピーして使う）。**クラスBの `.source` に `../../home/...` のような生の Nix パスを直接書かない** — 見た目は動くが Nix store コピーに退化し、repo 編集が switch まで反映されなくなる（実際に起きた事故と修正は「class B symlink 実装漏れの修正（PR11で確定）」を参照）
 3. 実体ファイルは `home/agents/<tool>/` に置く
 4. `nix/agents/default.nix` に import を追加。MCP が必要なら `nix/agents/mcp.nix` の共有定義を参照する
-5. Agent Skills をそのツールへ配布したい場合は `nix/agents/default.nix` の `config.programs.agent-skills.targets` に対象を追加する（`programs.agent-skills` がそのツールをネイティブサポートしていない場合は、Codex/Kiro に倣い `targets.<tool>.enable = false` のまま `nix/agents/<tool>.nix` 側に `activation.sync<Tool>Skills`（`rsync -aL --delete` で `config.programs.agent-skills.bundlePath` をミラーする）を自前で書く。この場合の同期先はクラスA/Bのどちらでもない「常に上書きされる動的カタログ」として扱い、本ドキュメントの分類表にはクラスCの隣に別枠で書く）
+5. Agent Skills は、Devin のように既存の `~/.agents/skills` を読み込めるツールなら共有カタログを利用する。専用の配布先が必要な場合は `nix/agents/default.nix` の `config.programs.agent-skills.targets` に対象を追加する（`programs.agent-skills` がそのツールをネイティブサポートしていない場合は、Codex/Kiro に倣い `targets.<tool>.enable = false` のまま `nix/agents/<tool>.nix` 側に `activation.sync<Tool>Skills`（`rsync -aL --delete` で `config.programs.agent-skills.bundlePath` をミラーする）を自前で書く。この場合の同期先はクラスA/Bのどちらでもない「常に上書きされる動的カタログ」として扱い、本ドキュメントの分類表にはクラスCの隣に別枠で書く）
 6. クラスCの一覧を本ドキュメントの表と `README.md` の除外リストへ追記する
 7. 検証: 冪等性（2回 switch しても差分が出ない）・アプリ状態の保持（宣言外キーが消えない）・SSOT再主張（管理キーをlive側で書き換えてもswitchで戻る）の3点を確認する

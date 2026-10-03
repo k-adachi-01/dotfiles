@@ -19,7 +19,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 | `flake.nix` | macOS flake entrypoint |
 | `AGENTS.md` | guide for AI agents editing this repository (not the global AI config) |
 | `nix/` | nix-darwin and home-manager modules |
-| `nix/agents/` | Claude Code / Codex / Cursor / Kiro / MCP configuration (see below) |
+| `nix/agents/` | Claude Code / Codex / Cursor / Kiro / Devin / MCP configuration (see below) |
 | `home/` | source files installed by home-manager |
 | `home/agents/` | class B asset sources (Codex/Claude/Cursor scripts and config, Kiro powers) installed by home-manager |
 | `home/editors/` | editor extension manifests derived from Windows |
@@ -36,15 +36,16 @@ This repository used to be a chezmoi source tree. The target state is now:
 
 ## AI Agent Configuration
 
-`nix/agents/` is the single source of truth for Claude Code, Codex, Cursor, and Kiro user-level configuration (one file per tool, plus `lib.nix` for the merge helper and `mcp.nix` for shared definitions).
+`nix/agents/` is the single source of truth for Claude Code, Codex, Cursor, Kiro, and Devin user-level configuration (one file per tool, plus `lib.nix` for the merge helper and `mcp.nix` for shared definitions).
 `nix/editors.nix` manages VS Code, Cursor, Antigravity, and Antigravity IDE user settings on macOS.
 
-All four tools now share one management mechanism: class A files are deep-merged into the live file on every switch (declared keys always win, app-written keys the repo doesn't declare are preserved), and class B files are out-of-store symlinks to `home/agents/*` (edit the repo, no switch needed). The full classification and rationale are documented in [`docs/management-policy.md`](docs/management-policy.md). `~/.local/bin/agents-diff` shows, read-only, what the next switch would change per class A file and which live keys aren't declared in Nix yet (promotion candidates). The same class A merge mechanism is also used for the editor GUI `settings.json` files below (`nix/editors.nix`), so `agents-diff` covers those too.
+All five tools now share one management mechanism: class A files are deep-merged into the live file on every switch (declared keys always win, app-written keys the repo doesn't declare are preserved), and class B files are out-of-store symlinks to `home/agents/*` (edit the repo, no switch needed). The full classification and rationale are documented in [`docs/management-policy.md`](docs/management-policy.md). `~/.local/bin/agents-diff` shows, read-only, what the next switch would change per class A file and which live keys aren't declared in Nix yet (promotion candidates). The same class A merge mechanism is also used for the editor GUI `settings.json` files below (`nix/editors.nix`), so `agents-diff` covers those too.
 
 Managed by Nix:
 
 - `~/.agents/AGENTS.md`
-- `~/.agents/skills` (dynamically populated from the enabled Agent Skills catalog; the exact skill set is not a fixed list in this file)
+- `~/.agents/skills` (dynamically populated from the enabled Agent Skills catalog; Devin CLI reads this shared catalog natively)
+- `~/.config/devin/config.json` (`permissions.allow` only, deep-merged on every switch; the allow array is replaced wholesale)
 - `~/.claude/AGENTS.md` (out-of-store symlink)
 - `~/.claude/CLAUDE.md` (out-of-store symlink)
 - `~/.claude/skills` (same dynamic catalog as above)
@@ -74,7 +75,13 @@ Managed by Nix:
 
 Power package contents are managed in this repository, but installation and activation are owned by Kiro. Import a local Power from its `home/agents/kiro/powers/<name>/` folder through Kiro's Powers panel when needed.
 
-None of the four tools need a manual re-sync script anymore (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
+None of the five tools need a manual re-sync script anymore (the old `sync-codex-config`/`sync-kiro-config` were removed): every `sudo darwin-rebuild switch` re-applies the merge/symlinks automatically. The merge only recurses into dicts/tables — a list-valued key (e.g. Kiro's `permissions.yaml` `rules` array) is replaced wholesale by the declared value, not merged element-by-element; see `docs/management-policy.md` for the reasoning and what to do if an app is observed appending to such a list at runtime.
+
+### Devin CLI
+
+`nix/agents/devin.nix` declares only `permissions.allow`. Add durable approvals there; approvals added in Devin are replaced on the next switch. Undeclared keys, including `devin.org_id`, `shell.setup_complete`, `agent.model`, `theme_mode`, and `version`, remain local. The pre-merge file is backed up under `~/.config/devin/backups/`.
+
+Devin uses the existing `~/.agents/skills` catalog from the `agent-skills` flake input, so no Devin-specific mirror is needed. Verify discovery with `devin skills paths` and `devin skills list --json` after switching.
 
 ### Codex profiles
 
@@ -109,6 +116,7 @@ Windows-only settings preserved for handoff:
 
 Not managed by Nix:
 
+- Devin organization/setup state and config backups (`~/.config/devin/backups/`); only the declared permissions belong in Git
 - auth files and credentials, including `~/.codex/auth.json`
 - local session and prompt history, including `history.jsonl`, `session_index.jsonl`, `transcription-history.jsonl`, `sessions/`, and `shell_snapshots/`
 - telemetry, cache, and state files, including `*.sqlite*`, `cache/`, `.tmp/`, `tmp/`, `models_cache.json`, and `installation_id`

@@ -19,7 +19,7 @@ in {
       One shell snippet per class A (declare + merge) file, each of which
       prints what the next `switch` would change plus any live keys not
       declared in Nix. Every tool file (codex.nix, claude.nix, cursor.nix,
-      kiro.nix) appends to this list via nix/agents/lib.nix's
+      kiro.nix, devin.nix) appends to this list via nix/agents/lib.nix's
       mkDiffCommand. Aggregated into ~/.local/bin/agents-diff.
     '';
   };
@@ -29,6 +29,7 @@ in {
     ./claude.nix
     ./cursor.nix
     ./kiro.nix
+    ./devin.nix
   ];
 
   config =
@@ -120,6 +121,8 @@ in {
           filter.maxDepth = 1;
         };
         skills.enableAll = ["personal"];
+        # Devin CLI discovers this shared user catalog natively; no separate
+        # Devin mirror or tool-specific synchronization is needed.
         targets.agents.enable = true;
         targets.claude.enable = true;
         targets.codex.enable = false;
