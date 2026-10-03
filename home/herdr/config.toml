@@ -13,6 +13,9 @@ name = "catppuccin"
 [terminal]
 new_cwd = "follow"
 
+[session]
+resume_agents_on_restore = false
+
 [experimental]
 pane_history = false
 switch_ascii_input_source_in_prefix = true
