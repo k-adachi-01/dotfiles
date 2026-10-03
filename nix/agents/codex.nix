@@ -21,6 +21,8 @@
         "${config.home.homeDirectory}/.codex/notify.sh"
       ];
       mcp_servers.linear.url = linearMcpUrl;
+      mcp_servers.aws-sandbox = shared.awsMcpServers.aws-sandbox;
+      mcp_servers.aws-app = shared.awsMcpServers.aws-app;
     };
 
   configEntry = {

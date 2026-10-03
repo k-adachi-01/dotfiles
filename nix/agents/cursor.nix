@@ -40,6 +40,8 @@
         };
       };
       "aws-knowledge-mcp-server".url = "https://knowledge-mcp.global.api.aws";
+      aws-sandbox = shared.awsMcpServers.aws-sandbox;
+      aws-app = shared.awsMcpServers.aws-app;
       context7 = {
         command = "pnpm";
         args = [

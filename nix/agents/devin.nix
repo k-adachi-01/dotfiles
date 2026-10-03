@@ -10,10 +10,6 @@
   shared = import ./mcp.nix {inherit config pkgs;};
   configEntry = {
     format = "json";
-    value.mcpServers.linear = {
-      url = shared.linearMcpUrl;
-      transport = "http";
-    };
     value.permissions = {
       allow = [
         "Read(/**)"
@@ -61,13 +57,31 @@
     dest = "$HOME/.config/devin/config.json";
     label = "devin-config";
   };
+  # Since Devin CLI v3000.3 MCP servers live in a dedicated file; entries
+  # left in config.json are migrated here by the app on startup anyway.
+  mcpEntry = {
+    format = "json";
+    value.mcpServers =
+      {
+        linear = {
+          url = shared.linearMcpUrl;
+          transport = "http";
+        };
+      }
+      // shared.awsMcpServers;
+    dest = "$HOME/.config/devin/mcp_config.json";
+    label = "devin-mcp";
+  };
 in {
-  dotfilesAgents.classAMerges = [(agentsLib.mkDiffCommand configEntry)];
+  dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand [configEntry mcpEntry];
 
   # Only allow/deny/ask are declared: org_id, setup state, model, theme,
   # version and other app-owned keys survive. These arrays are replaced
   # wholesale on switch; promote durable rules into this declaration.
   home.activation.mergeDevinConfig = lib.hm.dag.entryAfter ["writeBoundary"] (
     agentsLib.mkMergeActivation (configEntry // {backupDir = "$HOME/.config/devin/backups";})
+  );
+  home.activation.mergeDevinMcp = lib.hm.dag.entryAfter ["writeBoundary"] (
+    agentsLib.mkMergeActivation (mcpEntry // {backupDir = "$HOME/.config/devin/backups";})
   );
 }

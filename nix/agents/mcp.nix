@@ -24,6 +24,39 @@ in rec {
   # client's runtime auth store and never enter this public repository.
   linearMcpUrl = "https://mcp.linear.app/mcp";
 
+  # AWS MCP Server (managed remote endpoint) reached through the local
+  # SigV4 proxy. Each entry is pinned to a single AWS profile so agents
+  # cannot hop to management or default credentials: the sandbox profile
+  # keeps write access, the app-dev profile is read-only at the proxy.
+  # Version matches the pin in agent-toolkit-for-aws's aws-core plugin.
+  awsMcpProxyPkg = "mcp-proxy-for-aws-cli==1.7.0";
+  awsMcpEndpoint = "https://aws-mcp.us-east-1.api.aws/mcp";
+  awsMcpServers = {
+    aws-sandbox = {
+      command = "uvx";
+      args = [
+        awsMcpProxyPkg
+        awsMcpEndpoint
+        "--profile"
+        "aws-poc-sandbox"
+        "--region"
+        "ap-northeast-1"
+      ];
+    };
+    aws-app = {
+      command = "uvx";
+      args = [
+        awsMcpProxyPkg
+        awsMcpEndpoint
+        "--profile"
+        "aws-app-dev"
+        "--region"
+        "ap-northeast-1"
+        "--read-only"
+      ];
+    };
+  };
+
   kiroCliJson = json.generate "kiro-cli.json" {
     "chat.defaultModel" = "auto";
   };
@@ -33,6 +66,8 @@ in rec {
       type = "http";
       url = linearMcpUrl;
     };
+    mcpServers.aws-sandbox = awsMcpServers.aws-sandbox // {disabled = false;};
+    mcpServers.aws-app = awsMcpServers.aws-app // {disabled = false;};
     mcpServers.spec-driven-presentation-maker = {
       type = "stdio";
       command = "uv";

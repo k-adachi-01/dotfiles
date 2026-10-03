@@ -120,7 +120,15 @@ in {
           input = "agent-skills";
           filter.maxDepth = 1;
         };
-        skills.enableAll = ["personal"];
+        # AWS official toolkit skills. subdir points at core-skills so
+        # discovered ids stay flat (nested relative paths become nested
+        # ids). Widen coverage with more subdir sources under
+        # skills/specialized-skills/* when needed.
+        sources.aws-toolkit = {
+          input = "aws-agent-toolkit";
+          subdir = "skills/core-skills";
+        };
+        skills.enableAll = ["personal" "aws-toolkit"];
         # Devin CLI discovers this shared user catalog natively; no separate
         # Devin mirror or tool-specific synchronization is needed.
         targets.agents.enable = true;

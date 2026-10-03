@@ -127,8 +127,9 @@
     enabledPlugins = {
       "typescript-lsp@claude-plugins-official" = true;
       "pyright-lsp@claude-plugins-official" = true;
-      "deploy-on-aws@claude-plugins-official" = true;
-      "aws-serverless@claude-plugins-official" = true;
+      # aws/agent-toolkit-for-aws's successor plugin; supersedes the
+      # awslabs deploy-on-aws and aws-serverless plugins.
+      "aws-core@claude-plugins-official" = true;
     };
     extraKnownMarketplaces = {
       anthropic-agent-skills.source = {
@@ -157,6 +158,8 @@
       type = "http";
       url = linearMcpUrl;
     };
+    mcpServers.aws-sandbox = shared.awsMcpServers.aws-sandbox;
+    mcpServers.aws-app = shared.awsMcpServers.aws-app;
     mcpServers.spec-driven-presentation-maker = {
       command = "uv";
       args = [

@@ -31,6 +31,12 @@
       url = "path:/Users/adachi/agent-skills";
       flake = false;
     };
+    # AWS official agent toolkit. Public repo read by the agent-skills-nix
+    # module via programs.agent-skills.sources.<name>.input.
+    aws-agent-toolkit = {
+      url = "github:aws/agent-toolkit-for-aws";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {
