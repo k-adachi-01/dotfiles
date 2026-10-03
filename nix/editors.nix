@@ -59,6 +59,12 @@
   commonSettings =
     vimSettings
     // {
+      # Oxc handles JavaScript/TypeScript; workspace settings select the project config.
+      "[javascript][javascriptreact][typescript][typescriptreact]" = {
+        "editor.defaultFormatter" = "oxc.oxc-vscode";
+        "editor.formatOnSaveMode" = "file";
+        "editor.codeActionsOnSave"."source.fixAll.oxc" = "explicit";
+      };
       "window.commandCenter" = true;
       "git.autofetch" = true;
       "redhat.telemetry.enabled" = false;

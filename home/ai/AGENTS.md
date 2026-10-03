@@ -94,21 +94,48 @@ pnpm = "latest"
 - スクリプト実行は `pnpm exec` または `pnpm run`
 - 既存CIが `mise` を使っている場合は維持してよいが、新規CIではプロジェクトごとに方針を明記する
 
-## Linter / Formatter
+## JavaScript / TypeScript ツールチェーン
 
-**Biome を使用する。ESLint・Prettier は使用しない。**
+**Vite+・oxlint・oxfmt を使用する。Biome・ESLint・Prettier は新規導入しない。**
 
-- インストール: `pnpm add -D @biomejs/biome`
-- 初期化: `pnpm exec biome init`
-- Lint: `pnpm exec biome lint`
-- Format: `pnpm exec biome format`
-- Lint + Format 一括: `pnpm exec biome check`
-- 自動修正: `pnpm exec biome check --write`
+新規の Vite ベースのアプリ・ライブラリでは Vite+ を標準とする。Vite+ は oxlint による lint と oxfmt による format を統合しているため、採用時は個別パッケージを重複して追加しない。
 
-| NG | OK |
-|---|---|
-| `eslint` | `pnpm exec biome lint` |
-| `prettier` | `pnpm exec biome format` |
+### Vite+ を使う場合
+
+- プロジェクトの devDependency に `vite-plus` を置き、`pnpm exec vp <command>` または package.json の scripts 経由で実行する
+- 開発: `pnpm exec vp dev`
+- ビルド: `pnpm exec vp build`（アプリ）／`pnpm exec vp pack`（ライブラリ）
+- テスト: `pnpm exec vp test`
+- Lint: `pnpm exec vp lint`
+- Format: `pnpm exec vp fmt`（ファイルを書き換える）
+- Format 検証: `pnpm exec vp fmt --check`
+- 静的検証: `pnpm exec vp check`
+- 自動修正: `pnpm exec vp check --fix`
+- lint・format の設定は workspace root の `vite.config.ts` の `lint`・`fmt` にまとめる。型検査も行う場合は `lint.options.typeAware` と `lint.options.typeCheck` を有効にする
+
+Node.js と pnpm は Nix／project-local devShell で管理する。Vite+ のグローバルインストーラーや runtime 管理を標準手順に加えない。依存のインストールは引き続き `pnpm install` を使う。
+
+### oxlint・oxfmt を直接使う場合
+
+Vite+ を使わない JavaScript／TypeScript プロジェクトでは、プロジェクトの devDependency として導入する。
+
+- インストール: `pnpm add -D oxlint oxfmt`
+- 初期化: `pnpm exec oxlint --init` と `pnpm exec oxfmt --init`
+- Lint: `pnpm exec oxlint`
+- Lint 自動修正: `pnpm exec oxlint --fix`
+- Format: `pnpm exec oxfmt`（ファイルを書き換える）
+- Format 検証: `pnpm exec oxfmt --check`
+- 設定: `.oxlintrc.json` と `.oxfmtrc.json`
+
+### 移行・CI・エディタ
+
+- 既存プロジェクトを移行するときは、scripts・設定・CI・保存時処理・commit hook・推奨拡張を一緒に見直す。既存のルール、除外、対応言語を確認してから旧ツールの依存と設定を削除する
+- Vite+ への移行では公式の移行ガイドと対象バージョンの CLI help を確認する。必要な Vite／Vitest の更新を先に行い、移行後に lint・format・型検査・テスト・ビルドを検証する
+- CI は `pnpm install --frozen-lockfile` 後に `pnpm exec vp check`、または `pnpm exec oxlint` と `pnpm exec oxfmt --check` を実行する。型検査が無効なら既存の型検査コマンドも実行する
+- VS Code 系では `oxc.oxc-vscode` 拡張を使用する。Vite+ プロジェクトの workspace 設定では `oxc.disableNestedConfig` と `oxc.fmt.disableNestedConfig` を有効にして root の設定に揃える
+- Nix・Python など他言語の lint／format は各言語の既存ツールを使う
+
+公式ドキュメント: [Vite+](https://www.viteplus.dev/guide)、[Vite+ 移行](https://www.viteplus.dev/guide/migrate)、[Oxlint](https://oxc.rs/docs/guide/usage/linter/quickstart)、[Oxfmt](https://oxc.rs/docs/guide/usage/formatter/quickstart.html)
 
 ## NG パターン
 
@@ -120,7 +147,7 @@ pnpm = "latest"
 | `npx <cmd>` | `pnpm exec <cmd>` |
 | `cache: 'npm'` (actions/setup-node) | `jdx/mise-action@v2` |
 | `package-lock.json` をコミット | `pnpm-lock.yaml` をコミット |
-| `eslint` / `prettier` を導入 | `@biomejs/biome` を使用 |
+| Biome / ESLint / Prettier を新規導入 | Vite+、または `oxlint` + `oxfmt` を使用 |
 
 ## dotfiles 管理
 

@@ -22,6 +22,7 @@
     "ms-toolsai.vscode-jupyter-slideshow",
     "ms-vscode-remote.remote-containers",
     "openai.chatgpt",
+    "oxc.oxc-vscode",
     "vscodevim.vim"
   ],
   "cursor": [
@@ -46,6 +47,7 @@
     "ms-kubernetes-tools.vscode-kubernetes-tools",
     "ms-python.debugpy",
     "ms-python.python",
+    "oxc.oxc-vscode",
     "redhat.vscode-yaml",
     "tomoki1207.pdf",
     "typescriptteam.native-preview",
@@ -56,6 +58,7 @@
     "ms-python.debugpy",
     "ms-python.python",
     "ms-python.vscode-python-envs",
+    "oxc.oxc-vscode",
     "pomdtr.excalidraw-editor"
   ],
   "antigravity-ide": [
@@ -65,13 +68,12 @@
     "ms-python.debugpy",
     "ms-python.python",
     "ms-python.vscode-python-envs",
+    "oxc.oxc-vscode",
     "shopify.ruby-lsp",
     "vscodevim.vim"
   ],
   "kiro": [
-    "dbaeumer.vscode-eslint",
-    "manuth.eslint-language-service",
-    "rvest.vs-code-prettier-eslint",
+    "oxc.oxc-vscode",
     "vscodevim.vim"
   ]
 }

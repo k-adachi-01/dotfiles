@@ -1679,7 +1679,7 @@ ollama
 mdcat
 stow
 dotenvx
-biome
+vite-plus / oxlint / oxfmt（project-local devDependency）
 vercel
 dioxus-cli
 fonts
