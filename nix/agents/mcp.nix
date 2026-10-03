@@ -120,8 +120,10 @@ in rec {
 
   # Kiro is permissive by default: explicit deny rules protect only
   # destructive shell operations. Deny takes precedence over the catch-all
-  # allow rule. sudo is denied except for darwin-rebuild switch and the
-  # Nix store remount repair (needed when /nix is unmounted after reboot).
+  # allow rule. rm -rf prompts instead (ask) so routine temp-file cleanup
+  # stays possible after confirmation. sudo is denied except for
+  # darwin-rebuild switch and the Nix store remount repair (needed when
+  # /nix is unmounted after reboot).
   kiroPermissions = yaml.generate "kiro-permissions.yaml" {
     rules = [
       {
@@ -130,12 +132,18 @@ in rec {
       }
       {
         capability = "shell";
-        effect = "deny";
+        effect = "ask";
         match = [
           "rm -rf *"
           "rm -fr *"
           "/bin/rm -rf *"
           "/bin/rm -fr *"
+        ];
+      }
+      {
+        capability = "shell";
+        effect = "deny";
+        match = [
           "git reset --hard*"
           "git clean -*f*"
           "git checkout -- *"
