@@ -31,7 +31,7 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 
 | ツール | クラスA (merge) | クラスB (out-of-store link) | クラスC (管理外) |
 |---|---|---|---|
-| Codex | `config.toml`（`model`/`personality`/`notice`/`tui`/`plugins`/`features`/`desktop` 等の管理キーのみ宣言） | `AGENTS.md`, `gemini.config.toml`, `bedrock.config.toml`, `deepseek.config.toml`, `rules/default.rules`, `notify.sh`, `keybindings.json` | `auth.json`, `history.jsonl`, `sessions/`, `*.sqlite*`, `cache/`, `.tmp/`, `[projects.*]`, `[marketplaces.*]` |
+| Codex | `config.toml`（`approval_policy`/`approvals_reviewer`/`sandbox_mode`/`personality`/`notice`/`tui`/`plugins`/`features`/`desktop` 等の管理キーのみ宣言） | `AGENTS.md`, `gemini.config.toml`, `bedrock.config.toml`, `deepseek.config.toml`, `rules/default.rules`, `notify.sh`, `keybindings.json` | `auth.json`, `history.jsonl`, `sessions/`, `*.sqlite*`, `cache/`, `.tmp/`, `[projects.*]`, `[marketplaces.*]` |
 | Claude Code | `settings.json`, `.mcp.json`, `keybindings.json` | `AGENTS.md`, `CLAUDE.md`, `statusline.py`, `notify-done.sh` | `.credentials.json`, `projects/`, `statsig/` |
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
 | Kiro | `settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | Agent Plugins形式のPower一式（`plugin.json`, `mcp.json`, `skills/**`, `dev.kiro/steering/**`） | Power登録manifest (`powers.json`), 旧Power MCPカタログ (`powers.mcp.json`), `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
@@ -59,6 +59,8 @@ Claude Code / Codex / Cursor / Kiro はいずれも「アプリ本体が自分�
 4. 直前の内容と merge 結果が同一なら書き込みをスキップする（冪等・mtime 汚染なし）
 
 検証は `nix build` によるビルド時検証に加え、`merge-agent-config` スクリプトをサンドボックス内で直接実行し、(a) 宣言キーが live 側の変更を上書きすること、(b) `[projects.*]`/`[marketplaces.*]` のような宣言外キーが保持されること、(c) 出力を再度 merge しても差分が出ないこと（冪等性）、(d) live ファイルが壊れた TOML の場合は非ゼロ終了し出力ファイルを書き換えないこと、の4点を確認済み。実機での `sudo darwin-rebuild switch` は Touch IDが必要なため人間が実行して最終確認すること。
+
+Codex の標準モデルは Nix で固定しない。`configEntry.removeKeys = ["model"]` により、switch のたびに live のトップレベル `model` を削除してから merge し、新規セッションのモデル選択を Codex の既定値に委ねる。`agents-diff` も同じ削除を反映する。明示的に選ぶ外部プロバイダーのプロファイルは独自のモデル指定を維持する。モデル移行履歴とモデル案内の表示状態はアプリ所有として宣言しない。権限の既定値は `approval_policy = "on-request"`、`approvals_reviewer = "auto_review"`、`sandbox_mode = "workspace-write"`（Approve for Me）とする。
 
 ### Kiro merge / Power形式
 

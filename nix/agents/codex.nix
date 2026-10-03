@@ -28,13 +28,15 @@
     value = declaredConfig;
     dest = "$HOME/.codex/config.toml";
     label = "codex-config";
+    # Clear persisted model selections so new sessions use Codex defaults.
+    removeKeys = ["model"];
   };
 in {
   dotfilesAgents.classAMerges = [(agentsLib.mkDiffCommand configEntry)];
 
   home = {
     # Class A: home/agents/codex/config.toml is the human-editable
-    # declaration of the keys we own (model, personality, notice, tui,
+    # declaration of the keys we own (permissions, personality, notice, tui,
     # plugins, features, desktop, notify). Everything else Codex writes at
     # runtime — [projects.*] trust decisions, [marketplaces.*] cache paths,
     # [mcp_servers.node_repl] — is left alone because it is simply absent

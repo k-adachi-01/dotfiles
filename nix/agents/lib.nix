@@ -106,6 +106,13 @@
           return result
 
 
+      def merge_config(live, declared, remove_keys):
+          base = dict(live)
+          for key in remove_keys:
+              base.pop(key, None)
+          return deep_merge(base, declared)
+
+
       def find_app_owned_paths(live, declared, prefix=""):
           """Yield dotted key paths present in `live` but absent from `declared`.
 
@@ -137,7 +144,7 @@
           except FileNotFoundError:
               live = {}
 
-          merged = deep_merge(live, declared)
+          merged = merge_config(live, declared, args.remove_key)
 
           if merged == live:
               print(f"[{label}] no changes on next switch")
@@ -172,6 +179,8 @@
           if app_owned:
               print(f"[{label}] app-owned keys not declared in Nix (promotion candidates):")
               for path in app_owned:
+                  if path.split(".")[0] in args.remove_key:
+                      continue
                   print(f"  {path}")
 
 
@@ -180,6 +189,7 @@
           parser.add_argument("--format", required=True, choices=sorted(LOADERS))
           parser.add_argument("--check", action="store_true", help="Print a diff instead of writing OUT")
           parser.add_argument("--label", default="", help="Used in --check output only")
+          parser.add_argument("--remove-key", action="append", default=[], help="Remove a top-level live key before merging")
           parser.add_argument("declared")
           parser.add_argument("live")
           parser.add_argument("out", nargs="?")
@@ -202,7 +212,7 @@
           except FileNotFoundError:
               live = {}
 
-          merged = deep_merge(live, declared)
+          merged = merge_config(live, declared, args.remove_key)
           dump(merged, args.out)
 
           # Round-trip validation: if this raises, the caller must not swap
@@ -252,6 +262,7 @@ in {
   #
   # - format: "toml" | "json" | "jsonc" | "yaml"
   # - value / declaredFile: see resolveDeclaredFile above.
+  # - removeKeys: top-level keys to clear before merge (default: none).
   # - dest: absolute live path, e.g. "$HOME/.codex/config.toml"
   # - backupDir: absolute directory to copy the pre-merge file into
   # - label: short identifier used in log lines and backup filenames
@@ -267,6 +278,7 @@ in {
     declaredFile ? null,
     dest,
     backupDir,
+    removeKeys ? [],
     label,
   }: let
     resolvedDeclaredFile = resolveDeclaredFile {inherit format value declaredFile label;};
@@ -281,7 +293,7 @@ in {
       tmp="$(mktemp "$dest.merge.XXXXXX")"
       tmp_err="$(mktemp)"
 
-      if ! ${mergeConfigScript} --format "$format" "$declared" "$dest" "$tmp" 2>"$tmp_err"; then
+      if ! ${mergeConfigScript} ${pkgs.lib.escapeShellArgs (builtins.concatMap (key: ["--remove-key" key]) removeKeys)} --format "$format" "$declared" "$dest" "$tmp" 2>"$tmp_err"; then
         echo "merge_class_a_file: failed to merge $label ($dest), leaving it untouched" >&2
         cat "$tmp_err" >&2
         rm -f "$tmp" "$tmp_err"
@@ -317,10 +329,11 @@ in {
     value ? null,
     declaredFile ? null,
     dest,
+    removeKeys ? [],
     label,
   }: let
     resolvedDeclaredFile = resolveDeclaredFile {inherit format value declaredFile label;};
   in ''
-    ${mergeConfigScript} --check --format "${format}" --label "${label}" "${resolvedDeclaredFile}" "${dest}"
+    ${mergeConfigScript} ${pkgs.lib.escapeShellArgs (builtins.concatMap (key: ["--remove-key" key]) removeKeys)} --check --format "${format}" --label "${label}" "${resolvedDeclaredFile}" "${dest}"
   '';
 }

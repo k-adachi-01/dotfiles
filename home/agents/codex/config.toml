@@ -1,26 +1,18 @@
-model = "gpt-5.6-sol"
+# Leave model selection to Codex defaults; do not pin a model version.
 model_reasoning_effort = "medium"
 personality = "pragmatic"
-approvals_reviewer = "user"
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+sandbox_mode = "workspace-write"
 
 [notice]
 hide_rate_limit_model_nudge = true
 fast_default_opt_out = true
 
-[notice.model_migrations]
-"gpt-5.2" = "gpt-5.2-codex"
-"gpt-5.2-codex" = "gpt-5.3-codex"
-"gpt-5.3-codex" = "gpt-5.4"
-"gpt-5.4" = "gpt-5.5"
-
 [tui]
 screen_reader_mode = true
 status_line = ["model-with-reasoning", "current-dir", "five-hour-limit", "weekly-limit", "context-remaining"]
 status_line_use_colors = true
-
-[tui.model_availability_nux]
-"gpt-5.5" = 4
-"openai.gpt-5.5" = 2
 
 [plugins."google-calendar@openai-curated"]
 enabled = true
