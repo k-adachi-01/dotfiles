@@ -1,13 +1,19 @@
 # Devin CLI: class A permissions; shared skills are discovered through
 # ~/.agents/skills, managed by programs.agent-skills in default.nix.
 {
+  config,
   lib,
   pkgs,
   ...
 }: let
   agentsLib = import ./lib.nix {inherit pkgs;};
+  shared = import ./mcp.nix {inherit config pkgs;};
   configEntry = {
     format = "json";
+    value.mcpServers.linear = {
+      url = shared.linearMcpUrl;
+      transport = "http";
+    };
     value.permissions = {
       allow = [
         "Read(/**)"
