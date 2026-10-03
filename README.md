@@ -45,7 +45,7 @@ Managed by Nix:
 
 - `~/.agents/AGENTS.md`
 - `~/.agents/skills` (dynamically populated from the enabled Agent Skills catalog; Devin CLI reads this shared catalog natively)
-- `~/.config/devin/config.json` (`permissions.allow` only, deep-merged on every switch; the allow array is replaced wholesale)
+- `~/.config/devin/config.json` (`permissions.allow`/`deny`/`ask`, deep-merged on every switch; each array is replaced wholesale)
 - `~/.claude/AGENTS.md` (out-of-store symlink)
 - `~/.claude/CLAUDE.md` (out-of-store symlink)
 - `~/.claude/skills` (same dynamic catalog as above)
@@ -79,7 +79,7 @@ None of the five tools need a manual re-sync script anymore (the old `sync-codex
 
 ### Devin CLI
 
-`nix/agents/devin.nix` declares only `permissions.allow`. Add durable approvals there; approvals added in Devin are replaced on the next switch. Undeclared keys, including `devin.org_id`, `shell.setup_complete`, `agent.model`, `theme_mode`, and `version`, remain local. The pre-merge file is backed up under `~/.config/devin/backups/`.
+`nix/agents/devin.nix` declares `permissions.allow`, `deny`, and `ask`. Reads, workspace edits, HTTP/HTTPS fetches, shell execution, and MCP tools are broadly allowed. Common destructive command prefixes are denied; sudo, all Git pushes, and Git invocations using `-C`/`-c` require approval. Prefix rules do not provide OS sandbox isolation. Add durable rules there; these arrays are replaced on the next switch. Undeclared keys, including `devin.org_id`, `shell.setup_complete`, `agent.model`, `theme_mode`, and `version`, remain local. The pre-merge file is backed up under `~/.config/devin/backups/`.
 
 Devin uses the existing `~/.agents/skills` catalog from the `agent-skills` flake input, so no Devin-specific mirror is needed. Verify discovery with `devin skills paths` and `devin skills list --json` after switching.
 

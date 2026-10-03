@@ -35,7 +35,7 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 | Claude Code | `settings.json`, `.mcp.json`, `keybindings.json` | `AGENTS.md`, `CLAUDE.md`, `statusline.py`, `notify-done.sh` | `.credentials.json`, `projects/`, `statsig/` |
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
 | Kiro | `settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | Agent Plugins形式のPower一式（`plugin.json`, `mcp.json`, `skills/**`, `dev.kiro/steering/**`） | Power登録manifest (`powers.json`), 旧Power MCPカタログ (`powers.mcp.json`), `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
-| Devin | `~/.config/devin/config.json`（`permissions.allow` のみ宣言） | —（共有 skills は既存の `~/.agents/skills` を参照） | 組織ID・初期設定状態・認証・履歴・セッション・ログ・configバックアップ |
+| Devin | `~/.config/devin/config.json`（`permissions.allow`・`deny`・`ask` を宣言） | —（共有 skills は既存の `~/.agents/skills` を参照） | 組織ID・初期設定状態・認証・履歴・セッション・ログ・configバックアップ |
 | Agent Skills | — (`programs.agent-skills` モジュール経由の rsync) | — | — |
 
 ## 3. 移行状況（この表は各PRの完了時に更新する）
@@ -46,16 +46,20 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 | Kiro | クラスA merge（`settings/cli.json`/`settings/mcp.json`/`settings/kiro_cli_theme.json`/`settings/permissions.yaml`）+ クラスB link（Agent Plugins形式のPowerファイル）（済） | 同左（完了） | PR7 + Agent Plugins移行 |
 | Claude Code | クラスA merge（`settings.json`/`.mcp.json`/`keybindings.json`）+ クラスB link（`AGENTS.md`/`CLAUDE.md`/`statusline.py`/`notify-done.sh`）（済） | 同左（完了） | PR8 完了 |
 | Cursor | クラスA merge（`cli-config.json`/`mcp.json`）+ クラスB link（`AGENTS.md`/`statusline.sh`）（済） | 同左（完了） | PR8 完了 |
-| Devin | クラスA merge（`config.json` の `permissions.allow`）+ 既存の共有 skills カタログを利用 | 同左（完了） | Devin管理追加 |
+| Devin | クラスA merge（`config.json` の `permissions.allow`・`deny`・`ask`）+ 既存の共有 skills カタログを利用 | 同左（完了） | Devin管理追加 |
 | Agent Skills flake input | `path:/Users/adachi/agent-skills`（ローカル checkout、GitHub 認証不要） | 同左（完了） | PR5 で一時的に GitHub pin、PR13 で path に戻した |
 
 既存4ツールは2026-07時点で統一モデルへ移行済み。Devinも同じクラスA merge基盤で管理する。旧方式（Claude/Cursorの Nix store symlink、Codex/Kiro の seed-only）は全廃した。
 
 ### Devin の設定と共有 skills
 
-`nix/agents/devin.nix` は `permissions.allow` の現在の許可だけを宣言し、`lib.nix` の `mkMergeActivation` と `mkDiffCommand` を共用する。switch 前のファイルは `~/.config/devin/backups/` へ保存する。`devin.org_id`、`shell.setup_complete`、`agent.model`、`theme_mode`、`version` は宣言せず、ローカルの値を保持する。
+`nix/agents/devin.nix` は `permissions.allow`・`deny`・`ask` を宣言し、`lib.nix` の `mkMergeActivation` と `mkDiffCommand` を共用する。switch 前のファイルは `~/.config/devin/backups/` へ保存する。`devin.org_id`、`shell.setup_complete`、`agent.model`、`theme_mode`、`version` は宣言せず、ローカルの値を保持する。
 
-`permissions.allow` は配列なので switch 時に全置換する。Devin 上で追加した許可を恒久化する場合は `nix/agents/devin.nix` へ移す。その他の未宣言の権限キーは保持する。
+読み取り・workspace内の編集・HTTP/HTTPS取得・shell・MCPを広く許可する。代表的な `rm -rf`/`rm -fr`、Gitの変更破棄・clean・強制ブランチ削除・先頭にforceオプションを置くpushはdenyとする。sudo、git push全般、Gitの `-C`/`-c` 形式はaskとする。Execルールは先頭一致のため、pushの後ろにあるforceオプションは個別denyだけでは拾えない。通常のpushも確認対象とする。sudoはaskがallowより優先されるため、switch・復旧も確認対象になる。
+
+これらは代表的なコマンド表記を制御するルールであり、shellの任意の書き換えや別プログラム経由の操作を封じるOS sandboxではない。`Write(**)` はworkspace内の直接編集の許可であり、許可されたshellやMCPの書き込み先を限定するものではない。
+
+`allow`・`deny`・`ask` の各配列は switch 時に全置換する。Devin 上で追加したルールを恒久化する場合は `nix/agents/devin.nix` へ移す。その他の未宣言の権限キーは保持する。
 
 共有 skills のソースは `agent-skills` flake input。既存の `targets.agents.enable = true` が配布する `~/.agents/skills` を Devin CLI が読み込むため、専用の同期やコピーは追加しない。確認には `devin skills paths` と `devin skills list --json` を使う。skills 更新時は flake input を更新してから switch する。
 
