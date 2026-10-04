@@ -262,6 +262,98 @@ with pkgs; let
       platforms = ["aarch64-darwin" "x86_64-linux"];
     };
   };
+  # Cloudflare's unified CLI (technical preview,
+  # https://blog.cloudflare.com/cf-cli-local-explorer/). Not yet in nixpkgs,
+  # so wrap the published npm tarball. The tarball ships a prebuilt dist/
+  # but its devDependencies reference an unpublished vendor tarball, so they
+  # are stripped and a prod-only lockfile is committed at
+  # nix/pkgs/cf/pnpm-lock.yaml. fetchPnpmDeps is unusable: a dependency ships
+  # a non-JSON .json file that breaks the fetcher's jq pass, so node_modules
+  # is materialized by a fixed-output derivation instead. Bump: update
+  # version + both hashes, then regenerate the lockfile from the unpacked
+  # tarball after deleting devDependencies
+  # (`pnpm install --lockfile-only --ignore-scripts`).
+  cfCli = let
+    version = "1.0.0-beta.12";
+    src =
+      runCommand "cf-${version}-src" {
+        tarball = fetchurl {
+          url = "https://registry.npmjs.org/cf/-/cf-${version}.tgz";
+          hash = "sha256-LGaN+SuptzxQq1uElbwA71HzBk3en/cLPZwCyOTLMHY=";
+        };
+        nativeBuildInputs = [jq];
+      } ''
+        mkdir $out
+        tar -xzf "$tarball" -C $out --strip-components=1
+        chmod -R u+w $out
+        jq 'del(.devDependencies)' $out/package.json > $out/package.json.new
+        mv $out/package.json.new $out/package.json
+        cp ${./pkgs/cf/pnpm-lock.yaml} $out/pnpm-lock.yaml
+      '';
+    nodeModules = stdenvNoCC.mkDerivation {
+      name = "cf-${version}-node-modules";
+      inherit src;
+      nativeBuildInputs = [
+        cacert
+        nodejs
+        pnpm
+        writableTmpDirAsHomeHook
+      ];
+      outputHash = "sha256-oe1PIz2B80QnCBoKQWQXmebEwWglVyQdMQyVUTSDV3E=";
+      outputHashAlgo = "sha256";
+      outputHashMode = "recursive";
+      # Skip fixup: patchShebangs would rewrite script shebangs to store
+      # paths, which fixed-output derivations may not reference.
+      dontFixup = true;
+      installPhase = ''
+        runHook preInstall
+        export pnpm_config_pm_on_fail=ignore
+        export pnpm_config_side_effects_cache=false
+        export pnpm_config_update_notifier=false
+        pnpm config set reporter append-only
+        pnpm config set store-dir "$TMPDIR/pnpm-store"
+        pnpm install --frozen-lockfile --ignore-scripts --prod
+        # Normalize files embedding the build dir or timestamps so the
+        # fixed-output hash is reproducible.
+        rm -f node_modules/.modules.yaml node_modules/.pnpm-workspace-state-v1.json
+        find node_modules \( -name '*.cmd' -o -name '*.ps1' \) -delete
+        find node_modules -path '*/.bin/*' -type f -exec sed -i "s|$PWD|__PNPM_ROOT__|g" {} +
+        mkdir $out
+        cp -r node_modules $out/node_modules
+        runHook postInstall
+      '';
+    };
+  in
+    stdenvNoCC.mkDerivation {
+      pname = "cf";
+      inherit version src;
+
+      nativeBuildInputs = [
+        makeWrapper
+        nodejs
+      ];
+
+      dontConfigure = true;
+      dontBuild = true;
+
+      installPhase = ''
+        runHook preInstall
+        mkdir -p $out/lib/node_modules/cf
+        cp -r bin dist package.json $out/lib/node_modules/cf/
+        cp -r ${nodeModules}/node_modules $out/lib/node_modules/cf/node_modules
+        makeWrapper ${lib.getExe nodejs} $out/bin/cf \
+          --add-flags "$out/lib/node_modules/cf/bin/cf"
+        ln -s cf $out/bin/cloudflare
+        runHook postInstall
+      '';
+
+      meta = {
+        description = "Cloudflare CLI - manage Cloudflare resources (technical preview)";
+        homepage = "https://github.com/cloudflare/cf";
+        license = lib.licenses.mit;
+        mainProgram = "cf";
+      };
+    };
   macismCliOnly = macism.overrideAttrs (oldAttrs: {
     postInstall =
       (oldAttrs.postInstall or "")
@@ -352,5 +444,9 @@ in
     playwrightCli
   ]
   ++ lib.optionals isDarwin [
+    # The node_modules FOD hash below is platform-specific (pnpm installs
+    # optional deps for the build platform only). To support Linux, build
+    # the FOD there and pick the hash per system.
+    cfCli
     macismCliOnly
   ]
