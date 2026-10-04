@@ -7,187 +7,36 @@
 - **パッケージ管理の主軸**: Nix (`nix-darwin` + `home-manager`)
 - **Homebrew**: GUI cask のみに限定する
 - **nix-darwin 適用**: このデバイスでは system activation に root 権限が必要。`darwin-rebuild switch` ではなく `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` を使う。
-- **再起動後に CLI が消える**: `/nix` は APFS ボリューム。未マウントなら Nix 由来コマンドはすべて失敗する。再インストールせず `/bin/bash ~/.config/nix-darwin/home/bin/nix-store-repair.sh` を実行する。永続化はシステム設定の「バックグラウンドで許可」。詳細は `~/.config/nix-darwin/docs/nix-store-recovery.md`。
+- **再起動後に CLI が消える**: `/nix` は APFS ボリューム。未マウントなら Nix 由来コマンドはすべて失敗する。再インストールせず `/bin/bash ~/.config/nix-darwin/home/bin/nix-store-repair.sh` を実行する。詳細は `~/.config/nix-darwin/docs/nix-store-recovery.md`。
 
 ### NixOS PC
 
-- NixOS システム設定は `/etc/nixos` で管理する。
-- NixOS の active flake は `/etc/nixos#nixos`。
-- この dotfiles repo は NixOS ではユーザー環境のみを `.#homeConfigurations."adachi@nixos"` で管理する。
-- NixOS の `/etc/nixos` は boot/hardware/networking/desktop services/system daemons/firewall/user account だけに限定する。通常の開発 CLI・shell・git・editor・AI agent 設定は dotfiles の Home Manager 側へ追加し、二重管理しない。
+- NixOS システム設定は `/etc/nixos` で管理し、active flake は `/etc/nixos#nixos`。
+- この dotfiles repo は NixOS ではユーザー環境のみを `.#homeConfigurations."adachi@nixos"` で管理する。boot/hardware/networking/desktop services/firewall/user account 以外は dotfiles の Home Manager 側へ置き、二重管理しない。
+- 更新は `sudo nixos-rebuild switch --flake /etc/nixos#nixos`（検証は `build`、一時適用は `test`）。`nix-channel` や `nixos-rebuild --upgrade` は使わない。
 
-通常のシステム更新:
+## パッケージマネージャー・ツールチェーン
 
-```bash
-sudo nix flake update /etc/nixos
-sudo nixos-rebuild switch --flake /etc/nixos#nixos
-```
-
-検証のみ:
-
-```bash
-sudo nixos-rebuild build --flake /etc/nixos#nixos
-```
-
-一時適用:
-
-```bash
-sudo nixos-rebuild test --flake /etc/nixos#nixos
-```
-
-`nix-channel --update` や `nixos-rebuild --upgrade` はこのマシンの通常更新には使わない。
-
-### WSL2でaptが必要な場合
-
-WSL2上でOSパッケージが必要な場合だけ `apt` を使う。`apt-get` は使用しない。
-
-| NG | OK |
-|---|---|
-| `apt-get install` | `apt install` |
-| `apt-get update` | `apt update` |
-
-## Python パッケージマネージャー
-
-**uv を使用する。pip・pip3 は使用しない。仮想環境は必ず `uv venv` で作成する。**
-
-- 仮想環境作成: `uv venv`
-- 仮想環境有効化: `source .venv/bin/activate`
-- パッケージインストール: `uv pip install <pkg>`
-- スクリプト実行（venv 不要）: `uv run python script.py`
-- ツールのグローバルインストール: `uv tool install <pkg>`
-
-| NG | OK |
-|---|---|
-| `pip install` | `uv pip install` |
-| `pip3 install` | `uv pip install` |
-| `python -m pip install` | `uv pip install` |
-| venv なしで直接インストール | `uv venv` で仮想環境を作成してから |
-
-## JavaScript パッケージマネージャー
-
-**pnpm を使用する。npm は使用しない。**
-
-- 依存インストール: `pnpm install`
-- スクリプト実行: `pnpm exec <cmd>` または `pnpm run <script>`
-- ロックファイル: `pnpm-lock.yaml`（`package-lock.json` は作成・コミットしない）
-- 新規プロジェクトの `package.json` には `"packageManager": "pnpm@<version>"` フィールドを追加する
-
-## ツールバージョン管理
-
-**Nix を主軸にする。mise は移行期間だけ使用する。**
-
-- 新規プロジェクトでは project-local `flake.nix` と `nix develop` を優先する
-- 既存プロジェクトの `.mise.toml` は、Nix devShellへ移行するまでの暫定互換として扱う
-- `mise` を新しい長期運用の前提にしない
-- CIは各プロジェクトの現状に合わせるが、ローカル開発環境は段階的にNixへ寄せる
-
-```toml
-# .mise.toml の例
-[tools]
-node = "22.13.1"
-pnpm = "latest"
-```
-
-## GitHub Actions
-
-- インストールは `pnpm install --frozen-lockfile`
-- スクリプト実行は `pnpm exec` または `pnpm run`
-- 既存CIが `mise` を使っている場合は維持してよいが、新規CIではプロジェクトごとに方針を明記する
-
-## JavaScript / TypeScript ツールチェーン
-
-**Vite+・oxlint・oxfmt を使用する。Biome・ESLint・Prettier は新規導入しない。**
-
-新規の Vite ベースのアプリ・ライブラリでは Vite+ を標準とする。Vite+ は oxlint による lint と oxfmt による format を統合しているため、採用時は個別パッケージを重複して追加しない。
-
-### Vite+ を使う場合
-
-- プロジェクトの devDependency に `vite-plus` を置き、`pnpm exec vp <command>` または package.json の scripts 経由で実行する
-- 開発: `pnpm exec vp dev`
-- ビルド: `pnpm exec vp build`（アプリ）／`pnpm exec vp pack`（ライブラリ）
-- テスト: `pnpm exec vp test`
-- Lint: `pnpm exec vp lint`
-- Format: `pnpm exec vp fmt`（ファイルを書き換える）
-- Format 検証: `pnpm exec vp fmt --check`
-- 静的検証: `pnpm exec vp check`
-- 自動修正: `pnpm exec vp check --fix`
-- lint・format の設定は workspace root の `vite.config.ts` の `lint`・`fmt` にまとめる。型検査も行う場合は `lint.options.typeAware` と `lint.options.typeCheck` を有効にする
-
-Node.js と pnpm は Nix／project-local devShell で管理する。Vite+ のグローバルインストーラーや runtime 管理を標準手順に加えない。依存のインストールは引き続き `pnpm install` を使う。
-
-### oxlint・oxfmt を直接使う場合
-
-Vite+ を使わない JavaScript／TypeScript プロジェクトでは、プロジェクトの devDependency として導入する。
-
-- インストール: `pnpm add -D oxlint oxfmt`
-- 初期化: `pnpm exec oxlint --init` と `pnpm exec oxfmt --init`
-- Lint: `pnpm exec oxlint`
-- Lint 自動修正: `pnpm exec oxlint --fix`
-- Format: `pnpm exec oxfmt`（ファイルを書き換える）
-- Format 検証: `pnpm exec oxfmt --check`
-- 設定: `.oxlintrc.json` と `.oxfmtrc.json`
-
-### 移行・CI・エディタ
-
-- 既存プロジェクトを移行するときは、scripts・設定・CI・保存時処理・commit hook・推奨拡張を一緒に見直す。既存のルール、除外、対応言語を確認してから旧ツールの依存と設定を削除する
-- Vite+ への移行では公式の移行ガイドと対象バージョンの CLI help を確認する。必要な Vite／Vitest の更新を先に行い、移行後に lint・format・型検査・テスト・ビルドを検証する
-- CI は `pnpm install --frozen-lockfile` 後に `pnpm exec vp check`、または `pnpm exec oxlint` と `pnpm exec oxfmt --check` を実行する。型検査が無効なら既存の型検査コマンドも実行する
-- VS Code 系では `oxc.oxc-vscode` 拡張を使用する。Vite+ プロジェクトの workspace 設定では `oxc.disableNestedConfig` と `oxc.fmt.disableNestedConfig` を有効にして root の設定に揃える
-- Nix・Python など他言語の lint／format は各言語の既存ツールを使う
-
-公式ドキュメント: [Vite+](https://www.viteplus.dev/guide)、[Vite+ 移行](https://www.viteplus.dev/guide/migrate)、[Oxlint](https://oxc.rs/docs/guide/usage/linter/quickstart)、[Oxfmt](https://oxc.rs/docs/guide/usage/formatter/quickstart.html)
-
-## NG パターン
-
-| NG | OK |
-|---|---|
-| `pip install` | `uv pip install`（仮想環境内） |
-| `pip3 install` | `uv pip install`（仮想環境内） |
-| `npm install` | `pnpm install` |
-| `npx <cmd>` | `pnpm exec <cmd>` |
-| `cache: 'npm'` (actions/setup-node) | `jdx/mise-action@v2` |
-| `package-lock.json` をコミット | `pnpm-lock.yaml` をコミット |
-| Biome / ESLint / Prettier を新規導入 | Vite+、または `oxlint` + `oxfmt` を使用 |
+- **Python**: `uv` を使う。`pip` / `pip3` / `python -m pip` は使わない。仮想環境は `uv venv` で作る。
+- **JavaScript**: `pnpm` を使う。`npm` / `npx` は使わない。ロックファイルは `pnpm-lock.yaml` を使い、`package-lock.json` は作らない。
+- **JS/TS lint・format・test**: Vite+（`vp`）を標準とする。Vite+ を使わないプロジェクトでは `oxlint` + `oxfmt`。Biome / ESLint / Prettier は新規導入しない。各コマンドの詳細は `vp --help` とプロジェクトの scripts を参照。
+- **ツールバージョン**: project-local `flake.nix` + `nix develop` を優先する。既存の `.mise.toml` は Nix devShell 移行までの暫定互換として扱い、mise を新しい長期運用の前提にしない。
+- **GitHub Actions**: `pnpm install --frozen-lockfile` と `pnpm exec` / `pnpm run` を使う。
 
 ## dotfiles 管理
 
-**Nix/home-manager を使用する。chezmoi は使わない。**
+- **Nix/home-manager を使用する。chezmoi は使わない。**
+- 標準配置: `~/.config/nix-darwin/`（git リポジトリ: `k-adachi-01/dotfiles`、**public**）
+- 設定編集: `nix/` または `home/` を直接編集し、`sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook` で適用する
+- GUI アプリ（Zed, WezTerm, Cursor 等）は Homebrew cask（`nix/apps.nix`）
+- 秘密情報をコミットしない: `.aws/`, `.azure/`, `.config/gcloud/`, `.config/gh/hosts.yml`, `.ssh/`, `.gnupg/`, `.env.keys`
+- コミット前に `gitleaks protect --staged --config .gitleaks.toml` を実行する
+- **dotfiles を更新した後は、ユーザーへ確認せず、必ず `k-adachi-01/dotfiles` リポジトリへ commit・push すること。**
 
-- 標準配置: `~/.config/nix-darwin/`（git リポジトリ: `k-adachi-01/dotfiles`）
-- 設定編集: `nix/` または `home/` を直接編集する
-- 適用: `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook`
-- 管理対象: shell, git, WezTerm, Neovim, Claude/Codex/Cursor/Agents 設定
-- GUI アプリ（Zed, WezTerm, Cursor 等）は Homebrew cask（`nix/apps.nix`）。`darwin-rebuild switch` は可能なら **Terminal.app** から実行する（App Management TCC の再プロンプト回避）
-- 除外（秘密情報）: `.aws/`, `.azure/`, `.config/gcloud/`, `.config/gh/hosts.yml`, `.ssh/`, `.gnupg/`, `.env.keys`
-- コミット前に `gitleaks protect --staged --config .gitleaks.toml` を実行する（`gitleaks` は `nix/packages.nix` で管理）。push 後は GitHub Actions（`.github/workflows/ci.yml`）が同じ設定で `gitleaks detect` を実行する
+### AI agent 設定
 
-**dotfiles を更新した後は、ユーザーへ確認せず、必ず `k-adachi-01/dotfiles` リポジトリへ commit・push すること。**
-
-### Codex / Claude Code / Cursor / Kiro / Devin 設定運用
-
-- Codex/Claude Code/Cursor/Kiro/Devin の5ツールすべてが統一管理モデル（`docs/management-policy.md`）のクラスA/Bへ移行済み（既存4ツールはPR6〜PR8完了、Devinも同じmerge基盤を使用）。`sync-codex-config`/`sync-kiro-config` のようなツール固有の再同期スクリプトはもう存在しない。`sudo darwin-rebuild switch` を実行するだけで、クラスAは deep-merge、クラスBは symlink 経由で常に最新の宣言が反映される
-- Codex: `home/agents/codex/config.toml` が `nix/agents/codex.nix` 経由で `~/.codex/config.toml` へ **switch のたびに deep-merge** される（宣言キーは常に上書き、`[projects.*]` 等アプリが書いた宣言外キーは保持）。`~/.codex/AGENTS.md`・`keybindings.json`・`gemini.config.toml`・`bedrock.config.toml`・`deepseek.config.toml`・`rules/default.rules`・`notify.sh` は `home/agents/codex/*` への out-of-store symlink（repo を編集すれば switch 不要で即反映）。`*.config.toml` は Codex のプロファイルで、`codex --profile deepseek` のように選ぶ（`deepseek` は Vercel AI Gateway 経由で `AI_GATEWAY_API_KEY` を要求する）
-- Claude Code: `nix/agents/claude.nix` の attrset が `~/.claude/settings.json`・`.mcp.json`・`keybindings.json` へ deep-merge される。`~/.claude/AGENTS.md`・`CLAUDE.md`・`statusline.py`・`notify-done.sh` は `home/ai/`・`home/agents/claude/*` への out-of-store symlink
-- Cursor: `nix/agents/cursor.nix` の attrset が `~/.cursor/cli-config.json`・`mcp.json` へ deep-merge される（Cursor 自身が書く `hasChangedDefaultModel`/`selectedModel` 等は宣言外キーとして保持される）。`~/.cursor/AGENTS.md`・`statusline.sh` は out-of-store symlink
-- Kiro: `nix/agents/kiro.nix`（`nix/agents/mcp.nix` の値を参照）が `settings/cli.json`・`settings/mcp.json`・`settings/kiro_cli_theme.json`・`settings/permissions.yaml` を deep-merge する。`home/agents/kiro/powers/<name>/` は `plugin.json`・`mcp.json`・`skills/**`・`dev.kiro/steering/**` を持つ Agent Plugins形式のソースで、各ファイルを out-of-store symlink する。`~/.kiro/powers/` は Kiro runtime が `registries/` とPower登録情報を管理できるよう通常ディレクトリのまま維持し、`powers.json` と `powers.mcp.json` はアプリ所有のruntime状態としてNix/Git管理しない
-- Devin: `nix/agents/devin.nix` で `~/.config/devin/config.json` の `permissions.allow`・`deny`・`ask` を宣言し、switch 時に deep-merge する。読み取り・workspace内編集・Web取得・shell・MCPを広く許可し、代表的な強制削除・Git変更破棄をdeny、sudo・git push・Gitの `-C`/`-c` 形式をaskとする。各リストは全置換されるため、恒久化するルールはNix側へ追加する。組織ID・初期設定状態・モデル・テーマ・version はローカルに保持する。共有 skills は既存の `~/.agents/skills` を読み込み、専用同期処理は設けない
-- merge は辞書（テーブル/オブジェクト）のみを再帰マージする。配列は宣言側で丸ごと置き換わる（例: `permissions.yaml` の `rules` リストに Kiro が独自に追記しても、次の switch で宣言値に戻る）。配列への追記を保持したいフィールドが見つかったら、そのフィールドは merge の対象から外しクラスCとして扱うことを検討する
-- `agents-diff`（`~/.local/bin/agents-diff`）を実行すると、5ツールすべての class A ファイルについて「次の switch で何が変わるか」と「宣言されていないアプリ所有キー」を読み取り専用で確認できる。ローカルで試した設定を恒久化したい時は、これで確認してから該当する `nix/agents/<tool>.nix` の attrset へ手動で移す
-- Codex skills と Kiro skills の seed は `/Users/adachi/agent-skills` を共通 source of truth とする。`~/.codex/skills/*` と `~/.kiro/skills/*` は switch のたびに常に再同期される動的カタログ（merge/link のどちらでもない、専用の rsync ミラー）
-- Kiro CLI 本体は `.dmg` の手動インストール（`/Applications/Kiro CLI.app` + `/usr/local/bin/kiro-cli*`）で管理する。Nix では配布しない
-- Kiro shell integration / alias は `nix/home.nix` で管理する
-- Kiro v3 permissions は `nix/agents/mcp.nix` の `kiroPermissions` を独立した source of truth とする。全 capability を許可し、回復困難な shell 操作だけを明示的に deny する。`sudo` は原則 deny だが、`sudo darwin-rebuild switch --flake /Users/adachi/.config/nix-darwin#macbook` と Nix store 復旧（`nix-store-repair` / `determinate-nixd init`）だけを例外として許可する
-- Kiro Power のパッケージ内容は `home/agents/kiro/powers/` でAgent Plugins形式に管理し、共通 skills とは別責務として維持する。Powerのインストール登録はKiro UIが所有する
-- `~/.kiro/sessions/`, `~/.kiro/logs/`, `~/.kiro/.cli_bash_history`, `~/.kiro/settings/feed_state.json`, `~/.kiro/settings/survey_state.json`, `~/.codex/sessions/`, `~/.codex/cache/`, `~/.codex/*.sqlite*` は runtime state として Nix/Git 管理しない
-- `kiro-cli settings`, `kiro-cli mcp add`, `kiro-cli theme` で試した変更は永続化せず、必要な内容を Nix source に移してから switch する
-- `home/agents/codex/config.toml` は「switch のたびに live ファイルへ merge される管理キーの宣言」を最小に維持する。次のものは **コミットしない**（アプリが実行時に生成するランタイム状態であり、宣言に混ぜると個人のプロジェクト構成やローカルパスが漏れる。混ぜても実害はない——宣言外キーとしてそのまま live 側に残るだけだが、public repo に個人情報を置くこと自体が問題）:
-  - `[projects.*]`（trust_level の記録。プロジェクトディレクトリ名を通じて業務内容や第三者名が漏れる可能性がある）
-  - `[marketplaces.*]`（`last_updated` タイムスタンプと `.tmp/`/`.cache/` 配下のローカル絶対パス）
-  - `[mcp_servers.node_repl]` とその `env`（Codex.app のビルド固有パス・バージョン文字列）
-  - `notify` に computer-use 由来の `.app` バンドル絶対パスを含めない。`nix/agents/codex.nix` で `config.home.homeDirectory` から生成される `["bash", "$HOME/.codex/notify.sh"]` 相当の形だけを維持する
-  - `home/agents/codex/config.toml` を変更する PR では、上記パターンが紛れ込んでいないか diff を確認してからコミットする
+Claude Code / Codex / Cursor / Kiro / Devin の設定は dotfiles のクラスA（merge）/ クラスB（symlink）/ クラスC（runtime）モデルで一元管理する。生成先（`~/.codex`, `~/.claude`, `~/.cursor`, `~/.kiro`, `~/.config/devin`）は直接編集しない。詳細は dotfiles repo の `AGENTS.md`・`docs/management-policy.md` と `dotfiles-nix-maintenance` skill を参照。
 
 ## ファイルパス（Windows / WSL2）
 
-- **MUST** ファイルを指定するときに、Windows 形式のパスは Ubuntu のマウントディレクトリのパスに変換すること
-  - 例: `C:\Users\user1\Pictures\test.jpg` → `/mnt/c/Users/user1/Pictures/test.jpg`
+- Windows 形式のパスは Ubuntu のマウントディレクトリのパスに変換すること（例: `C:\Users\user1\test.jpg` → `/mnt/c/Users/user1/test.jpg`）

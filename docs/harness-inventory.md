@@ -430,3 +430,29 @@ S-003〜S-005, S-008〜S-012: skill-creator / herdr / browser-use / drawio / wez
 4. **KEEP の中核は「発見不可能な project knowledge」と「実測 lift のある checklist」**: aws-sandbox-run、cdk-security-review、review evidence pipeline、障害対応 runbook。
 5. **vendor plugin 層（AWS toolkit skills ~21, Kiro powers ×2, MCP）は本 Issue では未着手**: 別 Issue で同じ分解手順を適用する価値あり。
 
+---
+
+## 実施記録（2026-10-04）
+
+提案を承認され、以下を適用済み（`grill-me` は判断保留で温存）。
+
+### cdk-starter（branch `chore/reduce-agent-harness`, PR #4）
+
+- 削除: `.kiro/steering`×7、`.cursor/rules`×5、`.agents/skills/{agent-quality-gate,cdk-diff-explain}`、`.codex` context 注入 hook×2、`.cursor/agents`×5 + `.kiro/agents`×5（`cdk-change-reviewer` は温存）、対応 symlink×4
+- `AGENTS.md` に固有情報2件を吸収（`Stack` suffix 禁止、`vite-plus/test` import）、Required rules を重複排除して1行に圧縮
+- `scripts/ensure-symlinks.ts` の skill リスト、`docs/agent-workflow.md`、`docs/references.md` を整合
+- enforcement hooks（block-direct-deploy / post-task-quality-gate / remind-agent-check / validate_stop）は変更なし
+- 検証: `pnpm agent:check` 通過（lint clean, 22 tests, synth 成功）
+
+### dotfiles
+
+- `home/ai/AGENTS.md` を 193 → 42 行に圧縮。NG 表削除、管理方式詳細を `management-policy.md` への pointer 化、Vite+/oxlint 詳細手順を方針文へ集約、`apt` micro-rule と冗長な手順列挙を削除。方針（uv/pnpm/Vite+/Nix 主軸/dotfiles 運用/障害対応）は全て温存
+- class B symlink のため switch 不要で即時反映済み
+
+### 未実施（VERIFY backlog または後続 Issue）
+
+- V-1〜V-7 の実験（thin pointer 層削除の回帰確認など。今回の削除は実測・重複根拠の強いものに限定し、VERIFY 分は未適用）
+- yomiyasu ↔ natural-japanese 統合判断
+- vendor plugin（AWS toolkit skills、Kiro powers、MCP）評価
+
+
