@@ -104,9 +104,9 @@ in {
                   echo "$target -> $(readlink -f "$target" 2>/dev/null || echo "(not a symlink)")"
                 fi
               done
-              for target in "$HOME/.codex/skills" "$HOME/.kiro/skills"; do
+              for target in "$HOME/.codex/skills" "$HOME/.kiro/skills" "$HOME/.gemini/antigravity-cli/skills"; do
                 if [ -d "$target" ]; then
-                  echo "$target: $(find "$target" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ') skill dirs present"
+                  echo "$target: $(find -L "$target" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ') skill dirs present"
                 fi
               done
             '';
@@ -135,6 +135,14 @@ in {
         targets.claude.enable = true;
         targets.codex.enable = false;
         targets.cursor.enable = true;
+        # Antigravity CLI (agy) reads global skills from
+        # ~/.gemini/antigravity-cli/skills. The module's built-in
+        # `antigravity` target points at the legacy IDE dir
+        # ~/.gemini/antigravity/skills, which agy does not read.
+        targets.antigravity-cli = {
+          dest = "$HOME/.gemini/antigravity-cli/skills";
+          enable = true;
+        };
         targets.kiro = {
           dest = "$HOME/.kiro/skills";
           enable = false;

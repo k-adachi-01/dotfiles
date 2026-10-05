@@ -72,6 +72,7 @@ Claude Code / Codex / Cursor / Kiro / Devin の設定は、[`docs/management-pol
 ## Agent Skills
 
 - 共有 skills は別リポジトリ `/Users/adachi/agent-skills`（private, `k-adachi-01/agent-skills`）を flake input `path:/Users/adachi/agent-skills` として取り込む
+- 配布先は `nix/agents/default.nix` の `programs.agent-skills.targets` で管理する（`~/.agents/skills`, `~/.claude/skills`, `~/.cursor/skills`, `~/.gemini/antigravity-cli/skills` は symlink-tree、Codex/Kiro は rsync ミラー、Devin は `~/.agents/skills` を直接読む）。agy の skills は `~/.gemini/antigravity-cli/skills` であり、モジュール組み込みの `antigravity` ターゲット（レガシー IDE 向け `~/.gemini/antigravity/skills`）とは別物なので混同しない
 - `darwin-rebuild` の Nix 評価中に GitHub 認証は不要。新 Mac では `~/agent-skills` を clone する bootstrap が必要（詳細は `docs/management-policy.md`）
 - `~/agent-skills` 編集後は switch の前に `nix flake update agent-skills --flake ~/.config/nix-darwin`（または `cd ~/.config/nix-darwin && nix flake update agent-skills`）を実行しないと `NAR hash mismatch` になる。`skills-push` が自動で行う
 
