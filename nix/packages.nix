@@ -366,6 +366,7 @@ in
     awscli2
     azure-cli
     alejandra
+    antigravity-cli
     bat
     bwsCli
     bun
