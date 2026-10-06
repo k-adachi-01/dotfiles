@@ -372,6 +372,7 @@ in
     bun
     cmake
     curl
+    d2
     deadnix
     delta
     devinCli
