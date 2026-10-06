@@ -37,6 +37,12 @@
       url = "github:aws/agent-toolkit-for-aws";
       flake = false;
     };
+    # Third-party skill repo (nicobailon/visual-explainer). plugins/ is the
+    # skill catalog root; see programs.agent-skills.sources.visual-explainer.
+    visual-explainer = {
+      url = "github:nicobailon/visual-explainer";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {

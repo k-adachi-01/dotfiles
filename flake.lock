@@ -337,7 +337,8 @@
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
         "nixpkgs": "nixpkgs_3",
-        "nixvim": "nixvim"
+        "nixvim": "nixvim",
+        "visual-explainer": "visual-explainer"
       }
     },
     "systems": {
@@ -389,6 +390,22 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "visual-explainer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790979223,
+        "narHash": "sha256-/3Ot2/2zE/5b2gTlH9g5jK7KlTeJY8BxyPJ0vfrd2VY=",
+        "owner": "nicobailon",
+        "repo": "visual-explainer",
+        "rev": "5846f5aef34a23c8fea389d2f23ce56224cbf840",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "visual-explainer",
         "type": "github"
       }
     }

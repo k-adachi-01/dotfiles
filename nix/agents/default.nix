@@ -128,7 +128,15 @@ in {
           input = "aws-agent-toolkit";
           subdir = "skills/core-skills";
         };
-        skills.enableAll = ["personal" "aws-toolkit"];
+        # Third-party skill: turns terminal output into styled HTML pages.
+        # plugins/ is the catalog root (plugins/visual-explainer/SKILL.md);
+        # the repo's skills/visual-explainer symlink is intentionally not
+        # used so the bundle never depends on cross-dir links.
+        sources.visual-explainer = {
+          input = "visual-explainer";
+          subdir = "plugins";
+        };
+        skills.enableAll = ["personal" "aws-toolkit" "visual-explainer"];
         # Devin CLI discovers this shared user catalog natively; no separate
         # Devin mirror or tool-specific synchronization is needed.
         targets.agents.enable = true;
