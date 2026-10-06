@@ -36,6 +36,7 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
 | Kiro | `settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | Agent Plugins形式のPower一式（`plugin.json`, `mcp.json`, `skills/**`, `dev.kiro/steering/**`） | Power登録manifest (`powers.json`), 旧Power MCPカタログ (`powers.mcp.json`), `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
 | Devin | `~/.config/devin/config.json`（`permissions.allow`・`deny`・`ask` を宣言） | —（共有 skills は既存の `~/.agents/skills` を参照） | 組織ID・初期設定状態・認証・履歴・セッション・ログ・configバックアップ |
+| Antigravity CLI (agy) | `~/.gemini/antigravity-cli/settings.json`（`permissions.allow`・`deny`・`ask` を宣言） | —（共有 skills は `programs.agent-skills` の `targets.antigravity-cli` が `~/.gemini/antigravity-cli/skills` へ配布） | `trustedWorkspaces`, `allowNonWorkspaceAccess`, `colorScheme`, `brain/`, `conversations/`, `cache/`, `log/` などランタイム状態・settingsバックアップ |
 | Agent Skills | — (`programs.agent-skills` モジュール経由の rsync) | — | — |
 
 ## 3. 移行状況（この表は各PRの完了時に更新する）
@@ -47,9 +48,10 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 | Claude Code | クラスA merge（`settings.json`/`.mcp.json`/`keybindings.json`）+ クラスB link（`AGENTS.md`/`CLAUDE.md`/`statusline.py`/`notify-done.sh`）（済） | 同左（完了） | PR8 完了 |
 | Cursor | クラスA merge（`cli-config.json`/`mcp.json`）+ クラスB link（`AGENTS.md`/`statusline.sh`）（済） | 同左（完了） | PR8 完了 |
 | Devin | クラスA merge（`config.json` の `permissions.allow`・`deny`・`ask`）+ 既存の共有 skills カタログを利用 | 同左（完了） | Devin管理追加 |
+| Antigravity CLI (agy) | クラスA merge（`settings.json` の `permissions.allow`・`deny`・`ask`）+ 既存の skills ターゲット `antigravity-cli` を利用 | 同左（完了） | agy管理追加 |
 | Agent Skills flake input | `path:/Users/adachi/agent-skills`（ローカル checkout、GitHub 認証不要） | 同左（完了） | PR5 で一時的に GitHub pin、PR13 で path に戻した |
 
-既存4ツールは2026-07時点で統一モデルへ移行済み。Devinも同じクラスA merge基盤で管理する。旧方式（Claude/Cursorの Nix store symlink、Codex/Kiro の seed-only）は全廃した。
+既存4ツールは2026-07時点で統一モデルへ移行済み。Devin・agyも同じクラスA merge基盤で管理する。旧方式（Claude/Cursorの Nix store symlink、Codex/Kiro の seed-only）は全廃した。
 
 ### Devin の設定と共有 skills
 
@@ -62,6 +64,16 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 `allow`・`deny`・`ask` の各配列は switch 時に全置換する。Devin 上で追加したルールを恒久化する場合は `nix/agents/devin.nix` へ移す。その他の未宣言の権限キーは保持する。
 
 共有 skills のソースは `agent-skills` flake input。既存の `targets.agents.enable = true` が配布する `~/.agents/skills` を Devin CLI が読み込むため、専用の同期やコピーは追加しない。確認には `devin skills paths` と `devin skills list --json` を使う。skills 更新時は flake input を更新してから switch する。
+
+### agy（Antigravity CLI）の permissions
+
+`nix/agents/agy.nix` は `~/.gemini/antigravity-cli/settings.json` の `permissions.allow`・`deny`・`ask` を宣言し、Devin と同じ `mkMergeActivation`/`mkDiffCommand` で merge する。switch 前のファイルは `~/.gemini/antigravity-cli/backups/` へ保存する。`trustedWorkspaces`、`allowNonWorkspaceAccess`、`colorScheme` 等は宣言せず、ローカルの値を保持する。
+
+ルールは `action(target)` 形式。アクションは `command`・`read_file`・`write_file`・`read_url`・`execute_url`・`mcp` で、評価順は deny > ask > allow と固定される（Kiroのdeny優先と同じ）。`command` のターゲットは単語単位の先頭一致（`command(git push)` は `git push origin main` にも効く）。`regex:` プリフィックスを付けると空白区切りトークンごとにアンカー付き正規表現 `^(?:pattern)$` として評価される（例: `command(regex:npm run (build|lint|test))`）。Go の regexp のため lookahead は使えない。
+
+方針はKiro/Devinと同じく許容ベース: `command(*)`・`read_url(*)`・`mcp(*)` を allow とし、Git の変更破棄系（`reset --hard`・`checkout --`・`restore`・`branch -D`・force push・`clean -f`）は deny、`rm -rf`/`rm -fr`・`sudo`・Git の `-C`/`-c` 形式は ask とする。agy のルールには Kiro の `exclude` に相当する仕組みがないため、sudo は deny 例外（`darwin-rebuild switch` 等の許可）が表現できず ask に落としている。`git push` 素の実行はKiro同様 allow（deny に入るのは force 系だけ）。単語先頭一致では `git push origin --force` のような中間トークン位置の force フラグを拾えないため、deny は位置ごとの regex ルールで補強している。
+
+`allow`・`deny`・`ask` の各配列は switch 時に全置換する。agy の `/permissions` TUI や承認プロンプトで追加したグローバルルールを恒久化する場合は `nix/agents/agy.nix` へ移す。
 
 ### Codex merge 実装メモ（PR6で確定）
 

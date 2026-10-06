@@ -19,8 +19,9 @@ in {
       One shell snippet per class A (declare + merge) file, each of which
       prints what the next `switch` would change plus any live keys not
       declared in Nix. Every tool file (codex.nix, claude.nix, cursor.nix,
-      kiro.nix, devin.nix) appends to this list via nix/agents/lib.nix's
-      mkDiffCommand. Aggregated into ~/.local/bin/agents-diff.
+      kiro.nix, devin.nix, agy.nix) appends to this list via
+      nix/agents/lib.nix's mkDiffCommand. Aggregated into
+      ~/.local/bin/agents-diff.
     '';
   };
 
@@ -30,6 +31,7 @@ in {
     ./cursor.nix
     ./kiro.nix
     ./devin.nix
+    ./agy.nix
   ];
 
   config =
