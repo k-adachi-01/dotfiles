@@ -15,13 +15,13 @@ with pkgs; let
     then
       stdenvNoCC.mkDerivation rec {
         pname = "codex";
-        version = "0.159.2";
+        version = "0.162.0";
         src = fetchurl {
           url = "https://github.com/openai/codex/releases/download/rust-v${version}/codex-package-${stdenv.hostPlatform.rust.rustcTarget}.tar.gz";
           sha256 =
             {
-              aarch64-darwin = "38aaf6dce63099fd10988948d03bbc6c0474253aef6961fcbe60f8d154b39101";
-              x86_64-darwin = "6b9b38bfad6ac8019aa6a243ee3ab11d3e22889eafd5458b0344cf20e797e680";
+              aarch64-darwin = "sha256-WAnukKnDtZ1Di7JmOu+gtD2G+CVDi2XUUEsx+CNDYos=";
+              x86_64-darwin = "sha256-kotCEQPzOWg9DZ+KZI97WRrkvpB8vYpUGN2jGf8rvTw=";
             }.${
               system
             };
@@ -62,16 +62,16 @@ with pkgs; let
     else llmAgentsPkgs.codex;
   playwrightCli = buildNpmPackage rec {
     pname = "playwright-cli";
-    version = "0.1.14";
+    version = "0.1.22";
 
     src = fetchFromGitHub {
       owner = "microsoft";
       repo = "playwright-cli";
-      rev = "9b118a1a737662fa118d591b5687340b86005d5c";
-      hash = "sha256-wLE04sfPMh43IzIp6/HKBjloy3iSSanSYdYtklc6lQ4=";
+      rev = "v0.1.22";
+      hash = "sha256-80xzHvf7BHGvoKvMdkGeNUsUrpZrpw5eryuQM8NKT/E=";
     };
 
-    npmDepsHash = "sha256-0bvwryiyPskay+h8+0RiOmnamHkmcRRK00q7ZEPdj1g=";
+    npmDepsHash = "sha256-mGD7a/v1cx/xPGZo8nN3WA40mYGgF/KzMKiGbvUeX4E=";
     dontNpmBuild = true;
     npmFlags = ["--ignore-scripts"];
     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
@@ -184,28 +184,28 @@ with pkgs; let
   # ~/.config/origin-cli/ stays unmanaged.
   originCli = stdenvNoCC.mkDerivation rec {
     pname = "origin-cli";
-    version = "2026.08.15-22-58-04-922a05a";
+    version = "2026.10.06-21-51-28-c45912f";
 
     src = fetchurl (
       if system == "aarch64-darwin"
       then {
         url = "https://downloads.cursor.com/co/${version}/darwin-arm64/co.tar.gz";
-        hash = "sha256-oiiss2K54STALTEyq3Tr1HBOvVvltHBj22OOkHg2xpw=";
+        hash = "sha256-po5TX/9NAHyGAdzIp2lOjhwmtvDWtH6EvnLgkq9lLeU=";
       }
       else if system == "x86_64-darwin"
       then {
         url = "https://downloads.cursor.com/co/${version}/darwin-x64/co.tar.gz";
-        hash = "sha256-hWRPsOMbglBOc03agtXCEv/tIwFtRDQv4pk3OdFblWs=";
+        hash = "sha256-guE/zOepNBVQZXzwzmjKFFDHvI4pWajRGl9/11dL0n4=";
       }
       else if system == "aarch64-linux"
       then {
         url = "https://downloads.cursor.com/co/${version}/linux-arm64/co.tar.gz";
-        hash = "sha256-MVJkVbACszjff/vxothcqLUIMRhyhajRiM4qC24+I4o=";
+        hash = "sha256-t9tLq49AZY053IDbdkG8kRuJh7r1OaYex560TELb/+4=";
       }
       else if system == "x86_64-linux"
       then {
         url = "https://downloads.cursor.com/co/${version}/linux-x64/co.tar.gz";
-        hash = "sha256-bjsMF5MJmBVYYRZW9PCpl4OFgh/sLHP59k8l6Tj1roc=";
+        hash = "sha256-hgJ+E4hxUEM24BaacW50dhy6P3plUtraM1tg5DbKMRI=";
       }
       else throw "origin-cli is unsupported on ${system}"
     );
@@ -229,18 +229,18 @@ with pkgs; let
   };
   slackCli = stdenvNoCC.mkDerivation rec {
     pname = "slack-cli";
-    version = "4.4.0";
+    version = "4.9.0";
 
     src = fetchurl (
       if system == "aarch64-darwin"
       then {
         url = "https://downloads.slack-edge.com/slack-cli/slack_cli_${version}_macOS_arm64.tar.gz";
-        hash = "sha256-3ds0NC9ABZg0is5/XIb4Wv5dmWZghHIPliZp0SvEnU8=";
+        hash = "sha256-CaX7jvZKeUpv8iNO3tGPn6T83yCg6RmerE04hvvff30=";
       }
       else if system == "x86_64-linux"
       then {
         url = "https://downloads.slack-edge.com/slack-cli/slack_cli_${version}_linux_64-bit.tar.gz";
-        hash = "sha256-MV9tBy6D/mgWM3Ycrh5rGMSyb6oW0b9NibIedro9P6o=";
+        hash = "sha256-b7AFs9SfAurNKBrc/MtEZkjceEFx0OK46Au2SGc9aWo=";
       }
       else throw "slack-cli is unsupported on ${system}"
     );
