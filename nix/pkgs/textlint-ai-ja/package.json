@@ -1,0 +1,9 @@
+{
+  "name": "dotfiles-textlint-ai-ja",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "textlint": "15.8.0",
+    "textlint-rule-preset-ai-words-ja": "1.2.1"
+  }
+}

@@ -34,6 +34,28 @@ This repository used to be a chezmoi source tree. The target state is now:
 | `statix.toml` | statix lint config for this repo |
 | `.github/workflows/ci.yml` | CI: lint (alejandra/statix/deadnix) + secret scan (gitleaks) on push/PR |
 
+## Japanese writing checks
+
+`textlint-ai-ja` checks Markdown and plain text with
+[`textlint-rule-preset-ai-words-ja`](https://github.com/p1ass/textlint-rule-preset-ai-words-ja).
+The CLI and dependencies are pinned in `nix/pkgs/textlint-ai-ja/` and installed
+through `nix/packages.nix` on macOS and NixOS. It uses its bundled configuration
+from any working directory, independently of a project's `.textlintrc`.
+
+```bash
+textlint-ai-ja article.md
+textlint-ai-ja notes.txt
+printf '%s\n' '文章をここに書く。' | textlint-ai-ja --stdin --stdin-filename draft.md
+```
+
+The preset's default rules are used: `no-ai-words` is enabled and
+`no-short-topic-comma` is disabled. Findings exit with status 1. Review each
+finding in context; the preset also flags words used in ordinary technical prose.
+To customize the shared defaults, edit `nix/pkgs/textlint-ai-ja/textlintrc.json`
+and rebuild. To update dependencies, edit `package.json`, regenerate the lockfile
+with `pnpm install --lockfile-only --ignore-scripts`, and update the `pnpmDeps`
+hash in `default.nix` after a build.
+
 ## AI Agent Configuration
 
 `nix/agents/` is the single source of truth for Claude Code, Codex, Cursor, Kiro, and Devin user-level configuration (one file per tool, plus `lib.nix` for the merge helper and `mcp.nix` for shared definitions).
