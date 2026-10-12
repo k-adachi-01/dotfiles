@@ -413,6 +413,7 @@ in
     starship
     statix
     tealdeer
+    (callPackage ./pkgs/textlint-ai-ja {})
     tokei
     rustup
     tmux
