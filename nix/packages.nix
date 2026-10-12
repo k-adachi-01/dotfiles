@@ -361,6 +361,47 @@ with pkgs; let
         rm -rf "$out/Applications"
       '';
   });
+  # Grok Bot desktop app (https://x.ai/bot). Not in nixpkgs, so wrap the
+  # official AppImage; on macOS the Homebrew cask in nix/apps.nix installs
+  # it instead. Bump: query
+  # https://api2.cursor.sh/updates/api/update/linux-<x64|arm64>/sand/0.0.0/stable
+  # for the new version, artifact URL, and sha256hash.
+  grokBot = let
+    pname = "grok-bot";
+    version = "0.70.2";
+    src = fetchurl (
+      if system == "x86_64-linux"
+      then {
+        url = "https://downloads.cursor.com/grokbot/stable/52da656f56d317510ca65ad6af3d69a2cde461e0/linux/x64/Grok_Bot_${version}.AppImage";
+        hash = "sha256-Y/7sjAuZdsslKJsTpchZjNuIK6nvLSks6ZDMQntGouA=";
+      }
+      else if system == "aarch64-linux"
+      then {
+        url = "https://downloads.cursor.com/grokbot/stable/52da656f56d317510ca65ad6af3d69a2cde461e0/linux/arm64/Grok_Bot_${version}.AppImage";
+        hash = "sha256-WUHHFYqBgU9I1ahXzL7P3ZTdnK4g/GsB/coOkEFKIHA=";
+      }
+      else throw "grok-bot is unsupported on ${system}"
+    );
+    appimageContents = appimageTools.extract {inherit pname version src;};
+  in
+    appimageTools.wrapType2 {
+      inherit pname version src;
+
+      extraInstallCommands = ''
+        install -Dm444 ${appimageContents}/grok-bot.desktop -t $out/share/applications
+        substituteInPlace $out/share/applications/grok-bot.desktop \
+          --replace-fail 'Exec=AppRun' 'Exec=grok-bot'
+        cp -r ${appimageContents}/usr/share/icons $out/share/icons
+      '';
+
+      meta = {
+        description = "AI teammates that work across your apps and tools";
+        homepage = "https://x.ai/bot";
+        license = lib.licenses.unfree;
+        mainProgram = "grok-bot";
+        platforms = ["x86_64-linux" "aarch64-linux"];
+      };
+    };
 in
   [
     awscli2
@@ -426,6 +467,7 @@ in
     zstd
   ]
   ++ lib.optionals (!isDarwin) [
+    grokBot
     kiro-cli
     obsidian
     slack
