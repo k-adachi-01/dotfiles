@@ -24,6 +24,7 @@
       "bitwarden"
       "codex-app"
       "cursor"
+      "deepseek-harness"
       "devin-desktop"
       "ghostty"
       "google-chrome"

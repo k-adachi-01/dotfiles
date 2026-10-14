@@ -36,6 +36,8 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
 | Kiro | `settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | Agent Plugins形式のPower一式（`plugin.json`, `mcp.json`, `skills/**`, `dev.kiro/steering/**`） | Power登録manifest (`powers.json`), 旧Power MCPカタログ (`powers.mcp.json`), `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
 | Devin | `~/.config/devin/config.json`（`permissions.allow`・`deny`・`ask` を宣言） | —（共有 skills は既存の `~/.agents/skills` を参照） | 組織ID・初期設定状態・認証・履歴・セッション・ログ・configバックアップ |
+| Pi | `~/.pi/agent/settings.json`（telemetry と共有 skills のパスのみ宣言） | `~/.pi/agent/AGENTS.md` | `auth.json`、sessions、cache、extensions、packages、backups、モデル選択などの宣言外設定 |
+| DeepSeek Harness | —（モデル・プロバイダー設定はアプリで管理） | — | 認証、設定、workspaces、plugins、sessions、ログ、その他ランタイムデータ |
 | Antigravity CLI (agy) | `~/.gemini/antigravity-cli/settings.json`（`permissions.allow`・`deny`・`ask` を宣言） | —（共有 skills は `programs.agent-skills` の `targets.antigravity-cli` が `~/.gemini/antigravity-cli/skills` へ配布） | `trustedWorkspaces`, `allowNonWorkspaceAccess`, `colorScheme`, `brain/`, `conversations/`, `cache/`, `log/` などランタイム状態・settingsバックアップ |
 | Agent Skills | — (`programs.agent-skills` モジュール経由の rsync) | — | — |
 

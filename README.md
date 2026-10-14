@@ -105,6 +105,17 @@ None of the five tools need a manual re-sync script anymore (the old `sync-codex
 
 Devin uses the existing `~/.agents/skills` catalog from the `agent-skills` flake input, so no Devin-specific mirror is needed. Verify discovery with `devin skills paths` and `devin skills list --json` after switching.
 
+### Pi and DeepSeek Harness
+
+Pi (`pi`) and DeepSeek Harness (`dsh`) are pinned by the `llm-agents-nix` flake input and installed through `nix/packages.nix`. On macOS, the DeepSeek Harness desktop app is also managed as the `deepseek-harness` Homebrew cask.
+
+On Apple Silicon, `dsh` uses an official Node.js binary pinned in the Nix store: its native loader is incompatible with the machine code emitted by Nix-built Node. The shared Node.js package is unchanged.
+
+- Pi: run `pi`, then `/login` to connect a provider and `/model` to select a model. `~/.pi/agent/AGENTS.md` links to the shared instructions. `nix/agents/pi.nix` merges telemetry preferences and the shared `~/.agents/skills` resource path into `settings.json`; model choices, packages, and other undeclared preferences remain local. The declared `skills` array is replaced on switch, so add durable resource paths in that module.
+- DeepSeek Harness: open **DeepSeek Harness** from Applications, or run `dsh web` for the Web UI at `http://127.0.0.1:3080`. Open **Settings → Models** and enter a provider API key. `dsh web --no-open` starts the server without opening a browser.
+
+Credentials, sessions, caches, plugins, and DeepSeek's app-managed settings stay outside Git. See the [Pi model guide](https://pi.dev/docs/latest/models) and [DeepSeek Harness guide](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/index.md) for authentication and provider setup.
+
 ### Codex profiles
 
 The `~/.codex/{gemini,bedrock,deepseek}.config.toml` files are Codex configuration profiles: plain config files selected at launch with `codex --profile <name>` (for example `codex --profile deepseek`). They are class B symlinks, so editing `home/agents/codex/*.config.toml` takes effect without a switch. The `gemini` and `deepseek` profiles route `google/gemini-3.8-flash` and `deepseek/deepseek-v4.1-flash`, respectively, through Vercel AI Gateway (`env_key = "AI_GATEWAY_API_KEY"`), so that environment variable must be set before launching; the key itself is never committed.
@@ -138,6 +149,7 @@ Windows-only settings preserved for handoff:
 
 Not managed by Nix:
 
+- Pi authentication (`~/.pi/agent/auth.json`), sessions, caches, extensions, packages, and config backups; DeepSeek Harness credentials, settings, workspaces, plugins, and runtime data
 - Devin organization/setup state and config backups (`~/.config/devin/backups/`); only the declared permissions belong in Git
 - auth files and credentials, including `~/.codex/auth.json`
 - local session and prompt history, including `history.jsonl`, `session_index.jsonl`, `transcription-history.jsonl`, `sessions/`, and `shell_snapshots/`

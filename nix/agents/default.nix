@@ -32,6 +32,7 @@ in {
     ./kiro.nix
     ./devin.nix
     ./agy.nix
+    ./pi.nix
   ];
 
   config =

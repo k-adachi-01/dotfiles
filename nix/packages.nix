@@ -8,6 +8,40 @@
 with pkgs; let
   inherit (stdenv) isDarwin;
   llmAgentsPkgs = inputs.llm-agents-nix.packages.${system};
+  # DSH's native loader inspects V8 machine code. Nix-built Node on Apple
+  # Silicon fails with Unsupported/no-getter; use the official build only
+  # for this command, while keeping the runtime pinned in the Nix store.
+  dshNode = stdenvNoCC.mkDerivation {
+    pname = "dsh-node";
+    version = "24.20.0";
+    src = fetchurl {
+      url = "https://nodejs.org/dist/v24.20.0/node-v24.20.0-darwin-arm64.tar.gz";
+      hash = "sha256-QOVgfl7LPbkZJyN3baLXXZZiYPx0p6nnMcG9Z92pa8g=";
+    };
+    dontConfigure = true;
+    dontBuild = true;
+    dontFixup = true;
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/bin $out/share/licenses/node
+      cp bin/node $out/bin/node
+      cp LICENSE $out/share/licenses/node/
+      runHook postInstall
+    '';
+    meta = {
+      license = lib.licenses.mit;
+      platforms = ["aarch64-darwin"];
+      sourceProvenance = [lib.sourceTypes.binaryNativeCode];
+    };
+  };
+  dshCli =
+    if system == "aarch64-darwin"
+    then
+      writeShellScriptBin "dsh" ''
+        exec ${dshNode}/bin/node --expose-internals \
+          ${llmAgentsPkgs.dsh}/lib/node_modules/@deepseek-ai/dsh/lib/bin.js "$@"
+      ''
+    else llmAgentsPkgs.dsh;
   # The source-built package lacks the manifest/helpers required by the
   # default daemon startup since 0.157. Keep the official macOS bundle intact.
   codexCli =
@@ -436,10 +470,12 @@ in
     llmAgentsPkgs.claude-code
     codexCli
     llmAgentsPkgs.cursor-agent
+    dshCli
     llmAgentsPkgs.grok
     llmAgentsPkgs.hunk
     llmAgentsPkgs.herdr
     llmAgentsPkgs.hermes-agent
+    llmAgentsPkgs.pi
     llmAgentsPkgs.rtk
   ]
   ++ lib.optionals enableSourceBuiltTools [
