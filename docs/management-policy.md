@@ -152,6 +152,8 @@ PR8/PR6 でクラスBとして「out-of-store symlink（repo 編集が switch �
 
 ### Agent Skills input の実装メモ（PR5 → PR13）
 
+管理マーカー導入前の配布先は、実ディレクトリ内に `agent-skills-source-*-safe` への symlink だけを持つ。`migrateLegacyAgentSkills` はこの旧形式だけを判定し、`agent-skills` activation の前に同じ親ディレクトリ内の `skills.legacy-*` へ退避する。新しい installer が空いたパスを管理マーカー付きで再生成する。手動ファイル・別形式のリンク・既存マーカーがある場合は変更せず、installer の保護チェックに委ねる。退避先はローカルのバックアップであり Git 管理しない。
+
 **現在の設計**: flake input `path:/Users/adachi/agent-skills`。Nix はローカルディスクを store にコピーするだけなので GitHub 認証は不要。`programs.agent-skills-nix` の module 直 `path` オプションは eval サンドボックス下で `pathExists` が失敗するため使わない（flake path input 経由が正しい）。
 
 **narHash の更新**: `path:` flake input は `flake.lock` に内容ハッシュを pin する。`~/agent-skills` 編集後に lock を更新せず `switch` すると `NAR hash mismatch` になる。正しいコマンド（`nix flake lock` ではなく `nix flake update`）:

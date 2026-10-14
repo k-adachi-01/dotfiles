@@ -5,6 +5,7 @@
 {
   config,
   lib,
+  pkgs,
   dotfilesRepo ? "${config.home.homeDirectory}/.config/nix-darwin",
   enableAgentSkills ? true,
   ...
@@ -117,6 +118,18 @@ in {
         };
     }
     // lib.optionalAttrs enableAgentSkills {
+      # Before the marker-based installer, older versions produced real
+      # directories containing only links into agent-skills-source stores.
+      # Preserve those trees and let the new installer claim fresh paths.
+      # Mixed/user-managed trees are left untouched for its safety check.
+      home.activation.migrateLegacyAgentSkills = lib.hm.dag.entryBetween ["agent-skills"] ["writeBoundary"] ''
+        ${pkgs.python3}/bin/python ${./migrate-legacy-skills.py} \
+          "$HOME/.agents/skills" \
+          "$HOME/.claude/skills" \
+          "$HOME/.cursor/skills" \
+          "$HOME/.gemini/antigravity-cli/skills"
+      '';
+
       programs.agent-skills = {
         enable = true;
         sources.personal = {
