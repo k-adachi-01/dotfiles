@@ -517,6 +517,7 @@ in
     llmAgentsPkgs.hunk
     llmAgentsPkgs.herdr
     llmAgentsPkgs.hermes-agent
+    llmAgentsPkgs.opencode
     llmAgentsPkgs.pi
     llmAgentsPkgs.rtk
   ]
