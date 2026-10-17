@@ -33,8 +33,29 @@
     # Clear persisted model selections so new sessions use Codex defaults.
     removeKeys = ["model"];
   };
+
+  # ~/.codex/hooks.json is shared with integrations like herdr, which owns
+  # the SessionStart entry. The merge is dict-recursive, so declaring only
+  # hooks.Stop leaves other events' hook arrays untouched; the Stop array
+  # itself is replaced wholesale, which is fine because we own it.
+  hooksEntry = {
+    format = "json";
+    value.hooks.Stop = [
+      {
+        hooks = [
+          {
+            type = "command";
+            command = "bash \"$HOME/bin/agent-task-finish-guard\"";
+            timeout = 30;
+          }
+        ];
+      }
+    ];
+    dest = "$HOME/.codex/hooks.json";
+    label = "codex-hooks";
+  };
 in {
-  dotfilesAgents.classAMerges = [(agentsLib.mkDiffCommand configEntry)];
+  dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand [configEntry hooksEntry];
 
   home = {
     # Class A: home/agents/codex/config.toml is the human-editable
@@ -45,6 +66,10 @@ in {
     # from the declared value.
     activation.mergeCodexConfig = lib.hm.dag.entryAfter ["writeBoundary"] (
       agentsLib.mkMergeActivation (configEntry // {backupDir = "$HOME/.codex/backups";})
+    );
+
+    activation.mergeCodexHooks = lib.hm.dag.entryAfter ["writeBoundary"] (
+      agentsLib.mkMergeActivation (hooksEntry // {backupDir = "$HOME/.codex/backups";})
     );
 
     # Class B: Codex never writes to any of these, so a repo-editable

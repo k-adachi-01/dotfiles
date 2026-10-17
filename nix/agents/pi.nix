@@ -30,4 +30,9 @@ in {
   );
 
   home.file.".pi/agent/AGENTS.md".source = mkLink "home/ai/AGENTS.md";
+  # Turn-end guard shared with the Devin/Codex/Kiro Stop hooks: on
+  # agent_before_settle it appends a custom_message and requests one
+  # continuation so the agent can update related docs / Linear issues.
+  home.file.".pi/agent/extensions/task-finish.ts".source =
+    mkLink "home/agents/pi/extensions/task-finish.ts";
 }

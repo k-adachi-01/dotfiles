@@ -10,49 +10,67 @@
   shared = import ./mcp.nix {inherit config pkgs;};
   configEntry = {
     format = "json";
-    value.permissions = {
-      allow = [
-        "Read(/**)"
-        "Write(**)"
-        "Fetch(https://*/*)"
-        "Fetch(http://*/*)"
-        "exec"
-        "mcp__*"
-      ];
-      # Exec scopes are command prefixes, not Kiro's shell globs. Cover
-      # common destructive invocations explicitly; ask for every push to
-      # catch force flags appearing after the remote/branch arguments.
-      deny = lib.concatMap (git:
-        map (command: "Exec(${git} ${command})") [
-          "reset --hard"
-          "clean"
-          "checkout --"
-          "restore"
-          "branch -D"
-          "push --force"
-          "push --force-with-lease"
-          "push -f"
-        ]) ["git" "/usr/bin/git"];
-      # ask beats allow, so a broad sudo ask cannot have allow exceptions.
-      # Git global options can precede a destructive subcommand; keep
-      # those forms subject to review rather than claiming full isolation.
-      # rm -rf/-fr asks rather than denies so routine temp-file cleanup
-      # can proceed after confirmation.
-      ask =
-        [
-          "Exec(sudo)"
-          "Exec(/usr/bin/sudo)"
-          "Exec(rm -rf)"
-          "Exec(rm -fr)"
-          "Exec(/bin/rm -rf)"
-          "Exec(/bin/rm -fr)"
-        ]
-        ++ lib.concatMap (git:
+    value = {
+      permissions = {
+        allow = [
+          "Read(/**)"
+          "Write(**)"
+          "Fetch(https://*/*)"
+          "Fetch(http://*/*)"
+          "exec"
+          "mcp__*"
+        ];
+        # Exec scopes are command prefixes, not Kiro's shell globs. Cover
+        # common destructive invocations explicitly; ask for every push to
+        # catch force flags appearing after the remote/branch arguments.
+        deny = lib.concatMap (git:
           map (command: "Exec(${git} ${command})") [
-            "push"
-            "-C"
-            "-c"
+            "reset --hard"
+            "clean"
+            "checkout --"
+            "restore"
+            "branch -D"
+            "push --force"
+            "push --force-with-lease"
+            "push -f"
           ]) ["git" "/usr/bin/git"];
+        # ask beats allow, so a broad sudo ask cannot have allow exceptions.
+        # Git global options can precede a destructive subcommand; keep
+        # those forms subject to review rather than claiming full isolation.
+        # rm -rf/-fr asks rather than denies so routine temp-file cleanup
+        # can proceed after confirmation.
+        ask =
+          [
+            "Exec(sudo)"
+            "Exec(/usr/bin/sudo)"
+            "Exec(rm -rf)"
+            "Exec(rm -fr)"
+            "Exec(/bin/rm -rf)"
+            "Exec(/bin/rm -fr)"
+          ]
+          ++ lib.concatMap (git:
+            map (command: "Exec(${git} ${command})") [
+              "push"
+              "-C"
+              "-c"
+            ]) ["git" "/usr/bin/git"];
+      };
+      # Turn-end guard shared with Codex/Kiro: on Stop the script emits a
+      # block decision once per turn, so the agent gets one pass to update
+      # related docs / Linear issues before finishing. stop_hook_active in
+      # the stdin payload keeps it from looping.
+      hooks.Stop = [
+        {
+          matcher = "";
+          hooks = [
+            {
+              type = "command";
+              command = "bash \"$HOME/bin/agent-task-finish-guard\"";
+              timeout = 30;
+            }
+          ];
+        }
+      ];
     };
     dest = "$HOME/.config/devin/config.json";
     label = "devin-config";

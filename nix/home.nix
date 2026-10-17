@@ -73,6 +73,7 @@ in {
         # generated copy; home/zprofile sources session vars via profile paths.
         "./.zprofile".enable = lib.mkForce false;
         "bin/nix-store-repair".source = mkLink "home/bin/nix-store-repair.sh";
+        "bin/agent-task-finish-guard".source = mkLink "home/bin/agent-task-finish-guard.sh";
       }
       // lib.optionalAttrs (!isDarwin) {
         ".bashrc".source = ../home/bashrc;

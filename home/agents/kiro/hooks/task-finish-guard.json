@@ -1,0 +1,25 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "task-finish-guard",
+      "description": "At turn end, give the agent one pass to update related docs and Linear issues before it stops.",
+      "trigger": "Stop",
+      "action": {
+        "type": "command",
+        "command": "bash \"$HOME/bin/agent-task-finish-guard\""
+      },
+      "timeout": 30
+    },
+    {
+      "name": "task-finish-guard-reset",
+      "description": "Clear the task-finish-guard marker so the next user prompt gets one continuation again.",
+      "trigger": "UserPromptSubmit",
+      "action": {
+        "type": "command",
+        "command": "bash \"$HOME/bin/agent-task-finish-guard\" clear"
+      },
+      "timeout": 10
+    }
+  ]
+}
