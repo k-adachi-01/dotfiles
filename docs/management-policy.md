@@ -39,6 +39,7 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 | Pi | `~/.pi/agent/settings.json`（telemetry と共有 skills のパスのみ宣言） | `~/.pi/agent/AGENTS.md`, `~/.pi/agent/extensions/task-finish.ts`（`agent_before_settle` で継続を1回要求する turn-end guard） | `auth.json`、sessions、cache、その他の extensions、packages、backups、モデル選択などの宣言外設定 |
 | DeepSeek Harness | —（モデル・プロバイダー設定はアプリで管理） | — | 認証、設定、workspaces、plugins、sessions、ログ、その他ランタイムデータ |
 | Antigravity CLI (agy) | `~/.gemini/antigravity-cli/settings.json`（`permissions.allow`・`deny`・`ask` を宣言） | —（共有 skills は `programs.agent-skills` の `targets.antigravity-cli` が `~/.gemini/antigravity-cli/skills` へ配布） | `trustedWorkspaces`, `allowNonWorkspaceAccess`, `colorScheme`, `brain/`, `conversations/`, `cache/`, `log/` などランタイム状態・settingsバックアップ |
+| Kiro Crew | — | — | `~/.kiro/crew/**` 全体（`config.json`、sessions、gateway 状態はアプリ所有のランタイム）。ハーネス検出用の `~/.local/bin/{codex-acp,pi-acp,pi}` も repo 管理外の手動 provision（下記「Kiro Crew の agent harness」参照） |
 | Agent Skills | — (`programs.agent-skills` モジュール経由の rsync) | — | — |
 
 ## 3. 移行状況（この表は各PRの完了時に更新する）
@@ -76,6 +77,17 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 方針はKiro/Devinと同じく許容ベース: `command(*)`・`read_url(*)`・`mcp(*)` を allow とし、Git の変更破棄系（`reset --hard`・`checkout --`・`restore`・`branch -D`・force push・`clean -f`）は deny、`rm -rf`/`rm -fr`・`sudo`・Git の `-C`/`-c` 形式は ask とする。agy のルールには Kiro の `exclude` に相当する仕組みがないため、sudo は deny 例外（`darwin-rebuild switch` 等の許可）が表現できず ask に落としている。`git push` 素の実行はKiro同様 allow（deny に入るのは force 系だけ）。単語先頭一致では `git push origin --force` のような中間トークン位置の force フラグを拾えないため、deny は位置ごとの regex ルールで補強している。
 
 `allow`・`deny`・`ask` の各配列は switch 時に全置換する。agy の `/permissions` TUI や承認プロンプトで追加したグローバルルールを恒久化する場合は `nix/agents/agy.nix` へ移す。
+
+### Kiro Crew の agent harness（ACP adapter の provision）
+
+Kiro Crew（`/Applications/KiroCrew.app`）の Agent Harness は、gateway プロセスが固定の探索パス（`augmented_path`: `~/.local/bin` → mise shims → `/opt/homebrew/bin` → `/usr/local/bin` → node version manager の bin 群）で ACP adapter バイナリを解決する。gateway は launchd 起動で PATH が `/usr/bin:/bin:/usr/sbin:/sbin` しかなく、login shell の PATH は見えない。
+
+この端末での provision（いずれも repo 管理外のクラスC相当、`nix-management-inventory.md` の「`~/.local/bin` は tool-installed binaries として管理しない」方針どおり）:
+
+- `~/.local/bin/codex-acp`, `~/.local/bin/pi-acp`: `pnpm add -g --config.global-bin-dir=$HOME/.local/bin @agentclientprotocol/codex-acp pi-acp` で入れた pnpm global shim。pnpm 既定の `~/Library/pnpm/bin` は Crew の探索パス外なので `--config.global-bin-dir` で `~/.local/bin` へ直接出した（実体は `~/Library/pnpm/global` 以下）
+- `~/.local/bin/pi`: `/run/current-system/sw/bin/pi` への手動 symlink。pi 本体は `nix/packages.nix` の `llmAgentsPkgs.pi` が管理し、symlink 経由でバージョンが追従する。対話 shell の PATH では `run/current-system` が見えるが Crew の探索パスにはないためこの symlink が要る。**冗長に見えるが消さないこと**（pi-acp は pi ≥0.81 を要求）
+
+adapter を入れ直したら Agent Harness 設定画面の「Check again」を押す。gateway は解決結果をプロセス内キャッシュしており、このボタン（`POST /api/acp-backends/recheck`、owner-gated）がキャッシュをクリアして再プローブするため gateway の再起動は不要。
 
 ### Codex merge 実装メモ（PR6で確定）
 
