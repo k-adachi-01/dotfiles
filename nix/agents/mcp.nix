@@ -29,31 +29,48 @@ in rec {
   # cannot hop to management or default credentials: the sandbox profile
   # keeps write access, the app-dev profile is read-only at the proxy.
   # Version matches the pin in agent-toolkit-for-aws's aws-core plugin.
+  uvxTlsArgs = [
+    "--overrides"
+    (toString (pkgs.writeText "mcp-tls-overrides.txt" "certifi>=2026.10.19\n"))
+    "--with"
+    "certifi>=2026.10.19"
+  ];
+  # GUI agents can retain an older PATH after a system update.
+  uvxCommand = "${pkgs.uv}/bin/uvx";
+  pnpmMcpCommand = toString (pkgs.writeShellScript "pnpm-mcp" ''
+    export PATH=${pkgs.nodejs_24}/bin:$PATH
+    exec ${pkgs.pnpm}/bin/pnpm "$@"
+  '');
+
   awsMcpProxyPkg = "mcp-proxy-for-aws-cli==1.7.0";
   awsMcpEndpoint = "https://aws-mcp.us-east-1.api.aws/mcp";
   awsMcpServers = {
     aws-sandbox = {
-      command = "uvx";
-      args = [
-        awsMcpProxyPkg
-        awsMcpEndpoint
-        "--profile"
-        "aws-poc-sandbox"
-        "--region"
-        "ap-northeast-1"
-      ];
+      command = uvxCommand;
+      args =
+        uvxTlsArgs
+        ++ [
+          awsMcpProxyPkg
+          awsMcpEndpoint
+          "--profile"
+          "aws-poc-sandbox"
+          "--region"
+          "ap-northeast-1"
+        ];
     };
     aws-app = {
-      command = "uvx";
-      args = [
-        awsMcpProxyPkg
-        awsMcpEndpoint
-        "--profile"
-        "aws-app-dev"
-        "--region"
-        "ap-northeast-1"
-        "--read-only"
-      ];
+      command = uvxCommand;
+      args =
+        uvxTlsArgs
+        ++ [
+          awsMcpProxyPkg
+          awsMcpEndpoint
+          "--profile"
+          "aws-app-dev"
+          "--region"
+          "ap-northeast-1"
+          "--read-only"
+        ];
     };
   };
 
@@ -82,20 +99,20 @@ in rec {
     };
     powers.mcpServers = {
       "power-aws-sam-awslabs.aws-serverless-mcp-server" = {
-        command = "uvx";
-        args = ["awslabs.aws-serverless-mcp-server@latest"];
+        command = uvxCommand;
+        args = uvxTlsArgs ++ ["awslabs.aws-serverless-mcp-server@latest"];
         disabled = false;
         autoApprove = ["sam_init"];
       };
       "power-aws-sam-fetch" = {
-        command = "uvx";
-        args = ["mcp-server-fetch"];
+        command = uvxCommand;
+        args = uvxTlsArgs ++ ["mcp-server-fetch"];
         env = {};
         disabled = false;
       };
       "power-aws-observability-awslabs.cloudwatch-mcp-server" = {
-        command = "uvx";
-        args = ["awslabs.cloudwatch-mcp-server@latest"];
+        command = uvxCommand;
+        args = uvxTlsArgs ++ ["awslabs.cloudwatch-mcp-server@latest"];
         env = {
           AWS_PROFILE = "default";
           AWS_REGION = "us-east-1";
@@ -104,8 +121,8 @@ in rec {
         disabled = false;
       };
       "power-aws-observability-awslabs.cloudwatch-applicationsignals-mcp-server" = {
-        command = "uvx";
-        args = ["awslabs.cloudwatch-applicationsignals-mcp-server@latest"];
+        command = uvxCommand;
+        args = uvxTlsArgs ++ ["awslabs.cloudwatch-applicationsignals-mcp-server@latest"];
         env = {
           AWS_PROFILE = "default";
           AWS_REGION = "us-east-1";
@@ -114,8 +131,8 @@ in rec {
         disabled = false;
       };
       "power-aws-observability-awslabs.cloudtrail-mcp-server" = {
-        command = "uvx";
-        args = ["awslabs.cloudtrail-mcp-server@latest"];
+        command = uvxCommand;
+        args = uvxTlsArgs ++ ["awslabs.cloudtrail-mcp-server@latest"];
         env = {
           AWS_PROFILE = "default";
           AWS_REGION = "us-east-1";
@@ -125,23 +142,25 @@ in rec {
         transportType = "stdio";
       };
       "power-aws-observability-awslabs.aws-documentation-mcp-server" = {
-        command = "uvx";
-        args = ["awslabs.aws-documentation-mcp-server@latest"];
+        command = uvxCommand;
+        args = uvxTlsArgs ++ ["awslabs.aws-documentation-mcp-server@latest"];
         env.FASTMCP_LOG_LEVEL = "ERROR";
         disabled = false;
       };
       "power-iam-policy-autopilot-power-iam-policy-autopilot-mcp" = {
-        command = "uvx";
-        args = [
-          "iam-policy-autopilot@latest"
-          "mcp-server"
-        ];
+        command = uvxCommand;
+        args =
+          uvxTlsArgs
+          ++ [
+            "iam-policy-autopilot@latest"
+            "mcp-server"
+          ];
         env = {};
         disabled = false;
       };
       "power-aws-agentcore-agentcore-mcp-server" = {
-        command = "uvx";
-        args = ["awslabs.amazon-bedrock-agentcore-mcp-server@latest"];
+        command = uvxCommand;
+        args = uvxTlsArgs ++ ["awslabs.amazon-bedrock-agentcore-mcp-server@latest"];
         disabled = true;
       };
     };

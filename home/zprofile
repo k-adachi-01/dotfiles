@@ -24,6 +24,10 @@ fi
 if [ -d /opt/homebrew/bin ]; then
   export PATH="/opt/homebrew/bin:$PATH"
 fi
+# Prefer the declared Nix runtime over transitive Homebrew formulae.
+if [ -d /run/current-system/sw/bin ]; then
+  export PATH="/run/current-system/sw/bin:$PATH"
+fi
 if [ -d "$HOME/bin" ]; then
   export PATH="$HOME/bin:$PATH"
 fi

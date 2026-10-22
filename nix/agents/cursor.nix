@@ -17,7 +17,7 @@
       # Linear's official Cursor integration uses mcp-remote so OAuth is
       # handled by the local MCP bridge without an API key in this config.
       linear = {
-        command = "pnpm";
+        command = shared.pnpmMcpCommand;
         args = [
           "dlx"
           "mcp-remote"
@@ -25,15 +25,15 @@
         ];
       };
       playwright = {
-        command = "pnpm";
+        command = shared.pnpmMcpCommand;
         args = [
           "dlx"
           "@playwright/mcp@latest"
         ];
       };
       "awslabs.aws-documentation-mcp-server" = {
-        command = "uvx";
-        args = ["awslabs.aws-documentation-mcp-server@latest"];
+        command = shared.uvxCommand;
+        args = shared.uvxTlsArgs ++ ["awslabs.aws-documentation-mcp-server@latest"];
         env = {
           FASTMCP_LOG_LEVEL = "ERROR";
           AWS_DOCUMENTATION_PARTITION = "aws";
@@ -43,7 +43,7 @@
       aws-sandbox = shared.awsMcpServers.aws-sandbox;
       aws-app = shared.awsMcpServers.aws-app;
       context7 = {
-        command = "pnpm";
+        command = shared.pnpmMcpCommand;
         args = [
           "dlx"
           "@upstash/context7-mcp@latest"

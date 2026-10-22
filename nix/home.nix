@@ -36,6 +36,9 @@ in {
     stateVersion = "25.05";
     sessionVariables = {
       EDITOR = "nvim";
+      # Cover OpenSSL clients with independent default profiles as well.
+      SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+      NIX_SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
       PNPM_HOME =
         if isDarwin
         then "$HOME/Library/pnpm"
@@ -48,6 +51,7 @@ in {
         "$PNPM_HOME"
       ]
       ++ lib.optionals isDarwin [
+        "/run/current-system/sw/bin"
         "/opt/homebrew/bin"
       ];
     packages = lib.optionals (!isDarwin) sharedPackages;

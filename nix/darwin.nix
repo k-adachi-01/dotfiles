@@ -13,6 +13,7 @@
   nixpkgs = {
     hostPlatform = system;
     config.allowUnfree = true;
+    overlays = [(import ./security-overlay.nix {inherit (inputs) nixpkgs-build;})];
   };
 
   nix.enable = false;
@@ -23,6 +24,8 @@
   # (trusted-users = root only on this host).
   environment.etc."nix/nix.custom.conf" = {
     text = ''
+      # Use the updated system bundle even with an independent Nix profile.
+      ssl-cert-file = /etc/ssl/certs/ca-certificates.crt
       # llm-agents.nix binary cache
       extra-substituters = https://cache.numtide.com
       extra-trusted-substituters = https://cache.numtide.com
@@ -30,6 +33,15 @@
     '';
     knownSha256Hashes = [
       "3bd68ef979a42070a44f8d82c205cfd8e8cca425d91253ec2c10a88179bb34aa"
+    ];
+  };
+
+  # Apple Security.framework revocation does not protect PEM-only clients.
+  # Keep the legacy macOS curl/Python path on the same updated Mozilla bundle.
+  environment.etc."ssl/cert.pem" = {
+    source = "${pkgs.cacert}/etc/ssl/certs/ca-no-trust-rules-bundle.crt";
+    knownSha256Hashes = [
+      "9dae8d76e55cb08991f2b672d58999ea15560d910759c16b544f843bdffbb994"
     ];
   };
 

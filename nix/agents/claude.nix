@@ -165,7 +165,7 @@
     mcpServers.aws-sandbox = shared.awsMcpServers.aws-sandbox;
     mcpServers.aws-app = shared.awsMcpServers.aws-app;
     mcpServers.spec-driven-presentation-maker = {
-      command = "uv";
+      command = "${pkgs.uv}/bin/uv";
       args = [
         "run"
         "--directory"

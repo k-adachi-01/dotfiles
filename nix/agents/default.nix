@@ -36,7 +36,7 @@ in {
     ./pi.nix
   ];
 
-  config =
+  config = lib.mkMerge [
     {
       home.file =
         {
@@ -117,7 +117,7 @@ in {
           };
         };
     }
-    // lib.optionalAttrs enableAgentSkills {
+    (lib.optionalAttrs enableAgentSkills {
       # Before the marker-based installer, older versions produced real
       # directories containing only links into agent-skills-source stores.
       # Preserve those trees and let the new installer claim fresh paths.
@@ -173,5 +173,6 @@ in {
           systems = [];
         };
       };
-    };
+    })
+  ];
 }

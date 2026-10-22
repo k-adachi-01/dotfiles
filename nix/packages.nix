@@ -8,15 +8,56 @@
 with pkgs; let
   inherit (stdenv) isDarwin;
   llmAgentsPkgs = inputs.llm-agents-nix.packages.${system};
+  # Miniflare explicitly supports this runtime-path override. Keep its
+  # verifier current even when a CLI pins an older Miniflare/workerd pair.
+  workerdSecurity = callPackage ./pkgs/workerd-security.nix {};
+  wranglerSecure = symlinkJoin {
+    name = "wrangler-${wrangler.version}";
+    pname = "wrangler";
+    inherit (wrangler) version meta;
+    paths = [(wrangler.override {nodejs = nodejs_22;})];
+    nativeBuildInputs = [makeWrapper];
+    postBuild = ''
+      wrapProgram "$out/bin/wrangler" \
+        --set MINIFLARE_WORKERD_PATH ${lib.getExe workerdSecurity}
+    '';
+  };
+  hermesCli = (llmAgentsPkgs.hermes-agent.override {nodejs = nodejs_24;}).overridePythonAttrs (old: {
+    # Upstream's exact pins lag these patch releases; retain its import,
+    # wrapper, subprocess and CLI checks when relaxing the metadata.
+    pythonRelaxDeps = (old.pythonRelaxDeps or []) ++ ["prompt_toolkit" "prompt-toolkit" "markdown"];
+  });
+  securityRustPlatform =
+    (import inputs.nixpkgs-build {
+      inherit system;
+      config.allowUnfree = true;
+    }).rustPlatform;
+  agentBrowser = (llmAgentsPkgs.agent-browser.override {rustPlatform = securityRustPlatform;}).overrideAttrs (attrs: old: {
+    patches = (old.patches or []) ++ [./pkgs/agent-browser/tls-dependencies.patch];
+    cargoDeps = securityRustPlatform.fetchCargoVendor {
+      inherit (attrs) src patches;
+      sourceRoot = "source/cli";
+      name = "agent-browser-${attrs.version}";
+      hash = "sha256-qhM2sNGTKvgPMOiE/2U0FVRXDqB4DHaIgYRRmJ+dwqo=";
+    };
+  });
+  rtkCli = (llmAgentsPkgs.rtk.override {rustPlatform = securityRustPlatform;}).overrideAttrs (attrs: old: {
+    patches = (old.patches or []) ++ [./pkgs/rtk/tls-dependencies.patch];
+    cargoDeps = securityRustPlatform.fetchCargoVendor {
+      inherit (attrs) src patches;
+      name = "rtk-${attrs.version}";
+      hash = "sha256-VI0j8P93ZoFigtrwFGFGPXDoA2Ovd0NDoF4i44tegIM=";
+    };
+  });
   # DSH's native loader inspects V8 machine code. Nix-built Node on Apple
   # Silicon fails with Unsupported/no-getter; use the official build only
   # for this command, while keeping the runtime pinned in the Nix store.
   dshNode = stdenvNoCC.mkDerivation {
     pname = "dsh-node";
-    version = "24.20.0";
+    version = "24.22.1";
     src = fetchurl {
-      url = "https://nodejs.org/dist/v24.20.0/node-v24.20.0-darwin-arm64.tar.gz";
-      hash = "sha256-QOVgfl7LPbkZJyN3baLXXZZiYPx0p6nnMcG9Z92pa8g=";
+      url = "https://nodejs.org/dist/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz";
+      hash = "sha256-icaCWT12zUQjP6U7FWMmTn3py7GJytFpE1xbT637wKc=";
     };
     dontConfigure = true;
     dontBuild = true;
@@ -34,6 +75,33 @@ with pkgs; let
       sourceProvenance = [lib.sourceTypes.binaryNativeCode];
     };
   };
+  cursorNode =
+    if system == "aarch64-darwin"
+    then
+      dshNode.overrideAttrs (_: {
+        pname = "cursor-node";
+        version = "26.12.1";
+        src = fetchurl {
+          url = "https://nodejs.org/dist/v26.12.1/node-v26.12.1-darwin-arm64.tar.gz";
+          hash = "sha256-GQHVOZEsAq+hDRzBJpQ6iFWn7t6+gwEZRjRw215sWeg=";
+        };
+      })
+    else
+      nodejs-slim_26.overrideAttrs (_: {
+        version = "26.12.1";
+        src = fetchurl {
+          url = "https://nodejs.org/dist/v26.12.1/node-v26.12.1.tar.xz";
+          hash = "sha256-BT47KWhZttjZP5nvl/qc7BxO4XHHKWgQDGSZeMHb04w=";
+        };
+      });
+  cursorAgent = llmAgentsPkgs.cursor-agent.overrideAttrs (old: {
+    postInstall =
+      (old.postInstall or "")
+      + ''
+        rm "$out/share/cursor-agent/node"
+        ln -s ${cursorNode}/bin/node "$out/share/cursor-agent/node"
+      '';
+  });
   dshCli =
     if system == "aarch64-darwin"
     then
@@ -41,7 +109,7 @@ with pkgs; let
         exec ${dshNode}/bin/node --expose-internals \
           ${llmAgentsPkgs.dsh}/lib/node_modules/@deepseek-ai/dsh/lib/bin.js "$@"
       ''
-    else llmAgentsPkgs.dsh;
+    else llmAgentsPkgs.dsh.override {nodejs = nodejs_24;};
   # The source-built package lacks the manifest/helpers required by the
   # default daemon startup since 0.157. Keep the official macOS bundle intact.
   codexCli =
@@ -119,28 +187,28 @@ with pkgs; let
   };
   devinCli = stdenvNoCC.mkDerivation rec {
     pname = "devin-cli";
-    version = "3000.11.3";
+    version = "3000.11.92";
 
     src = fetchurl (
       if system == "aarch64-darwin"
       then {
         url = "https://static.devin.ai/cli/${version}/devin-${version}-aarch64-apple-darwin.tar.gz";
-        hash = "sha256-wIzD81B9EDJGuMYBpYT8xxn9d/bMEPJsyQ6fQYZkDfI=";
+        hash = "sha256-YEc5IhLOBz7eJyTYQkbMBN1HgRodHiCE7uclJwOUCsE=";
       }
       else if system == "x86_64-darwin"
       then {
         url = "https://static.devin.ai/cli/${version}/devin-${version}-x86_64-apple-darwin.tar.gz";
-        hash = "sha256-WU+JtrDQPf/sTqvHVBBORHHMQ6AUohZOL919DXUtAQA=";
+        hash = "sha256-Wc9FdvCzRfidskj5moJWLS7XoYn3zioyc/tTdKdJ56w=";
       }
       else if system == "aarch64-linux"
       then {
         url = "https://static.devin.ai/cli/${version}/devin-${version}-aarch64-unknown-linux.tar.gz";
-        hash = "sha256-IaLXqN6meYcGfN5+s/5xk6SNqo+MPVDUFMYDxKK2fxU=";
+        hash = "sha256-iB6DsN8G3VejBwBOKZQHwsN0XyiFRuCjOaZ/vr58tsA=";
       }
       else if system == "x86_64-linux"
       then {
         url = "https://static.devin.ai/cli/${version}/devin-${version}-x86_64-unknown-linux.tar.gz";
-        hash = "sha256-g7OxE8Ab8qPp4QDbCNd+awhoBqd1TwkeIIMb3+IVFX4=";
+        hash = "sha256-LYKROWguA4zxIlEPEXDu49cGC8x+v5JEXLxdKMn7z6A=";
       }
       else throw "devin-cli is unsupported on ${system}"
     );
@@ -165,52 +233,8 @@ with pkgs; let
       platforms = ["aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux"];
     };
   };
-  bwsCli = stdenvNoCC.mkDerivation rec {
-    pname = "bws";
-    version = "2.1.0";
-
-    src = fetchurl (
-      if system == "aarch64-darwin"
-      then {
-        url = "https://github.com/bitwarden/sdk/releases/download/bws-v${version}/bws-aarch64-apple-darwin-${version}.zip";
-        hash = "sha256-nLHBxuYWTYOy4zmIO6ArTLs3GIzppISxzoJJRDFj4GY=";
-      }
-      else if system == "x86_64-darwin"
-      then {
-        url = "https://github.com/bitwarden/sdk/releases/download/bws-v${version}/bws-x86_64-apple-darwin-${version}.zip";
-        hash = "sha256-b2JrOXE2iQKvG5hHwCeRobRmaWnXVh4gR2gc3teZdTc=";
-      }
-      else if system == "aarch64-linux"
-      then {
-        url = "https://github.com/bitwarden/sdk/releases/download/bws-v${version}/bws-aarch64-unknown-linux-gnu-${version}.zip";
-        hash = "sha256-GCU3VyhuEZ1FATOofrRjv4wc5BjOJMg09PJQ1gy6b54=";
-      }
-      else if system == "x86_64-linux"
-      then {
-        url = "https://github.com/bitwarden/sdk/releases/download/bws-v${version}/bws-x86_64-unknown-linux-gnu-${version}.zip";
-        hash = "sha256-uoIzw6Su5dQ+PHO70E2Z6bxauhO7v9BtibBzq+cyuGA=";
-      }
-      else throw "bws is unsupported on ${system}"
-    );
-
-    nativeBuildInputs = [unzip];
-    sourceRoot = ".";
-    dontStrip = true;
-
-    installPhase = ''
-      runHook preInstall
-      install -Dm755 bws "$out/bin/bws"
-      runHook postInstall
-    '';
-
-    meta = {
-      description = "Bitwarden Secrets Manager CLI";
-      homepage = "https://bitwarden.com/help/secrets-manager-cli/";
-      license = lib.licenses.unfree;
-      mainProgram = "bws";
-      platforms = ["aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux"];
-    };
-  };
+  # Build with patched TLS dependencies; the official 2.1.0 binary embeds old webpki.
+  bwsCli = bws;
   # Cursor Origin CLI (https://cursor.com/docs/origin/cli). Pin the public
   # stable artifact; `origin update` writes ~/.local/bin/origin and would
   # shadow this derivation. Bump version + hashes from the URLs baked into
@@ -218,28 +242,28 @@ with pkgs; let
   # ~/.config/origin-cli/ stays unmanaged.
   originCli = stdenvNoCC.mkDerivation rec {
     pname = "origin-cli";
-    version = "2026.10.06-21-51-28-c45912f";
+    version = "2026.10.20-17-18-04-26f4948";
 
     src = fetchurl (
       if system == "aarch64-darwin"
       then {
         url = "https://downloads.cursor.com/co/${version}/darwin-arm64/co.tar.gz";
-        hash = "sha256-po5TX/9NAHyGAdzIp2lOjhwmtvDWtH6EvnLgkq9lLeU=";
+        hash = "sha256-rM8swywT0vNFRgf+5SZO+AkaPY9EOjM3JtGP6bc9qHg=";
       }
       else if system == "x86_64-darwin"
       then {
         url = "https://downloads.cursor.com/co/${version}/darwin-x64/co.tar.gz";
-        hash = "sha256-guE/zOepNBVQZXzwzmjKFFDHvI4pWajRGl9/11dL0n4=";
+        hash = "sha256-xEO8DZDDXt1GrDcRYUoT7gUOXx8sgOGySsFBGKAR8gs=";
       }
       else if system == "aarch64-linux"
       then {
         url = "https://downloads.cursor.com/co/${version}/linux-arm64/co.tar.gz";
-        hash = "sha256-t9tLq49AZY053IDbdkG8kRuJh7r1OaYex560TELb/+4=";
+        hash = "sha256-AX/MbbuNjcv2WDY4f4888L18pLR6M/F9P6tgYph4o+0=";
       }
       else if system == "x86_64-linux"
       then {
         url = "https://downloads.cursor.com/co/${version}/linux-x64/co.tar.gz";
-        hash = "sha256-hgJ+E4hxUEM24BaacW50dhy6P3plUtraM1tg5DbKMRI=";
+        hash = "sha256-XfO2BZunlXB/4okjmDEt2KhH99U8cUgp/4F1rAWPw2c=";
       }
       else throw "origin-cli is unsupported on ${system}"
     );
@@ -308,12 +332,12 @@ with pkgs; let
   # tarball after deleting devDependencies
   # (`pnpm install --lockfile-only --ignore-scripts`).
   cfCli = let
-    version = "1.0.0-beta.12";
+    version = "1.0.0-beta.20";
     src =
       runCommand "cf-${version}-src" {
         tarball = fetchurl {
           url = "https://registry.npmjs.org/cf/-/cf-${version}.tgz";
-          hash = "sha256-LGaN+SuptzxQq1uElbwA71HzBk3en/cLPZwCyOTLMHY=";
+          hash = "sha256-ITv9lUJXSut0qeOU2cfXkxq1dFxJQorMj18bqLUlMzE=";
         };
         nativeBuildInputs = [jq];
       } ''
@@ -333,7 +357,7 @@ with pkgs; let
         pnpm
         writableTmpDirAsHomeHook
       ];
-      outputHash = "sha256-oe1PIz2B80QnCBoKQWQXmebEwWglVyQdMQyVUTSDV3E=";
+      outputHash = "sha256-JCGfqY22//SrWa1WhO+sbgtSJfdNIWUArSjlYJjRJbA=";
       outputHashAlgo = "sha256";
       outputHashMode = "recursive";
       # Skip fixup: patchShebangs would rewrite script shebangs to store
@@ -376,6 +400,7 @@ with pkgs; let
         cp -r bin dist package.json $out/lib/node_modules/cf/
         cp -r ${nodeModules}/node_modules $out/lib/node_modules/cf/node_modules
         makeWrapper ${lib.getExe nodejs} $out/bin/cf \
+          --set MINIFLARE_WORKERD_PATH ${lib.getExe workerdSecurity} \
           --add-flags "$out/lib/node_modules/cf/bin/cf"
         ln -s cf $out/bin/cloudflare
         runHook postInstall
@@ -496,7 +521,7 @@ in
     unzip
     uv
     wget
-    (wrangler.override {nodejs = nodejs_22;})
+    wranglerSecure
     yq-go
     zoxide
     zstd
@@ -508,18 +533,19 @@ in
     slack
   ]
   ++ lib.optionals enableLlmAgents [
-    llmAgentsPkgs.agent-browser
+    agentBrowser
     llmAgentsPkgs.claude-code
     codexCli
-    llmAgentsPkgs.cursor-agent
+    cursorAgent
     dshCli
     llmAgentsPkgs.grok
     llmAgentsPkgs.hunk
-    llmAgentsPkgs.herdr
-    llmAgentsPkgs.hermes-agent
+    # Vendored libghostty-vt requires Zig 0.16, not the default 0.17.
+    (llmAgentsPkgs.herdr.override {zig = zig_0_16;})
+    hermesCli
     llmAgentsPkgs.opencode
-    llmAgentsPkgs.pi
-    llmAgentsPkgs.rtk
+    (llmAgentsPkgs.pi.override {inherit bun;})
+    rtkCli
   ]
   ++ lib.optionals enableSourceBuiltTools [
     mise

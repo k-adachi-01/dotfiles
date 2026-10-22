@@ -13,7 +13,10 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # Security fixes must not wait for the unstable channel promotion.
+    nixpkgs.url = "github:NixOS/nixpkgs/master";
+    # Reuse the installed build toolchain for targeted security rebuilds.
+    nixpkgs-build.url = "github:NixOS/nixpkgs/39ad350a0602fa0a58a544344e3e9187526ea45c";
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager/master";
@@ -59,6 +62,7 @@
     linuxPkgs = import nixpkgs {
       system = linuxSystem;
       config.allowUnfree = true;
+      overlays = [(import ./nix/security-overlay.nix {inherit (inputs) nixpkgs-build;})];
     };
   in {
     darwinConfigurations.macbook = nix-darwin.lib.darwinSystem {

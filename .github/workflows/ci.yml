@@ -16,22 +16,26 @@ jobs:
     name: alejandra / statix / deadnix
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: DeterminateSystems/nix-installer-action@v22
+      - uses: actions/checkout@v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@v23
+      - name: Select locked nixpkgs
+        run: echo "NIXPKGS_REF=github:NixOS/nixpkgs/$(jq -r ' .nodes[.nodes.root.inputs.nixpkgs].locked.rev' flake.lock)" >> "$GITHUB_ENV"
       - name: alejandra --check
-        run: nix run nixpkgs#alejandra -- --check .
+        run: nix run "$NIXPKGS_REF#alejandra" -- --check .
       - name: statix check
-        run: nix run nixpkgs#statix -- check .
+        run: nix run "$NIXPKGS_REF#statix" -- check .
       - name: deadnix
-        run: nix run nixpkgs#deadnix -- --fail .
+        run: nix run "$NIXPKGS_REF#deadnix" -- --fail .
 
   secrets:
     name: gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
-      - uses: DeterminateSystems/nix-installer-action@v22
+      - uses: DeterminateSystems/nix-installer-action@v23
+      - name: Select locked nixpkgs
+        run: echo "NIXPKGS_REF=github:NixOS/nixpkgs/$(jq -r ' .nodes[.nodes.root.inputs.nixpkgs].locked.rev' flake.lock)" >> "$GITHUB_ENV"
       - name: gitleaks detect
-        run: nix run nixpkgs#gitleaks -- detect --source . --config .gitleaks.toml --redact -v
+        run: nix run "$NIXPKGS_REF#gitleaks" -- detect --source . --config .gitleaks.toml --redact -v
