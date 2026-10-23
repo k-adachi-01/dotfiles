@@ -55,10 +55,18 @@
               "-c"
             ]) ["git" "/usr/bin/git"];
       };
-      # Turn-end guard shared with Codex/Kiro: on Stop the script emits a
-      # block decision once per turn, so the agent gets one pass to update
-      # related docs / Linear issues before finishing. stop_hook_active in
-      # the stdin payload keeps it from looping.
+      # Record HEAD at prompt submission; only new commits trigger Stop.
+      hooks.UserPromptSubmit = [
+        {
+          hooks = [
+            {
+              type = "command";
+              command = "bash \"$HOME/bin/agent-task-finish-guard\" begin";
+              timeout = 10;
+            }
+          ];
+        }
+      ];
       hooks.Stop = [
         {
           matcher = "";

@@ -20,6 +20,19 @@
         "bash"
         "${config.home.homeDirectory}/.codex/notify.sh"
       ];
+      # Keep this event in config.toml: hooks.json's UserPromptSubmit is
+      # app-owned (reason-network). Codex loads both hook sources together.
+      hooks.UserPromptSubmit = [
+        {
+          hooks = [
+            {
+              type = "command";
+              command = "bash \"$HOME/bin/agent-task-finish-guard\" begin";
+              timeout = 10;
+            }
+          ];
+        }
+      ];
       mcp_servers.linear.url = linearMcpUrl;
       mcp_servers.aws-sandbox = shared.awsMcpServers.aws-sandbox;
       mcp_servers.aws-app = shared.awsMcpServers.aws-app;

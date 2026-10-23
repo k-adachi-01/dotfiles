@@ -1,41 +1,41 @@
 #!/bin/sh
-# Shared turn-end guard used by the Stop hooks of Devin, Codex and Kiro.
-#
-# Reads the hook event JSON on stdin and prints
-#   {"decision":"block","reason":"<instruction>"}
-# at most once per user turn. The harness turns `reason` into a new user
-# prompt, so the agent gets one extra pass to update related docs / Linear
-# issues before it is allowed to finish.
-#
-# Modes:
-#   agent-task-finish-guard         stop-hook mode (default)
-#   agent-task-finish-guard clear   clears the per-session marker (Kiro
-#                                   UserPromptSubmit companion hook)
+# Shared commit-boundary guard for Devin, Codex, Kiro and Pi.
+# UserPromptSubmit calls "begin" to record HEAD. Stop requests one review
+# only when new commits were added during the turn. State is runtime-only.
 set -eu
 
 input=$(cat || true)
-
 session=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null || true)
-cwdkey=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null | cksum | cut -d' ' -f1)
-marker="${TMPDIR:-/tmp}/agent-task-finish-guard-${session:-anon}-${cwdkey}"
+cwd=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null || true)
+[ -n "$session" ] && [ -n "$cwd" ] || exit 0
+cd "$cwd" 2>/dev/null || exit 0
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+head=$(git rev-parse --verify HEAD 2>/dev/null || printf 'unborn')
+key=$(printf '%s\n%s\n' "$session" "$root" | cksum | cut -d' ' -f1)
+state_dir="${TMPDIR:-/tmp}/agent-task-finish-guard-$(id -u)"
+umask 077
+mkdir -p "$state_dir" 2>/dev/null || exit 0
+marker="$state_dir/$key"
 
-if [ "${1:-}" = "clear" ]; then
-  rm -f "$marker"
-  exit 0
-fi
+case "${1:-}" in
+  begin|clear)
+    # "clear" supports Kiro sessions that still loaded the old hook file.
+    printf '%s\n' "$head" > "$marker"
+    exit 0
+    ;;
+esac
 
-if printf '%s' "$input" | jq -e 'has("stop_hook_active")' >/dev/null 2>&1; then
-  # Devin / Codex: the harness sets stop_hook_active=true when a stop hook
-  # already continued this turn; let the agent stop then.
-  printf '%s' "$input" | jq -e '.stop_hook_active' >/dev/null 2>&1 && exit 0
-else
-  # Kiro does not send stop_hook_active; allow one continuation per user
-  # prompt via a marker cleared by the UserPromptSubmit companion hook.
-  [ -e "$marker" ] && exit 0
-  touch "$marker"
+printf '%s' "$input" | jq -e '.stop_hook_active == true' >/dev/null 2>&1 && exit 0
+[ -f "$marker" ] || exit 0
+before=$(cat "$marker")
+# Consume before continuing: documentation follow-up commits cannot loop.
+rm -f "$marker"
+[ "$head" != unborn ] && [ "$before" != "$head" ] || exit 0
+if [ "$before" != unborn ]; then
+  git merge-base --is-ancestor "$before" "$head" 2>/dev/null || exit 0
 fi
 
 jq -n '{
   decision: "block",
-  reason: "終了する前に確認してください: このタスクの作業内容に関連するドキュメント(repo 内の docs/, README, AGENTS.md など)があれば最新の状態に更新してください。また、ブランチ名や会話中に登場した issue ID(K-123 など)に対応する Linear issue があれば、Linear MCP ツールでステータスやコメントを更新してください。どちらも該当しない場合は、そのまま終了して構いません。"
+  reason: "commitの節目なので、共有すべき変更がある場合だけ反映してください。ドキュメントは、仕様・使い方・運用手順が変わり、既存の説明が古くなる箇所だけ更新してください。作業ログや軽微な修正の記録は追加しないでください。Linearは、この作業に直接対応するissueがあり、完了・ブロック・重要な方針変更など共有すべき変化がある場合だけ更新してください。issue IDが会話やブランチ名にあるだけでは更新せず、細かな進捗や既出の内容を重複してコメントしないでください。必要な更新が済んでいる場合や該当する変更がない場合は、そのまま終了してください。"
 }'

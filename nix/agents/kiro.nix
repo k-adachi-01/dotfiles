@@ -83,9 +83,8 @@ in {
     # write to them. Keep ~/.kiro/powers/ as a real directory because Kiro
     # maintains its own registries there; link each package file to the repo.
     file = {
-      # Global Stop hook (turn-end guard): one extra pass to update related
-      # docs / Linear issues, shared script with Devin and Codex. The
-      # UserPromptSubmit companion entry re-arms the marker each prompt.
+      # Record HEAD on UserPromptSubmit; Stop reviews material changes only
+      # after new commits, using the shared guard with Devin/Codex/Pi.
       ".kiro/hooks/task-finish-guard.json".source = mkLink "home/agents/kiro/hooks/task-finish-guard.json";
 
       ".kiro/powers/stripe/plugin.json".source = mkLink "home/agents/kiro/powers/stripe/plugin.json";

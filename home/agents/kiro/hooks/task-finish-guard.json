@@ -3,7 +3,7 @@
   "hooks": [
     {
       "name": "task-finish-guard",
-      "description": "At turn end, give the agent one pass to update related docs and Linear issues before it stops.",
+      "description": "After new commits, review only material documentation and issue changes.",
       "trigger": "Stop",
       "action": {
         "type": "command",
@@ -12,12 +12,12 @@
       "timeout": 30
     },
     {
-      "name": "task-finish-guard-reset",
-      "description": "Clear the task-finish-guard marker so the next user prompt gets one continuation again.",
+      "name": "task-finish-guard-begin",
+      "description": "Record HEAD before work so Stop only requests a review after new commits.",
       "trigger": "UserPromptSubmit",
       "action": {
         "type": "command",
-        "command": "bash \"$HOME/bin/agent-task-finish-guard\" clear"
+        "command": "bash \"$HOME/bin/agent-task-finish-guard\" begin"
       },
       "timeout": 10
     }

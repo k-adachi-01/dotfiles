@@ -31,16 +31,24 @@ Claude Code / Codex / Cursor / Kiro / Devin はいずれも「アプリ本体が
 
 | ツール | クラスA (merge) | クラスB (out-of-store link) | クラスC (管理外) |
 |---|---|---|---|
-| Codex | `config.toml`（`approval_policy`/`approvals_reviewer`/`sandbox_mode`/`personality`/`notice`/`tui`/`plugins`/`features`/`desktop` 等の管理キーのみ宣言）, `hooks.json`（`hooks.Stop` のみ宣言。herdr 所有の `SessionStart` 等、宣言外イベントの hook 配列は deep-merge で温存） | `AGENTS.md`, `gemini.config.toml`, `bedrock.config.toml`, `deepseek.config.toml`, `rules/default.rules`, `notify.sh`, `keybindings.json` | `auth.json`, `history.jsonl`, `sessions/`, `*.sqlite*`, `cache/`, `.tmp/`, `[projects.*]`, `[marketplaces.*]` |
+| Codex | `config.toml`（`approval_policy`/`approvals_reviewer`/`sandbox_mode`/`personality`/`notice`/`tui`/`plugins`/`features`/`desktop` 等の管理キーのみ宣言）, `hooks.json`（`hooks.Stop` のみ宣言。`config.toml` の `hooks.UserPromptSubmit` と併用。herdr 所有の `SessionStart` 等、宣言外イベントの hook 配列は deep-merge で温存） | `AGENTS.md`, `gemini.config.toml`, `bedrock.config.toml`, `deepseek.config.toml`, `rules/default.rules`, `notify.sh`, `keybindings.json` | `auth.json`, `history.jsonl`, `sessions/`, `*.sqlite*`, `cache/`, `.tmp/`, `[projects.*]`, `[marketplaces.*]` |
 | Claude Code | `settings.json`, `.mcp.json`, `keybindings.json` | `AGENTS.md`, `CLAUDE.md`, `statusline.py`, `notify-done.sh` | `.credentials.json`, `projects/`, `statsig/` |
 | Cursor | `cli-config.json`（`hasChangedDefaultModel` 等アプリ状態が書かれる）, `mcp.json` | `AGENTS.md`, `statusline.sh` | `chats/`, `projects/`, `worktrees/` |
 | Kiro | `settings/cli.json`, `settings/mcp.json`, `settings/kiro_cli_theme.json`, `settings/permissions.yaml`（全許可 + 明示的な破壊操作の deny） | Agent Plugins形式のPower一式（`plugin.json`, `mcp.json`, `skills/**`, `dev.kiro/steering/**`）, `hooks/task-finish-guard.json`（グローバル Stop hook。`~/.kiro/hooks/` ディレクトリ自体は実体のまま） | Power登録manifest (`powers.json`), 旧Power MCPカタログ (`powers.mcp.json`), `sessions/`, `logs/`, `.cli_bash_history`, `settings/feed_state.json`, `settings/survey_state.json` |
-| Devin | `~/.config/devin/config.json`（`permissions.allow`・`deny`・`ask` と `hooks.Stop` を宣言） | —（共有 skills は既存の `~/.agents/skills` を参照） | 組織ID・初期設定状態・認証・履歴・セッション・ログ・configバックアップ |
-| Pi | `~/.pi/agent/settings.json`（telemetry と共有 skills のパスのみ宣言） | `~/.pi/agent/AGENTS.md`, `~/.pi/agent/extensions/task-finish.ts`（`agent_before_settle` で継続を1回要求する turn-end guard） | `auth.json`、sessions、cache、その他の extensions、packages、backups、モデル選択などの宣言外設定 |
+| Devin | `~/.config/devin/config.json`（`permissions.allow`・`deny`・`ask` と `hooks.UserPromptSubmit` / `hooks.Stop` を宣言） | —（共有 skills は既存の `~/.agents/skills` を参照） | 組織ID・初期設定状態・認証・履歴・セッション・ログ・configバックアップ |
+| Pi | `~/.pi/agent/settings.json`（telemetry と共有 skills のパスのみ宣言） | `~/.pi/agent/AGENTS.md`, `~/.pi/agent/extensions/task-finish.ts`（commitができたターンだけ `agent_before_settle` で継続を1回要求するguard） | `auth.json`、sessions、cache、その他の extensions、packages、backups、モデル選択などの宣言外設定 |
 | DeepSeek Harness | —（モデル・プロバイダー設定はアプリで管理） | — | 認証、設定、workspaces、plugins、sessions、ログ、その他ランタイムデータ |
 | Antigravity CLI (agy) | `~/.gemini/antigravity-cli/settings.json`（`permissions.allow`・`deny`・`ask` を宣言） | —（共有 skills は `programs.agent-skills` の `targets.antigravity-cli` が `~/.gemini/antigravity-cli/skills` へ配布） | `trustedWorkspaces`, `allowNonWorkspaceAccess`, `colorScheme`, `brain/`, `conversations/`, `cache/`, `log/` などランタイム状態・settingsバックアップ |
 | Kiro Crew | — | — | `~/.kiro/crew/**` 全体（`config.json`、sessions、gateway 状態はアプリ所有のランタイム）。ハーネス検出用の `~/.local/bin/{codex-acp,pi-acp,pi}` も repo 管理外の手動 provision（下記「Kiro Crew の agent harness」参照） |
 | Agent Skills | — (`programs.agent-skills` モジュール経由の rsync) | — | — |
+
+### ドキュメント・Linearの確認はcommitの節目に限定する
+
+Devin・Codex・Kiro・Piは、ユーザー入力の受付時にHEADを記録し、ターン終了時に新しいcommitができていた場合だけ、必要な更新を1回確認する。commitしていない編集や調査、質問への回答では確認しない。Git管理外、開始時の記録がない場合、HEADが変わらない場合や別ブランチへ切り替えただけで元のHEADの子孫にならない場合も確認しない。最初のcommitを作るターンにも対応する。セッション・リポジトリ別の状態はTMPDIRに置くクラスCで、確認を出す前に消費するため、追加のcommitでもループしない。
+
+更新するのは、仕様・使い方・運用手順が変わって古くなった説明と、この作業に直接対応するissueの完了・ブロック・重要な方針変更だけ。作業ログや細かな進捗、同じ内容のコメントは追加しない。issue IDが会話やブランチ名にあるだけでは更新しない。必要な更新が済んでいればそのまま終了する。ユーザーが明示的に更新を依頼した場合は、その依頼に従う。
+
+Codexでは `hooks.json` の `UserPromptSubmit` をreason-networkが使うため、開始時の記録だけを `config.toml` のinline hookに宣言する。公式仕様に従って両ソースを併用し、既存のhook配列を置き換えない。併用時はCodexが起動時に警告を出すことがある。新しいhook定義は `/hooks` でtrustしてから利用する。Piのextension変更は再読み込みまたは再起動で反映する。
 
 ## 3. 移行状況（この表は各PRの完了時に更新する）
 
