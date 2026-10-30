@@ -50,3 +50,7 @@ experimental_use_rmcp_client = true
 
 [desktop]
 followUpQueueMode = "queue"
+
+[mcp_servers.finance_vault]
+url = "https://finance-vault-mcp.adachi-mte-b516e5.workers.dev/mcp"
+enabled_tools = ["get_identity", "list_transactions", "get_transaction", "update_transaction", "create_transaction"]
