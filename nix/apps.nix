@@ -29,6 +29,7 @@
       "ghostty"
       "google-chrome"
       "grok-bot"
+      "herdr-app"
       "obsidian"
       "orbstack"
       "raycast"

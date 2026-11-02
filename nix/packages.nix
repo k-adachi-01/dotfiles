@@ -464,6 +464,7 @@ with pkgs; let
 in
   [
     awscli2
+    (callPackage ./pkgs/herdr-core.nix {})
     azure-cli
     alejandra
     antigravity-cli
