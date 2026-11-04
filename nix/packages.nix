@@ -469,6 +469,7 @@ in
     alejandra
     antigravity-cli
     bat
+    bitwarden-cli
     bwsCli
     bun
     cmake
