@@ -7,7 +7,7 @@ Pi の Web 検索は、ローカルの RustXNG を第一候補にし、使えな
 | 要素 | 管理場所 | 内容 |
 |---|---|---|
 | `rustxng` バイナリ | `nix/pkgs/rustxng.nix` | v0.27.1 のリリース成果物を checksum 付きで固定。ソースビルドはしない |
-| 常駐 | `nix/launchd.nix` | `com.adachi.rustxng` がログイン時に `127.0.0.1:29483` で起動。異常終了時のみ再起動 |
+| 常駐 | `nix/launchd.nix` | `com.adachi.rustxng`（ジョブ label は `org.nix-community.home.com.adachi.rustxng`）がログイン時に `127.0.0.1:29483` で起動。異常終了時のみ再起動 |
 | 検索ルーティング | `nix/agents/pi.nix` → `~/.pi/agent/web-search.json` | SearXNG 互換 API を先に、失敗種別に応じて OpenAI へ |
 | Pi 拡張 | ローカル（`pi install`） | `npm:pi-web-access@0.46.0` を `~/.pi/agent/npm` に導入 |
 
@@ -19,7 +19,10 @@ Pi の Web 検索は、ローカルの RustXNG を第一候補にし、使えな
 pi install npm:pi-web-access@0.46.0   # 拡張の導入（1 回だけ）
 sudo darwin-rebuild switch --flake ~/.config/nix-darwin#macbook
 curl -s http://127.0.0.1:29483/healthz   # OK が返れば RustXNG は起動済み
+launchctl print gui/$(id -u)/org.nix-community.home.com.adachi.rustxng | head -5
 ```
+
+home-manager はジョブの label に `org.nix-community.home.` を前置する。`launchctl` ではこの label を使う（plist も同名で `~/Library/LaunchAgents/` に作られる）。
 
 ## 動作確認
 
