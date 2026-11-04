@@ -55,6 +55,8 @@ RustXNG を上げるときは `nix/pkgs/rustxng.nix` の `version` と 5 つの�
 
 ## 注意
 
+- OpenAI フォールバックは無制限ではない。ChatGPT サブスク認証の再利用には共有利用上限があり、検証中に `subscription_sharing_usage_limit_exceeded` で止まった。上限中は RustXNG が唯一の検索経路になるので、常駐させている。
+- 両方失敗すると `web_search` はエラーを返す（`Configured search routing exhausted: ...`）。その場合は agent-browser で目的のサイトを直接開く。
 - RustXNG は上流の検索エンジンを叩く。上流が CAPTCHA や 429 を返すと品質が落ちる（検証時は 23 エンジンが unresponsive でも 1 位を維持した）。落ちたときは OpenAI フォールバックが働く。
 - ループバック限定で動かす。`--bind` は変えない。
 - agent-browser は検索には使わない。JS レンダリングやログインが必要なページ閲覧にだけ使う。
