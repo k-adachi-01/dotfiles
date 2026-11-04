@@ -27,6 +27,8 @@ with pkgs; let
     # wrapper, subprocess and CLI checks when relaxing the metadata.
     pythonRelaxDeps = (old.pythonRelaxDeps or []) ++ ["prompt_toolkit" "prompt-toolkit" "markdown"];
   });
+  # Local search backend for Pi (K-373): SearXNG-compatible, loopback only.
+  rustxng = callPackage ./pkgs/rustxng.nix {};
   securityRustPlatform =
     (import inputs.nixpkgs-build {
       inherit system;
@@ -507,6 +509,7 @@ in
     python313
     procs
     ripgrep
+    rustxng
     sd
     sops
     shellcheck

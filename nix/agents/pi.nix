@@ -22,11 +22,29 @@
     dest = "$HOME/.pi/agent/settings.json";
     label = "pi-settings";
   };
+  # Web search routing (K-373): local RustXNG first, OpenAI (ChatGPT
+  # subscription) only when RustXNG is down, empty, or blocked upstream.
+  webSearchEntry = {
+    format = "json";
+    value = {
+      searxngBaseUrl = "http://127.0.0.1:29483";
+      searchRouting = {
+        providers = ["searxng" "openai"];
+        fallbackOn = ["transient" "quota" "network" "invalid-response" "empty"];
+      };
+    };
+    dest = "$HOME/.pi/agent/web-search.json";
+    label = "pi-web-search";
+  };
 in {
-  dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand [settingsEntry];
+  dotfilesAgents.classAMerges = map agentsLib.mkDiffCommand [settingsEntry webSearchEntry];
 
   home.activation.mergePiSettings = lib.hm.dag.entryAfter ["writeBoundary"] (
     agentsLib.mkMergeActivation (settingsEntry // {backupDir = "$HOME/.pi/agent/backups";})
+  );
+
+  home.activation.mergePiWebSearch = lib.hm.dag.entryAfter ["mergePiSettings"] (
+    agentsLib.mkMergeActivation (webSearchEntry // {backupDir = "$HOME/.pi/agent/backups";})
   );
 
   home.file.".pi/agent/AGENTS.md".source = mkLink "home/ai/AGENTS.md";
