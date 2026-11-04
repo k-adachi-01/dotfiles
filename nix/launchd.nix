@@ -29,6 +29,7 @@ in
     # Local search backend for Pi (K-373). Loopback only; Pi falls back to
     # the OpenAI subscription search when this process is not running.
     launchd.agents."com.adachi.rustxng" = {
+      enable = true;
       config = {
         ProgramArguments = [(lib.getExe rustxng) "--bind" "127.0.0.1" "--port" "29483"];
         RunAtLoad = true;
