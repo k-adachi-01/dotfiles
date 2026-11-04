@@ -30,6 +30,7 @@ This repository used to be a chezmoi source tree. The target state is now:
 | `docs/nix-management-inventory.md` | detailed inventory of remaining Nix candidates and intentional exclusions |
 | `docs/nix-migration-plan.md` | phased migration plan with per-step verification (companion to the inventory) |
 | `docs/nix-migration-audit.md` | migration audit log (phase 0–2 findings) |
+| `docs/web-search-routing.md` | Pi web search routing: local RustXNG first, OpenAI fallback (setup, verification, updates) |
 | `.gitleaks.toml` | secret-scanning config (extends gitleaks defaults, allowlists Nix SRI hashes) |
 | `statix.toml` | statix lint config for this repo |
 | `.github/workflows/ci.yml` | CI: lint (alejandra/statix/deadnix) + secret scan (gitleaks) on push/PR |
