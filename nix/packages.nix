@@ -556,6 +556,9 @@ in
     mise
     playwrightCli
   ]
+  ++ lib.optionals (system == "aarch64-darwin") [
+    (callPackage ./pkgs/agent-desktop.nix {})
+  ]
   ++ lib.optionals isDarwin [
     # The node_modules FOD hash below is platform-specific (pnpm installs
     # optional deps for the build platform only). To support Linux, build
