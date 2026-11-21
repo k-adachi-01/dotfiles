@@ -15,6 +15,8 @@
   inputs = {
     # Security fixes must not wait for the unstable channel promotion.
     nixpkgs.url = "github:NixOS/nixpkgs/master";
+    # Retain the installed Devin derivation while its upstream artifact returns 403.
+    nixpkgs-devin.url = "github:NixOS/nixpkgs/5f239bb3ce14be4f7c8e91962348df827900a7fe";
     # Reuse the installed build toolchain for targeted security rebuilds.
     nixpkgs-build.url = "github:NixOS/nixpkgs/39ad350a0602fa0a58a544344e3e9187526ea45c";
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";

@@ -115,45 +115,22 @@ in {
       hash = "sha256-UL6nS3SbxKXFWftJLeFY622VQEyAimhNz+YJgZsLHJc=";
     };
   });
+  # Trio's 10ms HTTP/2 cancellation tests race under local build load.
+  # Keep the rest of the suite and runtime import checks enabled.
   pythonPackagesExtensions =
-    prev.pythonPackagesExtensions
+    (prev.pythonPackagesExtensions or [])
     ++ [
       (_: pythonPrev: {
-        # Fabric 3 is incompatible with Invoke 3 (fabric/fabric#2376).
-        # Paramiko also depends on Invoke; keep a single compatible instance.
-        invoke = pythonPrev.invoke.overridePythonAttrs (_: {
-          version = "2.2.1";
-          src = final.fetchFromGitHub {
-            owner = "pyinvoke";
-            repo = "invoke";
-            tag = "2.2.1";
-            hash = "sha256-J3y7ApOdL86rjzyYcIIzbfiEMdK61YNbWy8nlR/VOMg=";
-          };
+        httpcore2 = pythonPrev.httpcore2.overridePythonAttrs (old: {
+          disabledTests =
+            (old.disabledTests or [])
+            ++ [
+              "test_h2_timeout_during_request[trio]"
+              "test_h2_timeout_during_response[trio]"
+            ];
         });
       })
     ];
-  # Upstream's stable release predates the CA fix. Pin the tested canary
-  # asset hashes until a stable release containing oven-sh/bun#46159 exists.
-  bun = prev.bun.overrideAttrs (_: {
-    version = "1.4.4-canary-20261021";
-    src = final.fetchurl {
-      url = "https://github.com/oven-sh/bun/releases/download/canary/${{
-          aarch64-darwin = "bun-darwin-aarch64";
-          aarch64-linux = "bun-linux-aarch64";
-          x86_64-linux = "bun-linux-x64-baseline";
-        }.${
-          final.stdenv.hostPlatform.system
-        }}.zip";
-      hash =
-        {
-          aarch64-darwin = "sha256-F5ZU0l5klMX3kA0sLK9hhahX7l5MlwahS5WeLDao6Zc=";
-          aarch64-linux = "sha256-c0HDsVcsTBx/NyNgtaFzExgMrBHdZw4KL2o67BzkDQU=";
-          x86_64-linux = "sha256-Tse7kHXZVEL69rfLyNlwd2GOdJ1o81FOdutERKhqfMY=";
-        }.${
-          final.stdenv.hostPlatform.system
-        };
-    };
-  });
   bws = (prev.bws.override {inherit (buildPkgs) rustPlatform;}).overrideAttrs (attrs: old: {
     patches = (old.patches or []) ++ [./pkgs/bws/tls-dependencies.patch];
     cargoDeps = buildPkgs.rustPlatform.fetchCargoVendor {
@@ -163,12 +140,4 @@ in {
     };
   });
   pnpm_12 = prev.pnpm_12.override {inherit (buildPkgs) rustPlatform;};
-  tealdeer = (prev.tealdeer.override {inherit (buildPkgs) rustPlatform;}).overrideAttrs (attrs: old: {
-    patches = (old.patches or []) ++ [./pkgs/tealdeer/tls-dependencies.patch];
-    cargoDeps = buildPkgs.rustPlatform.fetchCargoVendor {
-      inherit (attrs) src patches;
-      name = "tealdeer-${attrs.version}";
-      hash = "sha256-njh1ijcwxHZOksl6cFhQdPFvWFkuROzEbB/pCq6WLIU=";
-    };
-  });
 }

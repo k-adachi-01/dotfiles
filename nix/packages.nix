@@ -40,7 +40,7 @@ with pkgs; let
       inherit (attrs) src patches;
       sourceRoot = "source/cli";
       name = "agent-browser-${attrs.version}";
-      hash = "sha256-qhM2sNGTKvgPMOiE/2U0FVRXDqB4DHaIgYRRmJ+dwqo=";
+      hash = "sha256-ghreYhTRO+M7cmbEFOozbyyX833LKvBHdXhmTycHALk=";
     };
   });
   rtkCli = (llmAgentsPkgs.rtk.override {rustPlatform = securityRustPlatform;}).overrideAttrs (attrs: old: {
@@ -48,7 +48,7 @@ with pkgs; let
     cargoDeps = securityRustPlatform.fetchCargoVendor {
       inherit (attrs) src patches;
       name = "rtk-${attrs.version}";
-      hash = "sha256-VI0j8P93ZoFigtrwFGFGPXDoA2Ovd0NDoF4i44tegIM=";
+      hash = "sha256-7K3KXakanei3+ersbSeI6P361MdndFKnb12q5qZXO0Y=";
     };
   });
   # DSH's native loader inspects V8 machine code. Nix-built Node on Apple
@@ -187,7 +187,11 @@ with pkgs; let
       mainProgram = "playwright-cli";
     };
   };
-  devinCli = stdenvNoCC.mkDerivation rec {
+  devinPkgs = import inputs.nixpkgs-devin {
+    inherit system;
+    config.allowUnfree = true;
+  };
+  devinCli = devinPkgs.stdenvNoCC.mkDerivation rec {
     pname = "devin-cli";
     version = "3000.11.92";
 
@@ -415,7 +419,8 @@ with pkgs; let
         mainProgram = "cf";
       };
     };
-  macismCliOnly = macism.overrideAttrs (oldAttrs: {
+  # macism is unchanged; reuse its installed Swift toolchain instead of rebuilding Swift.
+  macismCliOnly = devinPkgs.macism.overrideAttrs (oldAttrs: {
     postInstall =
       (oldAttrs.postInstall or "")
       + ''
@@ -545,8 +550,7 @@ in
     dshCli
     llmAgentsPkgs.grok
     llmAgentsPkgs.hunk
-    # Vendored libghostty-vt requires Zig 0.16, not the default 0.17.
-    (llmAgentsPkgs.herdr.override {zig = zig_0_16;})
+    llmAgentsPkgs.herdr
     hermesCli
     llmAgentsPkgs.opencode
     (llmAgentsPkgs.pi.override {inherit bun;})
