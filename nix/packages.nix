@@ -119,13 +119,13 @@ with pkgs; let
     then
       stdenvNoCC.mkDerivation rec {
         pname = "codex";
-        version = "0.162.1";
+        version = "0.171.0";
         src = fetchurl {
           url = "https://github.com/openai/codex/releases/download/rust-v${version}/codex-package-${stdenv.hostPlatform.rust.rustcTarget}.tar.gz";
           sha256 =
             {
-              aarch64-darwin = "sha256-iON8zd9aD06p3BvhPGaiqU+cLRoE86zpBT1xs5OeiF0=";
-              x86_64-darwin = "sha256-iUrCCv6BnU+ipL6M0nxU/WBjOLhgNujtm2yZeMLceu0=";
+              aarch64-darwin = "sha256-WMiAMuxEbnKSLZEdjwN3MQLaIMFqYFnPIfZ0S85X8hA=";
+              x86_64-darwin = "sha256-3RMOoyF7Tm/kRUyZlJ4LKOLoqa2NqMOnXwxyZfq3FTs=";
             }.${
               system
             };
