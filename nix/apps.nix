@@ -34,6 +34,7 @@
       "orbstack"
       "raycast"
       "slack"
+      "t3-code"
       "zed"
       {
         name = "wezterm";
