@@ -185,7 +185,7 @@ in {
             _cdx-gateway() {
               local gateway_profile="$1"
               shift
-              local bws_secret_name="260911_AI_GATEWAY_API_KEY"
+              local bws_secret_name="261031_AI_GATEWAY_KEY"
               local bws_token key
               bws_token="$(security find-generic-password -s bws-access-token -w 2>/dev/null)" || {
                 print -u2 "cdx-$gateway_profile: could not read bws-access-token from Keychain"
