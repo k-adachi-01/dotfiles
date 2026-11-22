@@ -23,6 +23,12 @@
 - **ツールバージョン**: project-local `flake.nix` + `nix develop` を優先する。既存の `.mise.toml` は Nix devShell 移行までの暫定互換として扱い、mise を新しい長期運用の前提にしない。
 - **GitHub Actions**: `pnpm install --frozen-lockfile` と `pnpm exec` / `pnpm run` を使う。
 
+## ブラウザ・デスクトップ操作
+
+- Web ページの閲覧・操作・抽出は `agent-browser` を使う。実行前に `agent-browser skills get core` を読み、`agent-browser session id` で自前のセッションを取る。他のブラウザ自動化ライブラリや単なる HTTP fetch で代用しない。
+- ネイティブなデスクトップアプリ・OS UI（Finder、System Settings、メニューバー、ダイアログ）は `agent-desktop` を使う。実行前に `agent-desktop permissions` を確認し、未許可ならユーザーに許可を依頼して止まる。
+- それぞれの詳細は `agent-browser` / `agent-desktop` skill にある。
+
 ## dotfiles 管理
 
 - **Nix/home-manager を使用する。chezmoi は使わない。**

@@ -41,6 +41,18 @@ prefix_rule(
         "/run/current-system/sw/bin/agent-browser snapshot",
     ],
 )
+prefix_rule(
+    pattern=["agent-desktop", "/run/current-system/sw/bin/agent-desktop"],
+    decision="allow",
+    justification="Allow all agent-desktop commands; desktop GUI observation and ref actions",
+    match=[
+        "agent-desktop status",
+        "agent-desktop permissions",
+        "agent-desktop snapshot -i --app Finder",
+        "agent-desktop click @s8f3k2p9:e12",
+        "/run/current-system/sw/bin/agent-desktop skills get desktop",
+    ],
+)
 prefix_rule(pattern=["container"], decision="allow")
 prefix_rule(pattern=["rg"], decision="allow")
 prefix_rule(pattern=["playwright-cli"], decision="allow")

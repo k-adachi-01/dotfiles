@@ -85,6 +85,7 @@
         "Bash(pnpm test *)"
         "Bash(vitest *)"
         "Bash(agent-browser *)"
+        "Bash(agent-desktop *)"
         "Bash(playwright-cli *)"
       ];
       deny = [

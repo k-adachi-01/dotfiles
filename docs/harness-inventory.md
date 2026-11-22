@@ -40,7 +40,8 @@ Linear: [K-210](https://linear.app/k-adachi-01/issue/K-210/)
 | `dotfiles-nix-maintenance/SKILL.md` | 全 agent | global | Skill | conditional | 348 行 |
 | `aws-sandbox-run/SKILL.md` | 全 agent | global | Skill | conditional | 279 行（+ scripts/）|
 | `herdr/SKILL.md` | 全 agent | global | Skill | conditional | 214 行 |
-| `browser-use/SKILL.md` | 全 agent | global | Skill | conditional | 193 行 |
+| `agent-browser/SKILL.md` | 全 agent | global | Skill | conditional | 112 行（公式 `skills get core` へのルーター）|
+| `agent-desktop/SKILL.md` | 全 agent | global | Skill | conditional | 116 行（公式 `skills get desktop`/`platform` へのルーター）|
 | `yomiyasu/SKILL.md` | 全 agent | global | Skill | conditional | 190 行 |
 | `drawio/SKILL.md` | 全 agent | global | Skill | conditional | 185 行 |
 | `natural-japanese/SKILL.md` | 全 agent | global | Skill | conditional | 138 行 |
@@ -167,7 +168,8 @@ Linear: [K-210](https://linear.app/k-adachi-01/issue/K-210/)
 | S-002 | `dotfiles-nix-maintenance` | dotfiles 保守 runbook: クラスA/B/C、NAR hash/PAT/path-input 落とし穴、skills-push workflow、commit+push |
 | S-003 | `skill-creator` | skill 作成・eval workflow（with_skill vs baseline 同時 spawn、assertions、timing 記録、viewer）|
 | S-004 | `herdr` | HERDR_ENV=1 確認 → `herdr` CLI で pane/agent 制御（CLI discovery 手順）|
-| S-005 | `browser-use` | agent-browser 既定、playwright-cli は診断系のみ、の使い分け表 |
+| S-005 | `agent-browser` | Web 操作の唯一のルート: Nix 管理 CLI・`skills get core` を先に読む・`session id` でセッション分離・実プロファイル/CHECKPOINT 制約 |
+| S-005b | `agent-desktop` | ネイティブ desktop GUI: 権限確認が先（macOS Accessibility）、snapshot/ref ループ、headless 既定、disposition 準拠の再試行 |
 | S-006 | `yomiyasu` | AI 臭い日本語の書き換えルール集（文末・論理・比喩等の詳細規則）|
 | S-007 | `natural-japanese` | 日本語執筆 workflow: quick/full モード、lint+レビュー工程、doctype references |
 | S-008 | `drawio` | drawio XML 生成 → export → open の手順、CLI 検出 |
@@ -329,7 +331,7 @@ C-001, C-002 / `.kiro/steering/{product,tech,structure}.md` / docs。→ **packa
 
 ### B-17: 単発ドメイン skill（重複なし、conditional load）
 
-S-003〜S-005, S-008〜S-012: skill-creator / herdr / browser-use / drawio / wezterm / bws / best-practices / grilling。各々独立した挙動、他 mechanism と非重複。
+S-003〜S-005b, S-008〜S-012: skill-creator / herdr / agent-browser / agent-desktop / drawio / wezterm / bws / best-practices / grilling。各々独立した挙動、他 mechanism と非重複。
 
 ---
 
