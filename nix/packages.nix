@@ -498,6 +498,7 @@ in
     gnumake
     gnupg
     google-cloud-sdk
+    (callPackage ./pkgs/google-colab-cli.nix {})
     husky
     httpie
     hyperfine

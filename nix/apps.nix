@@ -13,6 +13,7 @@
     brews = [
       "vercel"
     ];
+    taps = ["stablyai/orca"];
     casks = [
       "amazon-workspaces"
       "bitwarden"
@@ -25,6 +26,7 @@
       "grok-bot"
       "herdr-app"
       "obsidian"
+      "stablyai/orca/orca"
       "orbstack"
       "raycast"
       "slack"
