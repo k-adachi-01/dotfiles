@@ -34,8 +34,9 @@
         }
       ];
       mcp_servers.linear.url = linearMcpUrl;
-      mcp_servers.aws-sandbox = shared.awsMcpServers.aws-sandbox;
-      mcp_servers.aws-app = shared.awsMcpServers.aws-app;
+      mcp_servers.finance_vault.enabled = false;
+      mcp_servers.aws-sandbox = shared.awsMcpServers.aws-sandbox // {enabled = false;};
+      mcp_servers.aws-app = shared.awsMcpServers.aws-app // {enabled = false;};
     };
 
   configEntry = {
